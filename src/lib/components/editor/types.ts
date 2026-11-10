@@ -1,4 +1,7 @@
-export type ElementType = 'frame' | 'rectangle' | 'heading' | 'text' | 'button' | 'image' | 'badge';
+export type ElementType =
+	'frame' | 'rectangle' | 'heading' | 'text' | 'button' | 'link' | 'youtube' | 'image' | 'badge';
+
+export type SizingMode = 'fixed' | 'hug' | 'fill';
 
 export interface CanvasElement {
 	id: string;
@@ -10,10 +13,15 @@ export interface CanvasElement {
 	height: number;
 	rotation: number;
 
+	// Sizing Mode (Figma-style: Tetap / Ikuti Konten / Penuhi Kontainer)
+	widthMode?: SizingMode;
+	heightMode?: SizingMode;
+
 	// Content
 	content?: string;
 	src?: string;
 	alt?: string;
+	href?: string;
 
 	// Styling
 	fill: string;
@@ -40,6 +48,8 @@ export interface CanvasElement {
 	// State
 	locked?: boolean;
 	hidden?: boolean;
+	parentId?: string;
+	isDefault?: boolean;
 }
 
 export type ToolMode =

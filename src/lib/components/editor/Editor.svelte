@@ -4,6 +4,7 @@
 	import LeftSidebar from './LeftSidebar.svelte';
 	import Canvas from './Canvas.svelte';
 	import RightSidebar from './RightSidebar.svelte';
+	import BottomToolbar from './BottomToolbar.svelte';
 	import PublishModal from './PublishModal.svelte';
 
 	let { serverTimestamp, cfCountry }: { serverTimestamp?: string; cfCountry?: string } = $props();
@@ -26,6 +27,11 @@
 
 		<!-- Center Visual Canvas -->
 		<Canvas {editor} />
+
+		<!-- Floating Bottom Island Toolbar Dock -->
+		{#if !editor.isPreviewMode}
+			<BottomToolbar {editor} />
+		{/if}
 
 		<!-- Right Inspector Properties Panel -->
 		{#if !editor.isPreviewMode}

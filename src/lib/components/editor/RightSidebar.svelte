@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { EditorState } from './editorState.svelte';
-	import type { CanvasElement } from './types';
+	import type { CanvasElement, SizingMode } from './types';
 	import { AlignLeft, AlignCenter, AlignRight, Trash2, Copy } from 'lucide-svelte';
 
 	let { editor }: { editor: EditorState } = $props();
@@ -8,7 +8,7 @@
 	const el = $derived(editor.selectedElement);
 
 	const framePresets = [
-		{ label: 'Komputer / Desktop (1200 × 760)', w: 1200, h: 760 },
+		{ label: 'Komputer / Desktop (1280 px)', w: 1280, h: 480 },
 		{ label: 'Laptop MacBook (1440 × 900)', w: 1440, h: 900 },
 		{ label: 'Tablet iPad (768 × 900)', w: 768, h: 900 },
 		{ label: 'Smartphone (390 × 780)', w: 390, h: 780 }
@@ -16,7 +16,15 @@
 
 	function applyPreset(w: number, h: number) {
 		editor.frame.width = w;
-		editor.frame.height = h;
+		const defaultFb = editor.elements.find(
+			(item) => item.isDefault || item.id === 'flexbox-default'
+		);
+		if (defaultFb) {
+			defaultFb.width = w;
+			editor.frame.height = defaultFb.height;
+		} else {
+			editor.frame.height = h;
+		}
 	}
 
 	const shadowPresets = [
@@ -46,14 +54,18 @@
 				>
 					{el.type}
 				</span>
-				<input
-					type="text"
-					value={el.name}
-					oninput={(e) => {
-						editor.updateElement(el.id, { name: (e.target as HTMLInputElement).value });
-					}}
-					class="-mx-1 rounded bg-transparent px-1 font-medium text-white focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-				/>
+				{#if el.isDefault || el.id === 'flexbox-default'}
+					<span class="px-1 font-medium text-white select-none">Container</span>
+				{:else}
+					<input
+						type="text"
+						value={el.name}
+						oninput={(e) => {
+							editor.updateElement(el.id, { name: (e.target as HTMLInputElement).value });
+						}}
+						class="-mx-1 rounded bg-transparent px-1 font-medium text-white focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
+					/>
+				{/if}
 			</div>
 			<div class="flex items-center gap-1">
 				<button
@@ -63,13 +75,15 @@
 				>
 					<Copy class="h-3.5 w-3.5" />
 				</button>
-				<button
-					onclick={() => editor.deleteElement(el.id)}
-					class="rounded p-1 text-red-400 hover:bg-red-500/20 hover:text-red-300"
-					title="Hapus Elemen"
-				>
-					<Trash2 class="h-3.5 w-3.5" />
-				</button>
+				{#if !el.isDefault && el.id !== 'flexbox-default'}
+					<button
+						onclick={() => editor.deleteElement(el.id)}
+						class="rounded p-1 text-red-400 hover:bg-red-500/20 hover:text-red-300"
+						title="Hapus Elemen"
+					>
+						<Trash2 class="h-3.5 w-3.5" />
+					</button>
+				{/if}
 			</div>
 		</div>
 
@@ -77,65 +91,156 @@
 		<div class="flex-1 space-y-5 overflow-y-auto p-4">
 			<!-- Position & Size -->
 			<div>
-				<div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
-					Posisi & Ukuran
+				<div
+					class="mb-2 flex items-center justify-between text-[11px] font-semibold tracking-wider text-neutral-400 uppercase"
+				>
+					<span>Posisi & Ukuran</span>
+					{#if el.isDefault || el.id === 'flexbox-default'}
+						<span class="text-[10px] font-normal text-[#0d99ff] lowercase">(penuh di atas)</span>
+					{:else if el.parentId}
+						<span class="text-[10px] font-normal text-[#0d99ff] lowercase">(di dalam flexbox)</span>
+					{/if}
 				</div>
-				<div class="grid grid-cols-2 gap-2">
-					<div
-						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
-					>
-						<span class="font-mono text-neutral-500">X</span>
-						<input
-							type="number"
-							value={el.x}
-							oninput={(e) =>
-								editor.updateElement(el.id, { x: +(e.target as HTMLInputElement).value })}
-							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
-						/>
+
+				<!-- Koordinat X & Y (hanya untuk elemen root bebas) -->
+				{#if !el.parentId && !el.isDefault && el.id !== 'flexbox-default'}
+					<div class="mb-2 grid grid-cols-2 gap-2 text-xs">
+						<div
+							class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
+						>
+							<span class="font-mono text-neutral-500">X</span>
+							<input
+								type="number"
+								value={el.x}
+								oninput={(e) =>
+									editor.updateElement(el.id, { x: +(e.target as HTMLInputElement).value })}
+								class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
+							/>
+						</div>
+						<div
+							class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
+						>
+							<span class="font-mono text-neutral-500">Y</span>
+							<input
+								type="number"
+								value={el.y}
+								oninput={(e) =>
+									editor.updateElement(el.id, { y: +(e.target as HTMLInputElement).value })}
+								class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
+							/>
+						</div>
+					</div>
+				{/if}
+
+				<!-- Pengaturan Lebar (Width Mode: Tetap, Ikuti Konten, Penuhi Kontainer) -->
+				<div class="mb-2 space-y-1">
+					<div class="flex items-center justify-between text-[11px]">
+						<span class="text-neutral-400">Lebar (L)</span>
+						{#if el.isDefault || el.id === 'flexbox-default'}
+							<span
+								class="rounded border border-[#2d2d2d] bg-[#1a1a1a] px-1.5 py-0.5 text-[10px] text-[#0d99ff]"
+							>
+								Penuhi Kontainer
+							</span>
+						{:else}
+							<select
+								value={el.widthMode || 'fixed'}
+								onchange={(e) =>
+									editor.updateElement(el.id, {
+										widthMode: (e.target as HTMLSelectElement).value as SizingMode
+									})}
+								class="cursor-pointer rounded border border-[#333] bg-[#252525] px-1.5 py-0.5 text-[11px] text-neutral-200 focus:border-[#0d99ff] focus:outline-none"
+							>
+								<option value="fixed">Tetap</option>
+								<option value="hug">Ikuti Konten</option>
+								<option value="fill">Penuhi Kontainer</option>
+							</select>
+						{/if}
 					</div>
 					<div
-						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
-					>
-						<span class="font-mono text-neutral-500">Y</span>
-						<input
-							type="number"
-							value={el.y}
-							oninput={(e) =>
-								editor.updateElement(el.id, { y: +(e.target as HTMLInputElement).value })}
-							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
-						/>
-					</div>
-					<div
-						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
+						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5 text-xs"
 					>
 						<span class="font-mono text-neutral-500">L</span>
-						<input
-							type="number"
-							value={el.width}
-							oninput={(e) =>
-								editor.updateElement(el.id, {
-									width: Math.max(10, +(e.target as HTMLInputElement).value)
-								})}
-							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
-						/>
-					</div>
-					<div
-						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
-					>
-						<span class="font-mono text-neutral-500">T</span>
-						<input
-							type="number"
-							value={el.height}
-							oninput={(e) =>
-								editor.updateElement(el.id, {
-									height: Math.max(10, +(e.target as HTMLInputElement).value)
-								})}
-							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
-						/>
+						{#if el.isDefault || el.id === 'flexbox-default'}
+							<span class="w-full text-right font-mono text-neutral-400"
+								>{editor.frame.width} px (Penuh Kanvas)</span
+							>
+						{:else if (el.widthMode || 'fixed') === 'fixed'}
+							<input
+								type="number"
+								value={el.width}
+								oninput={(e) =>
+									editor.updateElement(el.id, {
+										width: Math.max(10, +(e.target as HTMLInputElement).value)
+									})}
+								class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
+							/>
+							<span class="font-mono text-[11px] text-neutral-500">px</span>
+						{:else if el.widthMode === 'hug'}
+							<span class="w-full text-right font-mono text-[11px] text-[#0d99ff]"
+								>Ikuti Konten (Otomatis)</span
+							>
+						{:else if el.widthMode === 'fill'}
+							<span class="w-full text-right font-mono text-[11px] text-[#0d99ff]"
+								>Penuhi Kontainer (100%)</span
+							>
+						{/if}
 					</div>
 				</div>
 
-				<div class="mt-2 grid grid-cols-2 gap-2">
+				<!-- Pengaturan Tinggi (Height Mode: Tetap, Ikuti Konten, Penuhi Kontainer) -->
+				<div class="mb-2 space-y-1">
+					<div class="flex items-center justify-between text-[11px]">
+						<span class="text-neutral-400">Tinggi (T)</span>
+						<select
+							value={el.heightMode || 'fixed'}
+							onchange={(e) => {
+								const mode = (e.target as HTMLSelectElement).value as SizingMode;
+								editor.updateElement(el.id, { heightMode: mode });
+								if ((el.isDefault || el.id === 'flexbox-default') && mode === 'fixed') {
+									editor.frame.height = el.height;
+								}
+							}}
+							class="cursor-pointer rounded border border-[#333] bg-[#252525] px-1.5 py-0.5 text-[11px] text-neutral-200 focus:border-[#0d99ff] focus:outline-none"
+						>
+							<option value="fixed">Tetap</option>
+							<option value="hug">Ikuti Konten</option>
+							{#if !el.isDefault && el.id !== 'flexbox-default'}
+								<option value="fill">Penuhi Kontainer</option>
+							{/if}
+						</select>
+					</div>
+					<div
+						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5 text-xs"
+					>
+						<span class="font-mono text-neutral-500">T</span>
+						{#if (el.heightMode || 'fixed') === 'fixed'}
+							<input
+								type="number"
+								value={el.height}
+								oninput={(e) => {
+									const val = Math.max(20, +(e.target as HTMLInputElement).value);
+									editor.updateElement(el.id, { height: val });
+									if (el.isDefault || el.id === 'flexbox-default') {
+										editor.frame.height = val;
+									}
+								}}
+								class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
+							/>
+							<span class="font-mono text-[11px] text-neutral-500">px</span>
+						{:else if el.heightMode === 'hug'}
+							<span class="w-full text-right font-mono text-[11px] text-[#0d99ff]"
+								>Ikuti Konten (Otomatis)</span
+							>
+						{:else if el.heightMode === 'fill'}
+							<span class="w-full text-right font-mono text-[11px] text-[#0d99ff]"
+								>Penuhi Kontainer (100%)</span
+							>
+						{/if}
+					</div>
+				</div>
+
+				<div class="mt-2 grid grid-cols-2 gap-2 text-xs">
 					<div
 						class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
 					>
@@ -167,8 +272,8 @@
 				</div>
 			</div>
 
-			<!-- Typography (if text, heading, button, badge) -->
-			{#if el.type === 'heading' || el.type === 'text' || el.type === 'button' || el.type === 'badge'}
+			<!-- Typography (if text, heading, button, badge, link) -->
+			{#if el.type === 'heading' || el.type === 'text' || el.type === 'button' || el.type === 'badge' || el.type === 'link'}
 				<div class="border-t border-[#2c2c2c] pt-4">
 					<div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
 						Konten & Teks
@@ -198,6 +303,22 @@
 								/>
 							{/if}
 						</div>
+
+						<!-- Link target URL if link -->
+						{#if el.type === 'link'}
+							<div>
+								<span class="mb-1 block text-[10px] text-neutral-400">URL Tautan Tujuan (Href)</span
+								>
+								<input
+									type="text"
+									value={el.href || ''}
+									placeholder="https://..."
+									oninput={(e) =>
+										editor.updateElement(el.id, { href: (e.target as HTMLInputElement).value })}
+									class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 text-white focus:border-[#0d99ff] focus:outline-none"
+								/>
+							</div>
+						{/if}
 
 						<div class="grid grid-cols-2 gap-2">
 							<!-- Font Size -->
@@ -401,6 +522,55 @@
 				</div>
 			</div>
 
+			<!-- YouTube Video Settings -->
+			{#if el.type === 'youtube'}
+				<div class="border-t border-[#2c2c2c] pt-4">
+					<div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
+						Video YouTube
+					</div>
+					<div>
+						<span class="mb-1 block text-[10px] text-neutral-400">Embed URL YouTube</span>
+						<input
+							type="text"
+							value={el.src || ''}
+							placeholder="https://www.youtube.com/embed/..."
+							oninput={(e) =>
+								editor.updateElement(el.id, { src: (e.target as HTMLInputElement).value })}
+							class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 font-mono text-xs text-white focus:border-[#0d99ff] focus:outline-none"
+						/>
+					</div>
+				</div>
+			{/if}
+
+			<!-- Flexbox Layout Settings -->
+			{#if el.type === 'frame'}
+				<div class="border-t border-[#2c2c2c] pt-4">
+					<div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
+						Arah Flexbox
+					</div>
+					<div class="grid grid-cols-2 gap-2">
+						<button
+							onclick={() => editor.updateElement(el.id, { flexDirection: 'row' })}
+							class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
+							'row'
+								? 'bg-[#0d99ff] text-white'
+								: 'bg-[#252525] text-neutral-400 hover:text-white'}"
+						>
+							Baris (Horizontal)
+						</button>
+						<button
+							onclick={() => editor.updateElement(el.id, { flexDirection: 'column' })}
+							class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
+							'column'
+								? 'bg-[#0d99ff] text-white'
+								: 'bg-[#252525] text-neutral-400 hover:text-white'}"
+						>
+							Kolom (Vertikal)
+						</button>
+					</div>
+				</div>
+			{/if}
+
 			<!-- Effects / Shadow -->
 			<div class="border-t border-[#2c2c2c] pt-4">
 				<div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
@@ -455,7 +625,16 @@
 						<input
 							type="number"
 							value={editor.frame.width}
-							oninput={(e) => (editor.frame.width = +(e.target as HTMLInputElement).value)}
+							oninput={(e) => {
+								const val = +(e.target as HTMLInputElement).value;
+								editor.frame.width = val;
+								const defaultFb = editor.elements.find(
+									(item) => item.isDefault || item.id === 'flexbox-default'
+								);
+								if (defaultFb) {
+									editor.updateElement(defaultFb.id, { width: val });
+								}
+							}}
 							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
 						/>
 					</div>
@@ -466,7 +645,16 @@
 						<input
 							type="number"
 							value={editor.frame.height}
-							oninput={(e) => (editor.frame.height = +(e.target as HTMLInputElement).value)}
+							oninput={(e) => {
+								const val = +(e.target as HTMLInputElement).value;
+								editor.frame.height = val;
+								const defaultFb = editor.elements.find(
+									(item) => item.isDefault || item.id === 'flexbox-default'
+								);
+								if (defaultFb) {
+									editor.updateElement(defaultFb.id, { height: val });
+								}
+							}}
 							class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
 						/>
 					</div>
