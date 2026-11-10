@@ -29,7 +29,7 @@
   >
     <div class="flex items-center gap-3">
       <div
-        class="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-[#0d99ff] via-[#9747ff] to-[#ff4785] p-1.5 shadow-lg shadow-[#0d99ff]/20"
+        class="flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-tr from-[#0d99ff] via-[#9747ff] to-[#ff4785] p-1.5"
       >
         <Icon icon="lucide:sparkles" class="h-4 w-4 text-white" />
       </div>
@@ -59,8 +59,16 @@
       </div>
 
       <a
+        href={resolve("/dashboard")}
+        class="flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800/80 px-3 py-2 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700 hover:text-white"
+      >
+        <Icon icon="lucide:layout-dashboard" class="h-3.5 w-3.5" />
+        <span>Dashboard</span>
+      </a>
+
+      <a
         href={resolve("/editor")}
-        class="group flex items-center gap-2 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white shadow-lg shadow-[#0d99ff]/25 transition-all hover:bg-[#0082df] hover:shadow-[#0d99ff]/40 active:scale-95"
+        class="group flex items-center gap-2 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#0082df] active:scale-95"
       >
         <span>Buka Editor</span>
         <Icon
@@ -108,7 +116,7 @@
       <div class="mt-8 flex flex-wrap items-center justify-center gap-4">
         <a
           href={resolve("/editor")}
-          class="group flex items-center gap-3 rounded-xl bg-linear-to-r from-[#0d99ff] to-[#0070d2] px-6 py-3.5 text-sm font-semibold text-white shadow-xl shadow-[#0d99ff]/30 transition-all hover:brightness-110 active:scale-95"
+          class="group flex items-center gap-3 rounded-xl bg-linear-to-r from-[#0d99ff] to-[#0070d2] px-6 py-3.5 text-sm font-semibold text-white transition-all hover:brightness-110 active:scale-95"
         >
           <Icon icon="lucide:sparkles" class="h-4 w-4" />
           <span>Buka Editor Sekarang</span>
@@ -128,9 +136,7 @@
     </div>
 
     <!-- Interactive Editor Mockup Preview -->
-    <div
-      class="mt-14 overflow-hidden rounded-2xl border border-neutral-800/80 bg-[#161619] shadow-2xl"
-    >
+    <div class="mt-14 overflow-hidden rounded-2xl border border-neutral-800/80 bg-[#161619]">
       <!-- Mockup Title Bar -->
       <div
         class="flex h-10 items-center justify-between border-b border-neutral-800 bg-[#1b1b1e] px-4"
@@ -198,7 +204,7 @@
           style="background-image: radial-gradient(#2d2d2d 1px, transparent 1px); background-size: 16px 16px;"
         >
           <div
-            class="relative flex h-75 w-full max-w-lg flex-col justify-center rounded-xl border border-neutral-800 bg-neutral-900/90 p-8 shadow-2xl backdrop-blur"
+            class="relative flex h-75 w-full max-w-lg flex-col justify-center rounded-xl border border-neutral-800 bg-neutral-900/90 p-8 backdrop-blur"
           >
             <span
               class="w-fit rounded-full bg-[#0d99ff]/10 px-3 py-1 text-[11px] font-semibold text-[#0d99ff]"
@@ -213,7 +219,7 @@
             <div class="mt-6 flex items-center gap-3">
               <a
                 href={resolve("/editor")}
-                class="rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white shadow transition hover:brightness-110"
+                class="rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110"
               >
                 Coba Sekarang
               </a>
@@ -352,7 +358,7 @@
       <div class="mt-6 flex justify-center">
         <a
           href={resolve("/editor")}
-          class="flex items-center gap-2 rounded-xl bg-[#0d99ff] px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#0d99ff]/30 transition hover:bg-[#0082df] active:scale-95"
+          class="flex items-center gap-2 rounded-xl bg-[#0d99ff] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0082df] active:scale-95"
         >
           <Icon icon="lucide:sparkles" class="h-4 w-4" />
           <span>Buka Editor Nawra CMS</span>

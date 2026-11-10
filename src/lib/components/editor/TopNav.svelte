@@ -21,8 +21,8 @@
   <!-- Left: Logo & File Info -->
   <div class="flex items-center gap-3">
     <a
-      href={resolve("/")}
-      title="Kembali ke Beranda"
+      href={resolve("/dashboard")}
+      title="Kembali ke Dashboard CMS"
       class="flex items-center gap-2 rounded px-1.5 py-1 transition hover:bg-[#2c2c2c]"
     >
       <!-- Colorful studio icon -->
