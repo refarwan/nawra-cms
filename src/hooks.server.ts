@@ -13,7 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.user = null;
     event.locals.session = null;
   } else {
-    const { user, session } = await validateSessionToken(db, token);
+    const { user, session } = await validateSessionToken(db, token, event.platform?.env?.DB);
     event.locals.user = user;
     event.locals.session = session;
   }

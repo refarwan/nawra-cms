@@ -113,7 +113,7 @@
   {:else}
     <div class="grid grid-cols-1 gap-4">
       {#each data.headers as header (header.id)}
-        {@const isActive = header.is_active === 1}
+        {@const isActive = header.isActive === 1}
         <div
           class="flex flex-col justify-between gap-4 rounded-2xl border bg-white p-5 transition md:flex-row md:items-center {isActive
             ? 'border-[#0d99ff] ring-1 ring-[#0d99ff]/30'
@@ -144,7 +144,7 @@
               <div class="mt-1 flex items-center gap-3 text-[11px] text-gray-400">
                 <span>ID: <code class="font-mono text-gray-500">{header.id}</code></span>
                 <span>•</span>
-                <span>Dibuat: {new Date(header.created_at).toLocaleDateString("id-ID")}</span>
+                <span>Dibuat: {new Date(header.createdAt).toLocaleDateString("id-ID")}</span>
               </div>
             </div>
           </div>

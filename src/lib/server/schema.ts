@@ -1,69 +1,79 @@
-// Database table schema definitions and interfaces
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
-export interface UserRecord {
-  id: string;
-  email: string;
-  password_hash: string;
-  name: string;
-  role: "admin" | "editor";
-  created_at: number;
-}
+export const users = sqliteTable("users", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull().unique(),
+  passwordHash: text("password_hash").notNull(),
+  name: text("name").notNull(),
+  role: text("role", { enum: ["admin", "editor"] })
+    .notNull()
+    .default("admin"),
+  createdAt: integer("created_at").notNull()
+});
 
-export interface SessionRecord {
-  id: string;
-  user_id: string;
-  expires_at: number;
-}
+export const sessions = sqliteTable("sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: integer("expires_at").notNull()
+});
 
-export interface HeaderRecord {
-  id: string;
-  title: string;
-  content: string;
-  is_active: number;
-  created_at: number;
-  updated_at: number;
-}
+export const headers = sqliteTable("headers", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  isActive: integer("is_active").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull()
+});
 
-export interface FooterRecord {
-  id: string;
-  title: string;
-  content: string;
-  is_active: number;
-  created_at: number;
-  updated_at: number;
-}
+export const footers = sqliteTable("footers", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  content: text("content").notNull(),
+  isActive: integer("is_active").notNull().default(0),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull()
+});
 
-export const SCHEMA_SQL = `
-  CREATE TABLE IF NOT EXISTS users (
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
+export type Session = typeof sessions.$inferSelect;
+export type NewSession = typeof sessions.$inferInsert;
+export type Header = typeof headers.$inferSelect;
+export type NewHeader = typeof headers.$inferInsert;
+export type Footer = typeof footers.$inferSelect;
+export type NewFooter = typeof footers.$inferInsert;
+
+export const TABLE_STATEMENTS = [
+  `CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
     name TEXT NOT NULL,
     role TEXT NOT NULL DEFAULT 'admin',
     created_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS sessions (
+  )`,
+  `CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     expires_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS headers (
+  )`,
+  `CREATE TABLE IF NOT EXISTS headers (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     is_active INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS footers (
+  )`,
+  `CREATE TABLE IF NOT EXISTS footers (
     id TEXT PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     is_active INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
-  );
-`;
+  )`
+];

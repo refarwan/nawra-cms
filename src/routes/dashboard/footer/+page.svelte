@@ -113,7 +113,7 @@
   {:else}
     <div class="grid grid-cols-1 gap-4">
       {#each data.footers as footer (footer.id)}
-        {@const isActive = footer.is_active === 1}
+        {@const isActive = footer.isActive === 1}
         <div
           class="flex flex-col justify-between gap-4 rounded-2xl border bg-white p-5 transition md:flex-row md:items-center {isActive
             ? 'border-purple-500 ring-1 ring-purple-500/30'
@@ -144,7 +144,7 @@
               <div class="mt-1 flex items-center gap-3 text-[11px] text-gray-400">
                 <span>ID: <code class="font-mono text-gray-500">{footer.id}</code></span>
                 <span>•</span>
-                <span>Dibuat: {new Date(footer.created_at).toLocaleDateString("id-ID")}</span>
+                <span>Dibuat: {new Date(footer.createdAt).toLocaleDateString("id-ID")}</span>
               </div>
             </div>
           </div>

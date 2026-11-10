@@ -1,25 +1,21 @@
-import { getDb } from "../../lib/server/db";
+import { ensureTables, getDb } from "../../lib/server/db";
 
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ platform, locals }) => {
   const db = getDb(platform?.env?.DB);
+  await ensureTables(platform?.env?.DB);
 
-  const headersRes = await db
-    .prepare("SELECT id, title, is_active FROM headers")
-    .all<{ id: string; title: string; is_active: number }>();
+  const headers = await db.query.headers.findMany({
+    columns: { id: true, title: true, isActive: true }
+  });
 
-  const footersRes = await db
-    .prepare("SELECT id, title, is_active FROM footers")
-    .all<{ id: string; title: string; is_active: number }>();
+  const footers = await db.query.footers.findMany({
+    columns: { id: true, title: true, isActive: true }
+  });
 
-  const headers = headersRes.results || [];
-  const footers = footersRes.results || [];
-
-  const activeHeader =
-    headers.find((h: { is_active: number; title: string }) => h.is_active === 1) || null;
-  const activeFooter =
-    footers.find((f: { is_active: number; title: string }) => f.is_active === 1) || null;
+  const activeHeader = headers.find((h) => h.isActive === 1) || null;
+  const activeFooter = footers.find((f) => f.isActive === 1) || null;
 
   return {
     user: locals.user,

@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794320558503,
+      "tag": "0000_eager_whistler",
+      "breakpoints": true
+    }
+  ]
+}

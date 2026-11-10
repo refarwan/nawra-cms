@@ -1,19 +1,22 @@
 import { fail } from "@sveltejs/kit";
+import { desc, eq } from "drizzle-orm";
 
-import { getDb } from "../../../lib/server/db";
+import { ensureTables, getDb } from "../../../lib/server/db";
+import { headers } from "../../../lib/server/schema";
 
 import type { Actions } from "@sveltejs/kit";
-import type { HeaderRecord } from "../../../lib/server/db";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ platform }) => {
   const db = getDb(platform?.env?.DB);
-  const res = await db
-    .prepare("SELECT * FROM headers ORDER BY created_at DESC")
-    .all<HeaderRecord>();
+  await ensureTables(platform?.env?.DB);
+
+  const list = await db.query.headers.findMany({
+    orderBy: [desc(headers.createdAt)]
+  });
 
   return {
-    headers: res.results || []
+    headers: list
   };
 };
 
@@ -27,10 +30,10 @@ export const actions: Actions = {
     }
 
     const db = getDb(platform?.env?.DB);
-    const existing = await db
-      .prepare("SELECT COUNT(*) as count FROM headers")
-      .first<{ count: number }>();
-    const isFirst = !existing || Number(existing.count) === 0;
+    await ensureTables(platform?.env?.DB);
+
+    const firstHeader = await db.query.headers.findFirst();
+    const isFirst = !firstHeader;
 
     const id = "header-" + Date.now();
     const now = Date.now();
@@ -40,12 +43,14 @@ export const actions: Actions = {
     });
     const isActive = isFirst ? 1 : 0;
 
-    await db
-      .prepare(
-        "INSERT INTO headers (id, title, content, is_active, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
-      )
-      .bind(id, title, defaultContent, isActive, now, now)
-      .run();
+    await db.insert(headers).values({
+      id,
+      title,
+      content: defaultContent,
+      isActive,
+      createdAt: now,
+      updatedAt: now
+    });
 
     return { success: true };
   },
@@ -57,8 +62,8 @@ export const actions: Actions = {
     if (!id) return fail(400, { error: "ID header tidak valid." });
 
     const db = getDb(platform?.env?.DB);
-    await db.prepare("UPDATE headers SET is_active = 0").run();
-    await db.prepare("UPDATE headers SET is_active = 1 WHERE id = ?").bind(id).run();
+    await db.update(headers).set({ isActive: 0 });
+    await db.update(headers).set({ isActive: 1 }).where(eq(headers.id, id));
 
     return { success: true };
   },
@@ -70,18 +75,17 @@ export const actions: Actions = {
     if (!id) return fail(400, { error: "ID header tidak valid." });
 
     const db = getDb(platform?.env?.DB);
-    const target = await db
-      .prepare("SELECT is_active FROM headers WHERE id = ?")
-      .bind(id)
-      .first<{ is_active: number }>();
+    const target = await db.query.headers.findFirst({
+      where: eq(headers.id, id)
+    });
 
-    if (target?.is_active === 1) {
+    if (target?.isActive === 1) {
       return fail(400, {
         error: "Header yang sedang aktif tidak dapat dihapus. Aktifkan header lain terlebih dahulu."
       });
     }
 
-    await db.prepare("DELETE FROM headers WHERE id = ?").bind(id).run();
+    await db.delete(headers).where(eq(headers.id, id));
     return { success: true };
   }
 };

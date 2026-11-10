@@ -1,65 +1,63 @@
+import { eq } from "drizzle-orm";
+
 import { generateRandomToken, hashPassword, hashToken, verifyPassword } from "./crypto";
 import { ensureTables } from "./db";
+import { sessions, users } from "./schema";
 
 import type { AuthUser, UserSession } from "../../app.d";
+import type { AppDb } from "./db";
 
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
-export async function createSession(db: D1Database, userId: string): Promise<string> {
-  await ensureTables(db);
+export async function createSession(db: AppDb, userId: string, d1?: D1Database): Promise<string> {
+  await ensureTables(d1);
   const token = generateRandomToken();
   const sessionId = await hashToken(token);
   const expiresAt = Date.now() + SESSION_DURATION_MS;
 
-  await db
-    .prepare("INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)")
-    .bind(sessionId, userId, expiresAt)
-    .run();
+  await db.insert(sessions).values({
+    id: sessionId,
+    userId,
+    expiresAt
+  });
 
   return token;
 }
 
 export async function validateSessionToken(
-  db: D1Database,
-  token: string
+  db: AppDb,
+  token: string,
+  d1?: D1Database
 ): Promise<{ user: AuthUser | null; session: UserSession | null }> {
-  await ensureTables(db);
+  await ensureTables(d1);
   const sessionId = await hashToken(token);
 
-  const sessionRow = await db
-    .prepare("SELECT id, user_id, expires_at FROM sessions WHERE id = ?")
-    .bind(sessionId)
-    .first<{ id: string; user_id: string; expires_at: number }>();
+  const sessionRow = await db.query.sessions.findFirst({
+    where: eq(sessions.id, sessionId)
+  });
 
   if (!sessionRow) {
     return { user: null, session: null };
   }
 
-  if (Date.now() >= sessionRow.expires_at) {
-    await db.prepare("DELETE FROM sessions WHERE id = ?").bind(sessionId).run();
+  if (Date.now() >= sessionRow.expiresAt) {
+    await db.delete(sessions).where(eq(sessions.id, sessionId));
     return { user: null, session: null };
   }
 
-  const userRow = await db
-    .prepare("SELECT id, email, name, role, created_at FROM users WHERE id = ?")
-    .bind(sessionRow.user_id)
-    .first<{
-      id: string;
-      email: string;
-      name: string;
-      role: "admin" | "editor";
-      created_at: number;
-    }>();
+  const userRow = await db.query.users.findFirst({
+    where: eq(users.id, sessionRow.userId)
+  });
 
   if (!userRow) {
-    await db.prepare("DELETE FROM sessions WHERE id = ?").bind(sessionId).run();
+    await db.delete(sessions).where(eq(sessions.id, sessionId));
     return { user: null, session: null };
   }
 
   const session: UserSession = {
     id: sessionRow.id,
-    userId: sessionRow.user_id,
-    expiresAt: sessionRow.expires_at
+    userId: sessionRow.userId,
+    expiresAt: sessionRow.expiresAt
   };
 
   const user: AuthUser = {
@@ -67,39 +65,33 @@ export async function validateSessionToken(
     email: userRow.email,
     name: userRow.name,
     role: userRow.role,
-    createdAt: userRow.created_at
+    createdAt: userRow.createdAt
   };
 
   return { user, session };
 }
 
-export async function invalidateSession(db: D1Database, sessionId: string): Promise<void> {
-  await db.prepare("DELETE FROM sessions WHERE id = ?").bind(sessionId).run();
+export async function invalidateSession(db: AppDb, sessionId: string): Promise<void> {
+  await db.delete(sessions).where(eq(sessions.id, sessionId));
 }
 
 export async function authenticateUser(
-  db: D1Database,
+  db: AppDb,
   email: string,
-  pass: string
+  pass: string,
+  d1?: D1Database
 ): Promise<AuthUser | null> {
-  await ensureTables(db);
-  await seedInitialAdmin(db);
+  await ensureTables(d1);
+  await seedInitialAdmin(db, d1);
 
-  const row = await db
-    .prepare("SELECT id, email, password_hash, name, role, created_at FROM users WHERE email = ?")
-    .bind(email.trim().toLowerCase())
-    .first<{
-      id: string;
-      email: string;
-      password_hash: string;
-      name: string;
-      role: "admin" | "editor";
-      created_at: number;
-    }>();
+  const targetEmail = email.trim().toLowerCase();
+  const row = await db.query.users.findFirst({
+    where: eq(users.email, targetEmail)
+  });
 
   if (!row) return null;
 
-  const valid = await verifyPassword(pass, row.password_hash);
+  const valid = await verifyPassword(pass, row.passwordHash);
   if (!valid) return null;
 
   return {
@@ -107,27 +99,23 @@ export async function authenticateUser(
     email: row.email,
     name: row.name,
     role: row.role,
-    createdAt: row.created_at
+    createdAt: row.createdAt
   };
 }
 
-export async function seedInitialAdmin(db: D1Database): Promise<void> {
-  await ensureTables(db);
-  const row = await db.prepare("SELECT COUNT(*) as count FROM users").first<{ count: number }>();
+export async function seedInitialAdmin(db: AppDb, d1?: D1Database): Promise<void> {
+  await ensureTables(d1);
+  const firstUser = await db.query.users.findFirst();
 
-  if (!row || Number(row.count) === 0) {
-    const adminId = "user-admin-default";
-    const email = "admin@nawra.com";
+  if (!firstUser) {
     const passwordHash = await hashPassword("admin123");
-    const name = "Administrator Nawra";
-    const role = "admin";
-    const createdAt = Date.now();
-
-    await db
-      .prepare(
-        "INSERT INTO users (id, email, password_hash, name, role, created_at) VALUES (?, ?, ?, ?, ?, ?)"
-      )
-      .bind(adminId, email, passwordHash, name, role, createdAt)
-      .run();
+    await db.insert(users).values({
+      id: "user-admin-default",
+      email: "admin@nawra.com",
+      passwordHash,
+      name: "Administrator Nawra",
+      role: "admin",
+      createdAt: Date.now()
+    });
   }
 }

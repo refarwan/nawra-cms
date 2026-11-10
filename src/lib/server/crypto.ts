@@ -1,6 +1,6 @@
 // Pure Web Crypto API implementation for Cloudflare Workers & Node.js
 
-const ITERATIONS = 100000;
+const ITERATIONS = 20000;
 const KEYLEN = 32;
 
 function bufToHex(buffer: ArrayBuffer): string {
