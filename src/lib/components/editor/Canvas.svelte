@@ -38,6 +38,7 @@
         button: "Tombol",
         link: "Tautan",
         image: "Gambar",
+        icon: "Ikon",
         frame: "Flexbox",
         youtube: "Iframe YouTube"
       };
@@ -57,6 +58,7 @@
         type === "youtube" ||
         type === "link" ||
         type === "image" ||
+        type === "icon" ||
         type === "frame"
       ) {
         return {
@@ -421,6 +423,8 @@
         <Icon icon="lucide:link-2" class="h-3.5 w-3.5 text-[#0d99ff]" />
       {:else if activeFollower.type === "image"}
         <Icon icon="lucide:image" class="h-3.5 w-3.5 text-[#0d99ff]" />
+      {:else if activeFollower.type === "icon"}
+        <Icon icon="lucide:smile" class="h-3.5 w-3.5 text-[#0d99ff]" />
       {:else if activeFollower.type === "frame"}
         <Icon icon="lucide:columns-2" class="h-3.5 w-3.5 text-[#0d99ff]" />
       {:else if activeFollower.type === "youtube"}
@@ -463,6 +467,7 @@
 			button: 'Tombol',
 			link: 'Tautan (Link)',
 			image: 'Gambar',
+			icon: 'Ikon',
 			frame: 'Flexbox',
 			youtube: 'Iframe YouTube'
 		}}
@@ -611,6 +616,16 @@
               class="pointer-events-none h-full w-full object-cover select-none"
               style="border-radius: inherit;"
             />
+          {:else if child.type === "icon"}
+            <div
+              class="flex h-full w-full items-center justify-center p-0.5 select-none"
+              style="color: {child.color || '#0d99ff'};"
+            >
+              <Icon
+                icon={child.icon || child.content || "lucide:smile"}
+                class="h-full max-h-full w-full max-w-full"
+              />
+            </div>
           {:else if child.type === "frame"}
             <!-- Nested Flexbox Frame Renderer -->
             <div
@@ -789,6 +804,16 @@
                   alt={el.alt || el.name}
                   class="pointer-events-none h-full w-full object-cover select-none"
                 />
+              {:else if el.type === "icon"}
+                <div
+                  class="pointer-events-none flex h-full w-full items-center justify-center p-0.5 select-none"
+                  style="color: {el.color || '#0d99ff'};"
+                >
+                  <Icon
+                    icon={el.icon || el.content || "lucide:smile"}
+                    class="h-full max-h-full w-full max-w-full"
+                  />
+                </div>
               {:else if el.type === "link"}
                 <span
                   class="pointer-events-none flex h-full w-full items-center underline-offset-4 select-none hover:underline"

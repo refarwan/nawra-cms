@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
+  import IconSearchInput from "./IconSearchInput.svelte";
+
   import type { EditorState } from "./editor-state.svelte";
   import type { CanvasElement, SizingMode } from "./types";
 
@@ -419,6 +421,46 @@
               editor.updateElement(el.id, { src: (e.target as HTMLInputElement).value })}
             class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 text-white focus:border-[#0d99ff] focus:outline-none"
           />
+        </div>
+      {/if}
+
+      <!-- Icon Settings (if icon) -->
+      {#if el.type === "icon"}
+        <div class="border-t border-[#2c2c2c] pt-4">
+          <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
+            Pengaturan Ikon
+          </div>
+
+          <div class="space-y-3">
+            <IconSearchInput
+              label="Cari & Pilih Ikon (Iconify)"
+              placeholder="Cari ikon (contoh: star, heart, bell)..."
+              selectedIcon={el.icon || el.content || "lucide:smile"}
+              onSelect={(iconName) => {
+                editor.updateElement(el.id, { icon: iconName, content: iconName });
+              }}
+            />
+
+            <div>
+              <span class="mb-1 block text-[10px] text-neutral-400">Warna Ikon</span>
+              <div class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] p-2">
+                <input
+                  type="color"
+                  value={el.color?.startsWith("#") ? el.color : "#0d99ff"}
+                  oninput={(e) =>
+                    editor.updateElement(el.id, { color: (e.target as HTMLInputElement).value })}
+                  class="h-6 w-6 cursor-pointer rounded border border-white/20 bg-transparent p-0"
+                />
+                <input
+                  type="text"
+                  value={el.color || "#0d99ff"}
+                  oninput={(e) =>
+                    editor.updateElement(el.id, { color: (e.target as HTMLInputElement).value })}
+                  class="w-full bg-transparent font-mono text-xs text-white focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       {/if}
 

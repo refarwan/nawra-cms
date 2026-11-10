@@ -1,5 +1,14 @@
 export type ElementType =
-  "frame" | "rectangle" | "heading" | "text" | "button" | "link" | "youtube" | "image" | "badge";
+  | "frame"
+  | "rectangle"
+  | "heading"
+  | "text"
+  | "button"
+  | "link"
+  | "youtube"
+  | "image"
+  | "badge"
+  | "icon";
 
 export type SizingMode = "fixed" | "hug" | "fill";
 
@@ -22,6 +31,7 @@ export interface CanvasElement {
   src?: string;
   alt?: string;
   href?: string;
+  icon?: string;
 
   // Styling
   fill: string;
@@ -53,7 +63,16 @@ export interface CanvasElement {
 }
 
 export type ToolMode =
-  "select" | "frame" | "rectangle" | "heading" | "text" | "button" | "image" | "badge" | "pan";
+  | "select"
+  | "frame"
+  | "rectangle"
+  | "heading"
+  | "text"
+  | "button"
+  | "image"
+  | "badge"
+  | "icon"
+  | "pan";
 
 export interface CanvasFrame {
   name: string;

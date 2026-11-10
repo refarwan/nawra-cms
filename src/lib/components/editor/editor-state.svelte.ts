@@ -303,6 +303,32 @@ export class EditorState {
         };
         break;
       }
+      case "icon": {
+        const iconSize = Math.min(maxInnerWidth, 48);
+        newEl = {
+          id,
+          parentId: frameId,
+          name: `Ikon ${count}`,
+          type: "icon",
+          x: 0,
+          y: 0,
+          width: iconSize,
+          height: iconSize,
+          rotation: 0,
+          widthMode: "fixed",
+          heightMode: "fixed",
+          icon: "lucide:smile",
+          fill: "transparent",
+          color: "#0d99ff",
+          borderRadius: 0,
+          borderWidth: 0,
+          borderColor: "transparent",
+          borderStyle: "none",
+          opacity: 100,
+          boxShadow: "none"
+        };
+        break;
+      }
       case "youtube": {
         const ytWidth = Math.min(maxInnerWidth, 380);
         const ytHeight = Math.min(220, Math.round(ytWidth * 0.58));
@@ -503,6 +529,27 @@ export class EditorState {
           fontWeight: "600",
           fontFamily: "Inter",
           textAlign: "left",
+          borderRadius: 0,
+          borderWidth: 0,
+          borderColor: "transparent",
+          borderStyle: "none",
+          opacity: 100,
+          boxShadow: "none"
+        };
+        break;
+      case "icon":
+        newEl = {
+          id,
+          name: `Ikon ${count}`,
+          type: "icon",
+          x,
+          y,
+          width: 48,
+          height: 48,
+          rotation: 0,
+          icon: "lucide:smile",
+          fill: "transparent",
+          color: "#0d99ff",
           borderRadius: 0,
           borderWidth: 0,
           borderColor: "transparent",

@@ -264,7 +264,19 @@
     <Icon icon="lucide:image" class="h-4 w-4" />
   </button>
 
-  <!-- 7. Iframe YouTube -->
+  <!-- 7. Ikon (Icon) -->
+  <button
+    onclick={() => requestAddElement("icon")}
+    class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
+    'icon'
+      ? 'bg-[#0d99ff] text-white shadow-md'
+      : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
+    title="Ikon"
+  >
+    <Icon icon="lucide:smile" class="h-4 w-4" />
+  </button>
+
+  <!-- 8. Iframe YouTube -->
   <button
     onclick={() => requestAddElement("youtube")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===

@@ -151,6 +151,8 @@
         return "lucide:tag";
       case "image":
         return "lucide:image";
+      case "icon":
+        return "lucide:smile";
       case "rectangle":
       default:
         return "lucide:square";
