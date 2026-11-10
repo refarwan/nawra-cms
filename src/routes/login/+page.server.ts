@@ -43,7 +43,7 @@ export const actions: Actions = {
         path: "/",
         httpOnly: true,
         sameSite: "lax",
-        secure: url.protocol === "https:",
+        secure: process.env.NODE_ENV === "production" || url.protocol === "https:",
         maxAge: 60 * 60 * 24 * 30 // 30 days
       });
 

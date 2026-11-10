@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
-  import { enhance } from "$app/forms";
+  import { applyAction, enhance } from "$app/forms";
 
   let { form }: { form?: { error?: string; email?: string } } = $props();
 
@@ -122,9 +122,9 @@
         action="?/login"
         use:enhance={() => {
           loading = true;
-          return async ({ update }) => {
+          return async ({ result }) => {
             loading = false;
-            await update();
+            await applyAction(result);
           };
         }}
         class="space-y-4"

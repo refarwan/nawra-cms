@@ -10,15 +10,17 @@ export class MemoryD1 {
 
   private handleAll(sql: string, args: unknown[]) {
     const s = sql.toLowerCase();
+    const where = s.includes("where ") ? s.slice(s.indexOf("where ") + 6) : "";
+
     if (s.includes('from "users"') || s.includes("from users")) {
-      if (s.includes("where") && (s.includes("email") || s.includes('"email"'))) {
+      if (where.includes("email") || where.includes('"email"')) {
         const email = String(args[0]).toLowerCase();
         for (const u of this.users.values()) {
           if (String(u.email).toLowerCase() === email) return { results: [u] };
         }
         return { results: [] };
       }
-      if (s.includes("where") && (s.includes("id") || s.includes('"id"'))) {
+      if (where.includes("id") || where.includes('"id"')) {
         const u = this.users.get(String(args[0]));
         return { results: u ? [u] : [] };
       }
@@ -29,7 +31,7 @@ export class MemoryD1 {
     }
 
     if (s.includes('from "sessions"') || s.includes("from sessions")) {
-      if (s.includes("where") && (s.includes("id") || s.includes('"id"'))) {
+      if (where.includes("id") || where.includes('"id"')) {
         const sess = this.sessions.get(String(args[0]));
         return { results: sess ? [sess] : [] };
       }
@@ -38,7 +40,7 @@ export class MemoryD1 {
 
     if (s.includes('from "headers"') || s.includes("from headers")) {
       let list = Array.from(this.headers.values());
-      if (s.includes("where") && (s.includes("is_active") || s.includes('"is_active"'))) {
+      if (where.includes("is_active") || where.includes('"is_active"')) {
         const target = Number(args[0] ?? 1);
         list = list.filter((h) => Number(h.is_active) === target);
       }
@@ -48,7 +50,7 @@ export class MemoryD1 {
 
     if (s.includes('from "footers"') || s.includes("from footers")) {
       let list = Array.from(this.footers.values());
-      if (s.includes("where") && (s.includes("is_active") || s.includes('"is_active"'))) {
+      if (where.includes("is_active") || where.includes('"is_active"')) {
         const target = Number(args[0] ?? 1);
         list = list.filter((f) => Number(f.is_active) === target);
       }
@@ -61,6 +63,8 @@ export class MemoryD1 {
 
   private handleRun(sql: string, args: unknown[]) {
     const s = sql.toLowerCase();
+    const where = s.includes("where ") ? s.slice(s.indexOf("where ") + 6) : "";
+
     if (s.includes('insert into "users"') || s.includes("insert into users")) {
       const [id, email, password_hash, name, role, created_at] = args;
       this.users.set(String(id), {
@@ -94,7 +98,7 @@ export class MemoryD1 {
         updated_at: Number(updated_at)
       });
     } else if (s.includes('update "headers"') || s.includes("update headers")) {
-      if (s.includes("where") && (s.includes("id") || s.includes('"id"'))) {
+      if (where.includes("id") || where.includes('"id"')) {
         for (const h of this.headers.values()) h.is_active = 0;
         const target = this.headers.get(String(args[1] || args[0]));
         if (target) target.is_active = Number(args[0] ?? 1);
@@ -118,7 +122,7 @@ export class MemoryD1 {
         updated_at: Number(updated_at)
       });
     } else if (s.includes('update "footers"') || s.includes("update footers")) {
-      if (s.includes("where") && (s.includes("id") || s.includes('"id"'))) {
+      if (where.includes("id") || where.includes('"id"')) {
         for (const f of this.footers.values()) f.is_active = 0;
         const target = this.footers.get(String(args[1] || args[0]));
         if (target) target.is_active = Number(args[0] ?? 1);
