@@ -26,11 +26,7 @@
     if (type === "frame") {
       editor.pendingFrameDirection = direction;
     }
-    if (editor.selectedElement && editor.selectedElement.type === "frame") {
-      editor.addElementToFrame(editor.selectedElement.id, type, { flexDirection: direction });
-    } else {
-      editor.setPendingElementType(type, direction);
-    }
+    editor.setPendingElementType(type, direction);
     closePopover();
   }
 </script>
@@ -41,7 +37,7 @@
 <div
   role="toolbar"
   aria-label="Toolbar editor kanvas"
-  class="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-[#333338] bg-[#1e1e20]/95 px-2.5 py-1.5 shadow-[0_12px_32px_rgba(0,0,0,0.6)] backdrop-blur-xl select-none"
+  class="absolute bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-2xl border border-[#333338] bg-[#1e1e20]/95 px-2.5 py-1.5 backdrop-blur-xl select-none"
 >
   <!-- 1. Move / Hand Group -->
   <div class="relative flex items-center">
@@ -50,9 +46,9 @@
       title="Pilih Objek (V)"
       class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.tool ===
       'select'
-        ? 'bg-[#0d99ff] text-white shadow-md'
+        ? 'bg-[#0d99ff] text-white'
         : editor.tool === 'pan'
-          ? 'bg-[#0d99ff] text-white shadow-md'
+          ? 'bg-[#0d99ff] text-white'
           : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     >
       {#if editor.tool === "pan"}
@@ -77,7 +73,7 @@
         tabindex="0"
         onclick={(e) => e.stopPropagation()}
         onkeydown={(e) => e.key === "Escape" && closePopover()}
-        class="absolute bottom-full left-0 mb-3 w-52 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white shadow-2xl backdrop-blur-xl"
+        class="absolute bottom-full left-0 mb-3 w-52 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white backdrop-blur-xl"
       >
         <!-- Pilih / Move item -->
         <button
@@ -130,7 +126,7 @@
       onclick={() => requestAddElement("frame", "row")}
       class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
       'frame'
-        ? 'bg-[#0d99ff] text-white shadow-md'
+        ? 'bg-[#0d99ff] text-white'
         : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
       title="Flexbox (Tata Letak)"
     >
@@ -150,7 +146,7 @@
         tabindex="0"
         onclick={(e) => e.stopPropagation()}
         onkeydown={(e) => e.key === "Escape" && closePopover()}
-        class="absolute bottom-full left-0 mb-3 w-56 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white shadow-2xl backdrop-blur-xl"
+        class="absolute bottom-full left-0 mb-3 w-56 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white backdrop-blur-xl"
       >
         <button
           onclick={() => requestAddElement("frame", "row")}
@@ -180,7 +176,7 @@
       onclick={() => requestAddElement("heading")}
       class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
         'heading' || editor.pendingElementType === 'text'
-        ? 'bg-[#0d99ff] text-white shadow-md'
+        ? 'bg-[#0d99ff] text-white'
         : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
       title="Teks (Judul / Paragraf)"
     >
@@ -200,7 +196,7 @@
         tabindex="0"
         onclick={(e) => e.stopPropagation()}
         onkeydown={(e) => e.key === "Escape" && closePopover()}
-        class="absolute bottom-full left-0 mb-3 w-48 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white shadow-2xl backdrop-blur-xl"
+        class="absolute bottom-full left-0 mb-3 w-48 rounded-xl border border-[#333338] bg-[#1c1c1f] p-1.5 text-xs text-white backdrop-blur-xl"
       >
         <button
           onclick={() => requestAddElement("heading")}
@@ -233,7 +229,7 @@
     onclick={() => requestAddElement("button")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
     'button'
-      ? 'bg-[#0d99ff] text-white shadow-md'
+      ? 'bg-[#0d99ff] text-white'
       : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     title="Tombol"
   >
@@ -245,7 +241,7 @@
     onclick={() => requestAddElement("link")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
     'link'
-      ? 'bg-[#0d99ff] text-white shadow-md'
+      ? 'bg-[#0d99ff] text-white'
       : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     title="Tautan (Link)"
   >
@@ -257,7 +253,7 @@
     onclick={() => requestAddElement("image")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
     'image'
-      ? 'bg-[#0d99ff] text-white shadow-md'
+      ? 'bg-[#0d99ff] text-white'
       : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     title="Gambar"
   >
@@ -269,7 +265,7 @@
     onclick={() => requestAddElement("icon")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
     'icon'
-      ? 'bg-[#0d99ff] text-white shadow-md'
+      ? 'bg-[#0d99ff] text-white'
       : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     title="Ikon"
   >
@@ -281,7 +277,7 @@
     onclick={() => requestAddElement("youtube")}
     class="flex h-9 w-9 items-center justify-center rounded-xl transition {editor.pendingElementType ===
     'youtube'
-      ? 'bg-[#0d99ff] text-white shadow-md'
+      ? 'bg-[#0d99ff] text-white'
       : 'text-neutral-400 hover:bg-[#2c2c30] hover:text-white'}"
     title="Iframe YouTube"
   >

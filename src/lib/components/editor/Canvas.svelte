@@ -1,6 +1,8 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
+  import { getGapCss, getMarginCss, getPaddingCss } from "./spacing-utils";
+
   import type { EditorState } from "./editor-state.svelte";
   import type { CanvasElement } from "./types";
 
@@ -25,6 +27,32 @@
 
   let mouseClientPos = $state({ x: 0, y: 0 });
   let isMouseInsideCanvas = $state(false);
+  let hoveredElementId = $state<string | null>(null);
+
+  const activePresetMinHeight = $derived.by(() => {
+    if (editor.frame.minHeight) return editor.frame.minHeight;
+    if (editor.device === "mobile" || editor.frame.width <= 480) return 780;
+    if (editor.device === "tablet" || editor.frame.width <= 820) return 900;
+    return 720;
+  });
+
+  let defaultFrameHeight = $state(0);
+
+  const maxFreeElementBottom = $derived.by(() => {
+    const freeEls = editor.elements.filter(
+      (el) => !el.parentId && !el.isDefault && el.id !== "flexbox-default" && !el.hidden
+    );
+    if (freeEls.length === 0) return 0;
+    return Math.max(...freeEls.map((el) => (el.y || 0) + (el.height || 0)));
+  });
+
+  const autoCanvasHeight = $derived(
+    Math.max(activePresetMinHeight, defaultFrameHeight, maxFreeElementBottom)
+  );
+
+  $effect(() => {
+    editor.frame.height = autoCanvasHeight;
+  });
 
   const activeFollower = $derived.by(() => {
     if (isPanActive || isCanvasPanning || editor.isPreviewMode) return null;
@@ -79,8 +107,24 @@
       return;
     }
 
-    // Deselect if clicking on empty space of frame/canvas
     const target = e.target as HTMLElement;
+
+    // Jika dalam mode penambahan elemen dan klik di artboard kanvas
+    if (editor.pendingElementType) {
+      const artboardEl = (
+        target.dataset.role === "artboard" ? target : target.closest('[data-role="artboard"]')
+      ) as HTMLElement | null;
+      if (artboardEl) {
+        const rect = artboardEl.getBoundingClientRect();
+        const clickX = Math.round((e.clientX - rect.left) / editor.zoom);
+        const clickY = Math.round((e.clientY - rect.top) / editor.zoom);
+        editor.addElement(editor.pendingElementType, Math.max(0, clickX), Math.max(0, clickY));
+        editor.pendingElementType = null;
+        return;
+      }
+    }
+
+    // Deselect if clicking on empty space of frame/canvas
     if (target.dataset.role === "canvas-background" || target.dataset.role === "artboard") {
       editor.selectElement(null);
     }
@@ -95,10 +139,15 @@
     // Jika dalam mode penambahan elemen ke dalam frame
     if (editor.pendingElementType) {
       e.stopPropagation();
-      const targetFrameId = el.type === "frame" ? el.id : el.parentId || el.id;
-      editor.addElementToFrame(targetFrameId, editor.pendingElementType, {
-        flexDirection: editor.pendingFrameDirection
-      });
+      const targetFrameId = el.type === "frame" ? el.id : el.parentId;
+      if (targetFrameId) {
+        editor.addElementToFrame(targetFrameId, editor.pendingElementType, {
+          flexDirection: editor.pendingFrameDirection
+        });
+      } else {
+        editor.addElement(editor.pendingElementType, el.x + 20, el.y + 20);
+      }
+      editor.pendingElementType = null;
       return;
     }
 
@@ -127,6 +176,7 @@
           flexDirection: editor.pendingFrameDirection
         });
       }
+      editor.pendingElementType = null;
       return;
     }
 
@@ -177,15 +227,8 @@
         editor.selectedElement.isDefault || editor.selectedElement.id === "flexbox-default";
       if (isDef) {
         const dy = (e.clientY - dragStartPos.y) / editor.zoom;
-        const newH = Math.max(80, Math.round(initialBox.h + dy));
-        editor.updateElement(editor.selectedElement.id, {
-          x: 0,
-          y: 0,
-          width: editor.frame.width,
-          height: newH,
-          heightMode: "fixed"
-        });
-        editor.frame.height = newH;
+        const newH = Math.max(activePresetMinHeight, Math.round(initialBox.h + dy));
+        editor.frame.minHeight = newH;
         return;
       }
 
@@ -410,7 +453,7 @@
   <!-- Floating Cursor Icon Follower (saat aktif di teks, tombol, youtube, dll) -->
   {#if activeFollower && isMouseInsideCanvas && !isPanActive && !isCanvasPanning && !editor.isPreviewMode}
     <div
-      class="pointer-events-none fixed z-50 flex items-center gap-1.5 rounded-full border border-[#0d99ff]/50 bg-[#16161a]/95 px-2.5 py-1 text-[11px] font-medium text-white shadow-2xl backdrop-blur-md select-none"
+      class="pointer-events-none fixed z-50 flex items-center gap-1.5 rounded-full border border-[#0d99ff]/50 bg-[#16161a]/95 px-2.5 py-1 text-[11px] font-medium text-white backdrop-blur-md select-none"
       style="left: {mouseClientPos.x + 14}px; top: {mouseClientPos.y + 14}px;"
     >
       {#if activeFollower.type === "heading"}
@@ -444,7 +487,7 @@
   <!-- Visitor Preview Mode Header Indicator -->
   {#if editor.isPreviewMode}
     <div
-      class="absolute top-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-neutral-700 bg-neutral-900/90 px-4 py-2 text-xs text-white shadow-2xl backdrop-blur"
+      class="absolute top-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-neutral-700 bg-neutral-900/90 px-4 py-2 text-xs text-white backdrop-blur"
     >
       <span class="flex items-center gap-1.5 font-medium text-amber-400">
         <Icon icon="lucide:eye" class="h-3.5 w-3.5" />
@@ -452,7 +495,7 @@
       </span>
       <button
         onclick={() => (editor.isPreviewMode = false)}
-        class="rounded-full bg-[#0d99ff] px-3 py-1 font-semibold text-white shadow transition hover:brightness-110"
+        class="rounded-full bg-[#0d99ff] px-3 py-1 font-semibold text-white transition hover:brightness-110"
       >
         Kembali ke Desain
       </button>
@@ -472,7 +515,7 @@
 			youtube: 'Iframe YouTube'
 		}}
     <div
-      class="absolute top-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[#0d99ff]/50 bg-[#141b2b]/95 px-4 py-2 text-xs text-white shadow-2xl backdrop-blur select-none"
+      class="absolute top-4 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full border border-[#0d99ff]/50 bg-[#141b2b]/95 px-4 py-2 text-xs text-white backdrop-blur select-none"
     >
       <span class="flex items-center gap-2 font-medium text-[#0d99ff]">
         <span class="relative flex h-2.5 w-2.5">
@@ -482,7 +525,7 @@
           <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-[#0d99ff]"></span>
         </span>
         <span>
-          Klik pada Container untuk memasukkan {typeLabels[editor.pendingElementType] ||
+          Klik pada Kanvas atau Flexbox untuk menempatkan {typeLabels[editor.pendingElementType] ||
             editor.pendingElementType}
         </span>
       </span>
@@ -504,20 +547,21 @@
     <div class="absolute -top-7 left-0 flex items-center gap-2">
       <span class="text-xs font-semibold text-neutral-400">{editor.frame.name}</span>
       <span class="rounded bg-[#222] px-1.5 py-0.5 text-[10px] text-neutral-400">
-        {editor.frame.width} × {editor.frame.height}
+        {editor.frame.width} × {autoCanvasHeight}
       </span>
     </div>
 
     <!-- Artboard Surface -->
     <div
       data-role="artboard"
-      class="relative shadow-2xl transition-all"
+      class="relative transition-all"
       style="
 				width: {editor.frame.width}px;
-				height: {editor.frame.height}px;
+				min-height: {activePresetMinHeight}px;
+				height: {autoCanvasHeight}px;
 				background-color: {editor.frame.background};
 				border-radius: 4px;
-				box-shadow: 0 0 0 1px #222, 0 30px 60px -12px rgba(0,0,0,0.7);
+				border: 1px solid #2c2c2c;
 				cursor: {isCanvasPanning ? 'grabbing' : isPanActive ? 'grab' : 'default'};
 			"
     >
@@ -534,6 +578,13 @@
         <div
           role="button"
           tabindex="0"
+          onmouseenter={(e) => {
+            e.stopPropagation();
+            hoveredElementId = child.id;
+          }}
+          onmouseleave={() => {
+            if (hoveredElementId === child.id) hoveredElementId = null;
+          }}
           onmousedown={(e) => onChildMouseDown(e, child)}
           class="relative {widthMode === 'fill'
             ? 'w-full min-w-0 flex-1'
@@ -553,7 +604,9 @@
 						{heightMode === 'fixed'
             ? `height: ${child.height}px; min-height: ${child.height}px;`
             : heightMode === 'hug'
-              ? `height: auto; min-height: fit-content;`
+              ? child.type === 'frame' && subChildren.length === 0
+                ? `height: ${child.height || 80}px; min-height: ${child.height || 80}px;`
+                : `height: auto; min-height: fit-content;`
               : `height: 100%; min-height: 0; align-self: stretch;`}
 						background-color: {child.fill};
 						border-radius: {child.borderRadius}px;
@@ -567,6 +620,8 @@
 						font-weight: {child.fontWeight || 'normal'};
 						font-family: {child.fontFamily || 'Inter'};
 						text-align: {child.textAlign || 'left'};
+						{child.type !== 'frame' ? getPaddingCss(child) : ''}
+						{getMarginCss(child)}
 						cursor: {isCanvasPanning
             ? 'grabbing'
             : isPanActive
@@ -631,41 +686,18 @@
             <div
               class="flex h-full w-full overflow-auto {child.flexDirection === 'column'
                 ? 'flex-col'
-                : 'flex-row'} {subChildren.length === 0
-                ? 'items-center justify-center'
-                : child.justifyContent === 'center'
-                  ? 'items-center justify-center'
-                  : 'items-center justify-start'}"
+                : 'flex-row'}"
               style="
-								gap: {child.gap ?? 12}px;
-								padding: {child.padding ?? 16}px;
+								justify-content: {child.justifyContent || 'flex-start'};
+								align-items: {child.alignItems || 'center'};
+								{getGapCss(child)}
+								{getPaddingCss(child)}
 								flex-wrap: wrap;
 							"
             >
-              {#if subChildren.length === 0}
-                <div
-                  class="flex h-full min-h-22.5 w-full flex-col items-center justify-center rounded-lg border border-dashed p-4 text-center transition-all select-none {editor.pendingElementType
-                    ? 'border-[#0d99ff] bg-[#0d99ff]/10 ring-2 ring-[#0d99ff]/30'
-                    : 'border-neutral-300 bg-neutral-50/60'}"
-                >
-                  <span class="font-mono text-xs font-semibold text-neutral-600">
-                    {child.name} Kosong
-                  </span>
-                  <p class="mt-1 text-[10px] text-neutral-500">
-                    {#if editor.pendingElementType}
-                      <strong class="text-[#0d99ff]"
-                        >Klik di sini untuk memasukkan ke dalam {child.name}!</strong
-                      >
-                    {:else}
-                      Klik untuk memilih atau isi komponen di sini.
-                    {/if}
-                  </p>
-                </div>
-              {:else}
-                {#each subChildren as subChild (subChild.id)}
-                  {@render renderChildElement(subChild)}
-                {/each}
-              {/if}
+              {#each subChildren as subChild (subChild.id)}
+                {@render renderChildElement(subChild)}
+              {/each}
             </div>
           {:else if child.type === "youtube"}
             <div class="relative h-full w-full overflow-hidden rounded bg-black">
@@ -684,17 +716,25 @@
               class="pointer-events-none absolute -inset-px z-30 border border-[#0d99ff]"
               style="border-radius: {Math.max(0, (child.borderRadius || 0) + 1)}px;"
             ></div>
+          {:else if hoveredElementId === child.id && !child.locked && !editor.isPreviewMode && !isPanActive}
+            <!-- Hover Border (Garis Biru seperti saat fokus) -->
+            <div
+              class="pointer-events-none absolute -inset-px z-30 border border-[#0d99ff]"
+              style="border-radius: {Math.max(0, (child.borderRadius || 0) + 1)}px;"
+            ></div>
+          {/if}
 
+          {#if isChildSelected && !editor.isPreviewMode}
             <!-- Nama Komponen di ATAS -->
             <div
-              class="pointer-events-none absolute -top-5 left-1/2 z-40 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[9px] font-medium whitespace-nowrap text-white shadow"
+              class="pointer-events-none absolute -top-5 left-1/2 z-40 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[9px] font-medium whitespace-nowrap text-white"
             >
               {child.name}
             </div>
 
             <!-- Dimensi Komponen di BAWAH -->
             <div
-              class="pointer-events-none absolute -bottom-5 left-1/2 z-40 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[9px] font-medium whitespace-nowrap text-white shadow"
+              class="pointer-events-none absolute -bottom-5 left-1/2 z-40 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[9px] font-medium whitespace-nowrap text-white"
             >
               {wText} × {hText}
             </div>
@@ -727,15 +767,27 @@
           <div
             role="button"
             tabindex="0"
+            onmouseenter={(e) => {
+              e.stopPropagation();
+              hoveredElementId = el.id;
+            }}
+            onmouseleave={() => {
+              if (hoveredElementId === el.id) hoveredElementId = null;
+            }}
             onmousedown={(e) => onElementMouseDown(e, el)}
+            bind:clientHeight={defaultFrameHeight}
             class="absolute {isSelected ? 'z-40' : ''}"
             style="
 							left: {currentX}px;
 							top: {currentY}px;
 							width: {widthMode === 'hug' ? 'auto' : `${currentWidth}px`};
 							min-width: {widthMode === 'hug' ? 'fit-content' : undefined};
-							height: {heightMode === 'hug' ? 'auto' : `${el.height}px`};
-							min-height: {heightMode === 'hug' ? 'fit-content' : undefined};
+							height: {isDefaultFrame ? 'auto' : heightMode === 'hug' ? 'auto' : `${el.height}px`};
+							min-height: {isDefaultFrame
+              ? `${activePresetMinHeight}px`
+              : heightMode === 'hug'
+                ? 'fit-content'
+                : undefined};
 							cursor: {isCanvasPanning
               ? 'grabbing'
               : isPanActive
@@ -753,7 +805,9 @@
           >
             <!-- Element Visual Rendering -->
             <div
-              class="h-full w-full overflow-hidden"
+              class="{isDefaultFrame ? 'min-h-full' : 'h-full'} w-full {isDefaultFrame
+                ? ''
+                : 'overflow-hidden'}"
               style="
 								background-color: {el.fill};
 								border-radius: {el.borderRadius}px;
@@ -762,12 +816,13 @@
 								border-style: {el.borderStyle};
 								opacity: {el.opacity / 100};
 								box-shadow: {el.boxShadow};
-								transform: rotate({el.rotation}deg);
 								color: {el.color || 'inherit'};
 								font-size: {el.fontSize ? el.fontSize + 'px' : 'inherit'};
 								font-weight: {el.fontWeight || 'normal'};
 								font-family: {el.fontFamily || 'Inter'};
 								text-align: {el.textAlign || 'left'};
+								{el.type !== 'frame' ? getPaddingCss(el) : ''}
+								{getMarginCss(el)}
 							"
             >
               {#if el.type === "heading"}
@@ -832,50 +887,34 @@
               {:else if el.type === "frame"}
                 {@const children = editor.elements.filter((c) => c.parentId === el.id)}
                 <div
-                  class="flex h-full w-full overflow-auto {el.flexDirection === 'column'
-                    ? 'flex-col'
-                    : 'flex-row'} {children.length === 0
-                    ? 'items-center justify-center'
-                    : el.justifyContent === 'center'
-                      ? 'items-center justify-center'
-                      : 'items-center justify-start'}"
+                  class="flex {isDefaultFrame ? 'min-h-full' : 'h-full'} w-full {isDefaultFrame
+                    ? ''
+                    : 'overflow-auto'} {el.flexDirection === 'column' ? 'flex-col' : 'flex-row'}"
                   style="
-										gap: {el.gap ?? 16}px;
-										padding: {el.padding ?? 24}px;
+										justify-content: {el.justifyContent || 'flex-start'};
+										align-items: {el.alignItems || 'center'};
+										{getGapCss(el)}
+										{getPaddingCss(el)}
 										flex-wrap: wrap;
 									"
                 >
-                  {#if children.length === 0}
-                    <div
-                      class="flex h-full w-full flex-col items-center justify-center rounded-xl border border-dashed p-6 text-center transition-all select-none {editor.pendingElementType
-                        ? 'border-[#0d99ff] bg-[#0d99ff]/10 ring-2 ring-[#0d99ff]/30'
-                        : 'border-neutral-300 bg-neutral-50/60'}"
-                    >
-                      <span class="font-mono text-xs font-semibold text-neutral-700">
-                        {el.name} Kosong
-                      </span>
-                      <p class="mt-1 text-[11px] text-neutral-500">
-                        {#if editor.pendingElementType}
-                          <strong class="text-[#0d99ff]"
-                            >Klik di sini untuk memasukkan elemen ke dalam {el.name}!</strong
-                          >
-                        {:else}
-                          Pilih Flexbox, Teks, Tombol, Tautan, Gambar, atau YouTube di toolbar
-                          bawah, lalu klik di sini.
-                        {/if}
-                      </p>
-                    </div>
-                  {:else}
-                    {#each children as child (child.id)}
-                      {@render renderChildElement(child)}
-                    {/each}
-                  {/if}
+                  {#each children as child (child.id)}
+                    {@render renderChildElement(child)}
+                  {/each}
                 </div>
               {:else}
                 <!-- Container / Frame / Rectangle -->
                 <div class="h-full w-full"></div>
               {/if}
             </div>
+
+            <!-- Hover Indicator Bounding Box (Garis Biru seperti saat fokus) -->
+            {#if !isSelected && hoveredElementId === el.id && !el.locked && !editor.isPreviewMode && !isPanActive}
+              <div
+                class="pointer-events-none absolute -inset-px z-30 border border-[#0d99ff]"
+                style="border-radius: {Math.max(0, (el.borderRadius || 0) + 1)}px;"
+              ></div>
+            {/if}
 
             <!-- Interactive Bounding Box & Resize Handles (when selected) -->
             {#if isSelected && !el.locked && !editor.isPreviewMode && !isPanActive}
@@ -885,14 +924,14 @@
               >
                 <!-- Nama Komponen di ATAS -->
                 <div
-                  class="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[10px] font-medium whitespace-nowrap text-white shadow-md"
+                  class="absolute -top-6 left-1/2 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[10px] font-medium whitespace-nowrap text-white"
                 >
                   {el.name}
                 </div>
 
                 <!-- Dimensi Komponen di BAWAH -->
                 <div
-                  class="absolute -bottom-6 left-1/2 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[10px] font-medium whitespace-nowrap text-white shadow-md"
+                  class="absolute -bottom-6 left-1/2 -translate-x-1/2 rounded bg-[#0d99ff] px-1.5 py-0.5 font-mono text-[10px] font-medium whitespace-nowrap text-white"
                 >
                   {rootWText} × {rootHText}
                 </div>
@@ -906,7 +945,7 @@
                   aria-valuenow={el.height}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "s")}
-                  class="pointer-events-auto absolute -bottom-2 left-1/2 z-50 flex h-3.5 w-12 -translate-x-1/2 cursor-ns-resize items-center justify-center rounded border border-[#0d99ff] bg-white shadow-lg"
+                  class="pointer-events-auto absolute -bottom-2 left-1/2 z-50 flex h-3.5 w-12 -translate-x-1/2 cursor-ns-resize items-center justify-center rounded border border-[#0d99ff] bg-white"
                   title="Tarik untuk mengubah tinggi flexbox bawaan"
                 >
                   <div class="h-0.5 w-4 rounded bg-[#0d99ff]"></div>
@@ -919,7 +958,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "nw")}
-                  class="pointer-events-auto absolute -top-1.5 -left-1.5 z-50 h-3 w-3 cursor-nwse-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -top-1.5 -left-1.5 z-50 h-3 w-3 cursor-nwse-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -927,7 +966,7 @@
                   aria-valuenow={el.height}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "n")}
-                  class="pointer-events-auto absolute -top-1.5 left-1/2 z-50 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -top-1.5 left-1/2 z-50 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -935,7 +974,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "ne")}
-                  class="pointer-events-auto absolute -top-1.5 -right-1.5 z-50 h-3 w-3 cursor-nesw-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -top-1.5 -right-1.5 z-50 h-3 w-3 cursor-nesw-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -943,7 +982,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "e")}
-                  class="pointer-events-auto absolute top-1/2 -right-1.5 z-50 h-3 w-3 -translate-y-1/2 cursor-ew-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute top-1/2 -right-1.5 z-50 h-3 w-3 -translate-y-1/2 cursor-ew-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -951,7 +990,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "se")}
-                  class="pointer-events-auto absolute -right-1.5 -bottom-1.5 z-50 h-3 w-3 cursor-nwse-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -right-1.5 -bottom-1.5 z-50 h-3 w-3 cursor-nwse-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -959,7 +998,7 @@
                   aria-valuenow={el.height}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "s")}
-                  class="pointer-events-auto absolute -bottom-1.5 left-1/2 z-50 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -bottom-1.5 left-1/2 z-50 h-3 w-3 -translate-x-1/2 cursor-ns-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -967,7 +1006,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "sw")}
-                  class="pointer-events-auto absolute -bottom-1.5 -left-1.5 z-50 h-3 w-3 cursor-nesw-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute -bottom-1.5 -left-1.5 z-50 h-3 w-3 cursor-nesw-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
                 <div
                   role="slider"
@@ -975,7 +1014,7 @@
                   aria-valuenow={el.width}
                   tabindex="0"
                   onmousedown={(e) => onResizeMouseDown(e, "w")}
-                  class="pointer-events-auto absolute top-1/2 -left-1.5 z-50 h-3 w-3 -translate-y-1/2 cursor-ew-resize rounded-xs border border-[#0d99ff] bg-white shadow"
+                  class="pointer-events-auto absolute top-1/2 -left-1.5 z-50 h-3 w-3 -translate-y-1/2 cursor-ew-resize rounded-xs border border-[#0d99ff] bg-white"
                 ></div>
               {/if}
             {/if}
@@ -988,7 +1027,7 @@
   <!-- Floating Canvas Helper / Quick Navigation -->
   {#if !editor.isPreviewMode}
     <div
-      class="absolute top-3 left-3 z-30 flex items-center gap-2 rounded-lg border border-[#2c2c2c] bg-[#1e1e1e]/90 px-3 py-1.5 text-xs text-neutral-400 shadow-xl backdrop-blur select-none"
+      class="absolute top-3 left-3 z-30 flex items-center gap-2 rounded-lg border border-[#2c2c2c] bg-[#1e1e1e]/90 px-3 py-1.5 text-xs text-neutral-400 backdrop-blur select-none"
     >
       <span class="text-neutral-300">2 Jari Trackpad: Pinch Zoom & Geser</span>
       <span class="text-neutral-600">•</span>

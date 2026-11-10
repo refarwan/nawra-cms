@@ -20,7 +20,7 @@ export interface CanvasElement {
   y: number;
   width: number;
   height: number;
-  rotation: number;
+  rotation?: number;
 
   // Sizing Mode (Figma-style: Tetap / Ikuti Konten / Penuhi Kontainer)
   widthMode?: SizingMode;
@@ -53,7 +53,18 @@ export interface CanvasElement {
   justifyContent?: "flex-start" | "center" | "flex-end" | "space-between";
   alignItems?: "flex-start" | "center" | "flex-end" | "stretch";
   gap?: number;
+  gapX?: number;
+  gapY?: number;
   padding?: number;
+  paddingTop?: number;
+  paddingRight?: number;
+  paddingBottom?: number;
+  paddingLeft?: number;
+  margin?: number;
+  marginTop?: number;
+  marginRight?: number;
+  marginBottom?: number;
+  marginLeft?: number;
 
   // State
   locked?: boolean;
@@ -78,6 +89,7 @@ export interface CanvasFrame {
   name: string;
   width: number;
   height: number;
+  minHeight?: number;
   background: string;
 }
 

@@ -1,7 +1,12 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
+  import BoxSpacingInput from "./BoxSpacingInput.svelte";
+  import ColorPickerInput from "./ColorPickerInput.svelte";
+  import FlexboxAlignBox from "./FlexboxAlignBox.svelte";
+  import FlexboxGapInput from "./FlexboxGapInput.svelte";
   import IconSearchInput from "./IconSearchInput.svelte";
+  import { handleNumberKeydown, sanitizeNumber } from "./number-input-utils";
 
   import type { EditorState } from "./editor-state.svelte";
   import type { CanvasElement, SizingMode } from "./types";
@@ -11,22 +16,26 @@
   const el = $derived(editor.selectedElement);
 
   const framePresets = [
-    { label: "Komputer / Desktop (1280 px)", w: 1280, h: 480 },
-    { label: "Laptop MacBook (1440 × 900)", w: 1440, h: 900 },
+    { label: "Komputer / Desktop (1280 x 720)", w: 1280, h: 720 },
     { label: "Tablet iPad (768 × 900)", w: 768, h: 900 },
     { label: "Smartphone (390 × 780)", w: 390, h: 780 }
   ];
 
   function applyPreset(w: number, h: number) {
     editor.frame.width = w;
+    editor.frame.minHeight = h;
+    if (w === 1280) {
+      editor.device = "desktop";
+    } else if (w === 768) {
+      editor.device = "tablet";
+    } else if (w === 390) {
+      editor.device = "mobile";
+    }
     const defaultFb = editor.elements.find(
       (item) => item.isDefault || item.id === "flexbox-default"
     );
     if (defaultFb) {
       defaultFb.width = w;
-      editor.frame.height = defaultFb.height;
-    } else {
-      editor.frame.height = h;
     }
   }
 
@@ -113,10 +122,18 @@
             >
               <span class="font-mono text-neutral-500">X</span>
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 value={el.x}
-                oninput={(e) =>
-                  editor.updateElement(el.id, { x: +(e.target as HTMLInputElement).value })}
+                oninput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/(?!^-)[^0-9]/g, "");
+                  editor.updateElement(el.id, { x: sanitizeNumber(target.value, true) });
+                }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(e, el.x, (val) => editor.updateElement(el.id, { x: val }), {
+                    allowNegative: true
+                  })}
                 class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
               />
             </div>
@@ -125,10 +142,18 @@
             >
               <span class="font-mono text-neutral-500">Y</span>
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 value={el.y}
-                oninput={(e) =>
-                  editor.updateElement(el.id, { y: +(e.target as HTMLInputElement).value })}
+                oninput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/(?!^-)[^0-9]/g, "");
+                  editor.updateElement(el.id, { y: sanitizeNumber(target.value, true) });
+                }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(e, el.y, (val) => editor.updateElement(el.id, { y: val }), {
+                    allowNegative: true
+                  })}
                 class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
               />
             </div>
@@ -170,12 +195,23 @@
               >
             {:else if (el.widthMode || "fixed") === "fixed"}
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 value={el.width}
-                oninput={(e) =>
+                oninput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/\D/g, "");
                   editor.updateElement(el.id, {
-                    width: Math.max(10, +(e.target as HTMLInputElement).value)
-                  })}
+                    width: Math.max(10, sanitizeNumber(target.value))
+                  });
+                }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(
+                    e,
+                    el.width,
+                    (val) => editor.updateElement(el.id, { width: val }),
+                    { min: 10 }
+                  )}
                 class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
               />
               <span class="font-mono text-[11px] text-neutral-500">px</span>
@@ -219,15 +255,30 @@
             <span class="font-mono text-neutral-500">T</span>
             {#if (el.heightMode || "fixed") === "fixed"}
               <input
-                type="number"
+                type="text"
+                inputmode="numeric"
                 value={el.height}
                 oninput={(e) => {
-                  const val = Math.max(20, +(e.target as HTMLInputElement).value);
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/\D/g, "");
+                  const val = Math.max(20, sanitizeNumber(target.value));
                   editor.updateElement(el.id, { height: val });
                   if (el.isDefault || el.id === "flexbox-default") {
                     editor.frame.height = val;
                   }
                 }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(
+                    e,
+                    el.height,
+                    (val) => {
+                      editor.updateElement(el.id, { height: val });
+                      if (el.isDefault || el.id === "flexbox-default") {
+                        editor.frame.height = val;
+                      }
+                    },
+                    { min: 20 }
+                  )}
                 class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
               />
               <span class="font-mono text-[11px] text-neutral-500">px</span>
@@ -243,35 +294,92 @@
           </div>
         </div>
 
-        <div class="mt-2 grid grid-cols-2 gap-2 text-xs">
+        <div class="mt-2 text-xs">
           <div
             class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
+            title="Kelengkungan Sudut (Radius)"
           >
             <span class="text-neutral-500">Radius</span>
             <input
-              type="number"
+              type="text"
+              inputmode="numeric"
               value={el.borderRadius}
-              oninput={(e) =>
+              oninput={(e) => {
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.replace(/\D/g, "");
                 editor.updateElement(el.id, {
-                  borderRadius: +(e.target as HTMLInputElement).value
-                })}
+                  borderRadius: sanitizeNumber(target.value)
+                });
+              }}
+              onkeydown={(e) =>
+                handleNumberKeydown(
+                  e,
+                  el.borderRadius,
+                  (val) => editor.updateElement(el.id, { borderRadius: val }),
+                  { min: 0 }
+                )}
               class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
             />
+            <span class="font-mono text-[11px] text-neutral-500">px</span>
           </div>
-          <div
-            class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
-          >
-            <span class="text-neutral-500">Rotasi</span>
-            <input
-              type="number"
-              value={el.rotation}
-              oninput={(e) =>
-                editor.updateElement(el.id, {
-                  rotation: +(e.target as HTMLInputElement).value
-                })}
-              class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
-            />
-          </div>
+        </div>
+
+        <div class="mt-3 space-y-3">
+          <BoxSpacingInput
+            label="Padding"
+            top={el.paddingTop ?? el.padding ?? 0}
+            right={el.paddingRight ?? el.padding ?? 0}
+            bottom={el.paddingBottom ?? el.padding ?? 0}
+            left={el.paddingLeft ?? el.padding ?? 0}
+            onChangeAll={(val) => {
+              editor.updateElement(el.id, {
+                padding: val,
+                paddingTop: val,
+                paddingRight: val,
+                paddingBottom: val,
+                paddingLeft: val
+              });
+            }}
+            onChangeSide={(side, val) => {
+              const key =
+                side === "top"
+                  ? "paddingTop"
+                  : side === "right"
+                    ? "paddingRight"
+                    : side === "bottom"
+                      ? "paddingBottom"
+                      : "paddingLeft";
+              editor.updateElement(el.id, { [key]: val });
+            }}
+          />
+
+          <BoxSpacingInput
+            label="Margin"
+            top={el.marginTop ?? el.margin ?? 0}
+            right={el.marginRight ?? el.margin ?? 0}
+            bottom={el.marginBottom ?? el.margin ?? 0}
+            left={el.marginLeft ?? el.margin ?? 0}
+            onChangeAll={(val) => {
+              editor.updateElement(el.id, {
+                margin: val,
+                marginTop: val,
+                marginRight: val,
+                marginBottom: val,
+                marginLeft: val
+              });
+            }}
+            onChangeSide={(side, val) => {
+              const key =
+                side === "top"
+                  ? "marginTop"
+                  : side === "right"
+                    ? "marginRight"
+                    : side === "bottom"
+                      ? "marginBottom"
+                      : "marginLeft";
+              editor.updateElement(el.id, { [key]: val });
+            }}
+          />
         </div>
       </div>
 
@@ -330,12 +438,23 @@
               >
                 <span class="text-neutral-500">Ukuran</span>
                 <input
-                  type="number"
+                  type="text"
+                  inputmode="numeric"
                   value={el.fontSize || 16}
-                  oninput={(e) =>
+                  oninput={(e) => {
+                    const target = e.target as HTMLInputElement;
+                    target.value = target.value.replace(/\D/g, "");
                     editor.updateElement(el.id, {
-                      fontSize: +(e.target as HTMLInputElement).value
-                    })}
+                      fontSize: Math.max(8, sanitizeNumber(target.value) || 16)
+                    });
+                  }}
+                  onkeydown={(e) =>
+                    handleNumberKeydown(
+                      e,
+                      el.fontSize || 16,
+                      (val) => editor.updateElement(el.id, { fontSize: val }),
+                      { min: 8 }
+                    )}
                   class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
                 />
               </div>
@@ -390,17 +509,13 @@
                 </button>
               </div>
 
-              <div
-                class="flex items-center gap-1.5 rounded border border-[#333] bg-[#252525] px-2 py-1"
-              >
-                <input
-                  type="color"
+              <div class="w-36">
+                <ColorPickerInput
+                  label="Warna Teks"
                   value={el.color || "#ffffff"}
-                  oninput={(e) =>
-                    editor.updateElement(el.id, { color: (e.target as HTMLInputElement).value })}
-                  class="h-4 w-4 cursor-pointer rounded border-0 bg-transparent p-0"
+                  allowTransparent={false}
+                  onChange={(color) => editor.updateElement(el.id, { color })}
                 />
-                <span class="font-mono text-[11px] text-neutral-300">{el.color || "#fff"}</span>
               </div>
             </div>
           </div>
@@ -443,22 +558,12 @@
 
             <div>
               <span class="mb-1 block text-[10px] text-neutral-400">Warna Ikon</span>
-              <div class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] p-2">
-                <input
-                  type="color"
-                  value={el.color?.startsWith("#") ? el.color : "#0d99ff"}
-                  oninput={(e) =>
-                    editor.updateElement(el.id, { color: (e.target as HTMLInputElement).value })}
-                  class="h-6 w-6 cursor-pointer rounded border border-white/20 bg-transparent p-0"
-                />
-                <input
-                  type="text"
-                  value={el.color || "#0d99ff"}
-                  oninput={(e) =>
-                    editor.updateElement(el.id, { color: (e.target as HTMLInputElement).value })}
-                  class="w-full bg-transparent font-mono text-xs text-white focus:outline-none"
-                />
-              </div>
+              <ColorPickerInput
+                label="Warna Ikon"
+                value={el.color?.startsWith("#") ? el.color : "#0d99ff"}
+                allowTransparent={false}
+                onChange={(color) => editor.updateElement(el.id, { color })}
+              />
             </div>
           </div>
         </div>
@@ -469,38 +574,40 @@
         <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
           Warna Latar (Background)
         </div>
-        <div
-          class="flex items-center justify-between gap-2 rounded border border-[#333] bg-[#252525] p-2"
-        >
-          <div class="flex items-center gap-2">
-            <input
-              type="color"
-              value={el.fill.startsWith("#") ? el.fill : "#1e293b"}
-              oninput={(e) =>
-                editor.updateElement(el.id, { fill: (e.target as HTMLInputElement).value })}
-              class="h-6 w-6 cursor-pointer rounded border border-white/20 bg-transparent p-0"
-            />
-            <input
-              type="text"
-              value={el.fill}
-              oninput={(e) =>
-                editor.updateElement(el.id, { fill: (e.target as HTMLInputElement).value })}
-              class="w-24 bg-transparent font-mono text-white focus:outline-none"
-            />
-          </div>
+        <div class="space-y-2">
+          <ColorPickerInput
+            label="Warna Latar"
+            value={el.fill}
+            allowTransparent={true}
+            onChange={(fill) => editor.updateElement(el.id, { fill })}
+          />
 
-          <div class="flex items-center gap-1 text-neutral-400">
-            <span class="text-[10px]">Opasitas</span>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={el.opacity}
-              oninput={(e) =>
-                editor.updateElement(el.id, { opacity: +(e.target as HTMLInputElement).value })}
-              class="w-12 bg-transparent text-right font-mono text-white focus:outline-none"
-            />
-            <span>%</span>
+          <div
+            class="flex items-center justify-between rounded border border-[#333] bg-[#252525] px-2.5 py-1.5"
+          >
+            <span class="text-[10px] text-neutral-400">Opasitas</span>
+            <div class="flex items-center gap-1 font-mono text-xs">
+              <input
+                type="text"
+                inputmode="numeric"
+                value={el.opacity}
+                oninput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/\D/g, "");
+                  const val = Math.min(100, Math.max(0, sanitizeNumber(target.value)));
+                  editor.updateElement(el.id, { opacity: val });
+                }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(
+                    e,
+                    el.opacity,
+                    (val) => editor.updateElement(el.id, { opacity: val }),
+                    { min: 0, max: 100 }
+                  )}
+                class="w-12 bg-transparent text-right text-white focus:outline-none"
+              />
+              <span class="text-neutral-500">%</span>
+            </div>
           </div>
         </div>
       </div>
@@ -517,13 +624,23 @@
             >
               <span class="text-neutral-500">Tebal</span>
               <input
-                type="number"
-                min="0"
+                type="text"
+                inputmode="numeric"
                 value={el.borderWidth}
-                oninput={(e) =>
+                oninput={(e) => {
+                  const target = e.target as HTMLInputElement;
+                  target.value = target.value.replace(/\D/g, "");
                   editor.updateElement(el.id, {
-                    borderWidth: +(e.target as HTMLInputElement).value
-                  })}
+                    borderWidth: sanitizeNumber(target.value)
+                  });
+                }}
+                onkeydown={(e) =>
+                  handleNumberKeydown(
+                    e,
+                    el.borderWidth,
+                    (val) => editor.updateElement(el.id, { borderWidth: val }),
+                    { min: 0 }
+                  )}
                 class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
               />
             </div>
@@ -542,26 +659,12 @@
             </select>
           </div>
 
-          <div class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] p-2">
-            <input
-              type="color"
-              value={el.borderColor.startsWith("#") ? el.borderColor : "#334155"}
-              oninput={(e) =>
-                editor.updateElement(el.id, {
-                  borderColor: (e.target as HTMLInputElement).value
-                })}
-              class="h-5 w-5 cursor-pointer rounded border border-white/20 bg-transparent p-0"
-            />
-            <input
-              type="text"
-              value={el.borderColor}
-              oninput={(e) =>
-                editor.updateElement(el.id, {
-                  borderColor: (e.target as HTMLInputElement).value
-                })}
-              class="w-full bg-transparent font-mono text-white focus:outline-none"
-            />
-          </div>
+          <ColorPickerInput
+            label="Warna Garis Pinggir"
+            value={el.borderColor}
+            allowTransparent={true}
+            onChange={(borderColor) => editor.updateElement(el.id, { borderColor })}
+          />
         </div>
       </div>
 
@@ -589,27 +692,75 @@
       {#if el.type === "frame"}
         <div class="border-t border-[#2c2c2c] pt-4">
           <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
-            Arah Flexbox
+            Pengaturan Flexbox
           </div>
-          <div class="grid grid-cols-2 gap-2">
-            <button
-              onclick={() => editor.updateElement(el.id, { flexDirection: "row" })}
-              class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
-              'row'
-                ? 'bg-[#0d99ff] text-white'
-                : 'bg-[#252525] text-neutral-400 hover:text-white'}"
-            >
-              Baris (Horizontal)
-            </button>
-            <button
-              onclick={() => editor.updateElement(el.id, { flexDirection: "column" })}
-              class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
-              'column'
-                ? 'bg-[#0d99ff] text-white'
-                : 'bg-[#252525] text-neutral-400 hover:text-white'}"
-            >
-              Kolom (Vertikal)
-            </button>
+          <div class="space-y-3">
+            <div>
+              <span class="mb-1 block text-[10px] text-neutral-400">Arah Tata Letak</span>
+              <div class="grid grid-cols-2 gap-2">
+                <button
+                  onclick={() => editor.updateElement(el.id, { flexDirection: "row" })}
+                  class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
+                  'row'
+                    ? 'bg-[#0d99ff] text-white'
+                    : 'bg-[#252525] text-neutral-400 hover:text-white'}"
+                >
+                  Baris (Horizontal)
+                </button>
+                <button
+                  onclick={() => editor.updateElement(el.id, { flexDirection: "column" })}
+                  class="rounded border border-[#333] px-2 py-1.5 text-xs transition {el.flexDirection ===
+                  'column'
+                    ? 'bg-[#0d99ff] text-white'
+                    : 'bg-[#252525] text-neutral-400 hover:text-white'}"
+                >
+                  Kolom (Vertikal)
+                </button>
+              </div>
+            </div>
+
+            <!-- Figma-style Alignment Grid (Left) & Gap (Right) Side-by-Side -->
+            <div class="flex items-start gap-2">
+              <div class="w-[120px] shrink-0">
+                <FlexboxAlignBox
+                  flexDirection={el.flexDirection || "row"}
+                  justifyContent={el.justifyContent || "flex-start"}
+                  alignItems={el.alignItems || "center"}
+                  onChange={(justify, align) => {
+                    editor.updateElement(el.id, {
+                      justifyContent: justify,
+                      alignItems: align
+                    });
+                  }}
+                />
+              </div>
+
+              <div class="flex-1">
+                <FlexboxGapInput
+                  gapX={el.gapX ?? el.gap ?? 0}
+                  gapY={el.gapY ?? el.gap ?? 0}
+                  isAuto={el.justifyContent === "space-between"}
+                  flexDirection={el.flexDirection || "row"}
+                  onChangeGapX={(val) => {
+                    editor.updateElement(el.id, { gapX: val, gap: val });
+                  }}
+                  onChangeGapY={(val) => {
+                    editor.updateElement(el.id, { gapY: val });
+                  }}
+                  onSetAuto={() => {
+                    editor.updateElement(el.id, { justifyContent: "space-between" });
+                  }}
+                  onUnsetAuto={(val) => {
+                    editor.updateElement(el.id, {
+                      gap: val,
+                      gapX: val,
+                      gapY: val,
+                      justifyContent: "flex-start"
+                    });
+                  }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       {/if}
@@ -666,10 +817,13 @@
           >
             <span class="font-mono text-neutral-500">L</span>
             <input
-              type="number"
+              type="text"
+              inputmode="numeric"
               value={editor.frame.width}
               oninput={(e) => {
-                const val = +(e.target as HTMLInputElement).value;
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.replace(/\D/g, "");
+                const val = Math.max(300, sanitizeNumber(target.value));
                 editor.frame.width = val;
                 const defaultFb = editor.elements.find(
                   (item) => item.isDefault || item.id === "flexbox-default"
@@ -678,26 +832,48 @@
                   editor.updateElement(defaultFb.id, { width: val });
                 }
               }}
+              onkeydown={(e) =>
+                handleNumberKeydown(
+                  e,
+                  editor.frame.width,
+                  (val) => {
+                    editor.frame.width = val;
+                    const defaultFb = editor.elements.find(
+                      (item) => item.isDefault || item.id === "flexbox-default"
+                    );
+                    if (defaultFb) {
+                      editor.updateElement(defaultFb.id, { width: val });
+                    }
+                  },
+                  { min: 300 }
+                )}
               class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
             />
           </div>
           <div
             class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] px-2 py-1.5"
+            title="Tinggi Minimal Kanvas (Auto mengikuti konten)"
           >
-            <span class="font-mono text-neutral-500">T</span>
+            <span class="font-mono text-neutral-500">T.Min</span>
             <input
-              type="number"
-              value={editor.frame.height}
+              type="text"
+              inputmode="numeric"
+              value={editor.frame.minHeight ?? 720}
               oninput={(e) => {
-                const val = +(e.target as HTMLInputElement).value;
-                editor.frame.height = val;
-                const defaultFb = editor.elements.find(
-                  (item) => item.isDefault || item.id === "flexbox-default"
-                );
-                if (defaultFb) {
-                  editor.updateElement(defaultFb.id, { height: val });
-                }
+                const target = e.target as HTMLInputElement;
+                target.value = target.value.replace(/\D/g, "");
+                const val = Math.max(200, sanitizeNumber(target.value));
+                editor.frame.minHeight = val;
               }}
+              onkeydown={(e) =>
+                handleNumberKeydown(
+                  e,
+                  editor.frame.minHeight ?? 720,
+                  (val) => {
+                    editor.frame.minHeight = val;
+                  },
+                  { min: 200 }
+                )}
               class="w-full bg-transparent text-right font-mono text-white focus:outline-none"
             />
           </div>
@@ -709,20 +885,12 @@
         <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
           Warna Latar Halaman
         </div>
-        <div class="flex items-center gap-2 rounded border border-[#333] bg-[#252525] p-2">
-          <input
-            type="color"
-            value={editor.frame.background}
-            oninput={(e) => (editor.frame.background = (e.target as HTMLInputElement).value)}
-            class="h-6 w-6 cursor-pointer rounded border border-white/20 bg-transparent p-0"
-          />
-          <input
-            type="text"
-            value={editor.frame.background}
-            oninput={(e) => (editor.frame.background = (e.target as HTMLInputElement).value)}
-            class="w-full bg-transparent font-mono text-white focus:outline-none"
-          />
-        </div>
+        <ColorPickerInput
+          label="Warna Latar Halaman"
+          value={editor.frame.background}
+          allowTransparent={false}
+          onChange={(bg) => (editor.frame.background = bg)}
+        />
       </div>
 
       <div class="rounded-lg border border-[#333] bg-[#252525] p-3 text-[11px] text-neutral-400">

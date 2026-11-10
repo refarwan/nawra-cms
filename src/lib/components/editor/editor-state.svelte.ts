@@ -2,41 +2,15 @@ import { SvelteDate } from "svelte/reactivity";
 
 import type { CanvasElement, CanvasFrame, DeviceMode, ElementType, ToolMode } from "./types";
 
-const INITIAL_ELEMENTS: CanvasElement[] = [
-  {
-    id: "flexbox-default",
-    name: "Container",
-    type: "frame",
-    x: 0,
-    y: 0,
-    width: 1280,
-    height: 480,
-    rotation: 0,
-    widthMode: "fill",
-    heightMode: "fixed",
-    fill: "#ffffff",
-    borderRadius: 0,
-    borderWidth: 0,
-    borderColor: "transparent",
-    borderStyle: "none",
-    opacity: 100,
-    boxShadow: "none",
-    isAutoLayout: true,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    gap: 16,
-    padding: 24,
-    isDefault: true
-  }
-];
+const INITIAL_ELEMENTS: CanvasElement[] = [];
 
 export class EditorState {
   elements = $state<CanvasElement[]>(INITIAL_ELEMENTS);
   frame = $state<CanvasFrame>({
     name: "Kanvas Desain Utama",
     width: 1280,
-    height: 480,
+    height: 720,
+    minHeight: 720,
     background: "#ffffff"
   });
 
@@ -66,21 +40,23 @@ export class EditorState {
     this.device = device;
     if (device === "mobile") {
       this.frame.width = 390;
+      this.frame.minHeight = 780;
       this.zoom = 0.9;
     } else if (device === "tablet") {
       this.frame.width = 768;
+      this.frame.minHeight = 900;
       this.zoom = 0.85;
     } else {
       this.frame.width = 1280;
+      this.frame.minHeight = 720;
       this.zoom = 1;
     }
-    // Pastikan container bawaan menyesuaikan lebar kanvas dan tinggi kanvas mengikuti container
+    // Pastikan container bawaan menyesuaikan lebar kanvas
     const defaultFb = this.elements.find((el) => el.isDefault || el.id === "flexbox-default");
     if (defaultFb) {
       defaultFb.x = 0;
       defaultFb.y = 0;
       defaultFb.width = this.frame.width;
-      this.frame.height = defaultFb.height;
     }
     this.pan = { x: 0, y: 0 };
   }
@@ -127,8 +103,9 @@ export class EditorState {
 
     const count = this.elements.filter((el) => el.parentId === frameId).length + 1;
     const id = `el-${Date.now()}`;
-    const parentPadding = parent.padding ?? 16;
-    const maxInnerWidth = Math.max(120, (parent.width || 320) - parentPadding * 2);
+    const padLeft = parent.paddingLeft ?? parent.padding ?? 0;
+    const padRight = parent.paddingRight ?? parent.padding ?? 0;
+    const maxInnerWidth = Math.max(120, (parent.width || 320) - (padLeft + padRight));
 
     let newEl: CanvasElement;
 
@@ -274,7 +251,6 @@ export class EditorState {
       }
       case "frame": {
         const dir = options?.flexDirection ?? this.pendingFrameDirection ?? "row";
-        const frameWidth = parent.id === "flexbox-default" ? 320 : Math.min(maxInnerWidth, 260);
         newEl = {
           id,
           parentId: frameId,
@@ -282,13 +258,13 @@ export class EditorState {
           type: "frame",
           x: 0,
           y: 0,
-          width: frameWidth,
-          height: 140,
+          width: 320,
+          height: 80,
           rotation: 0,
           widthMode: "fixed",
-          heightMode: "hug",
-          fill: "#f8fafc",
-          borderRadius: 8,
+          heightMode: "fixed",
+          fill: "transparent",
+          borderRadius: 0,
           borderWidth: 0,
           borderColor: "transparent",
           borderStyle: "none",
@@ -298,8 +274,19 @@ export class EditorState {
           flexDirection: dir,
           justifyContent: "flex-start",
           alignItems: "center",
-          gap: 12,
-          padding: 14
+          gap: 0,
+          gapX: 0,
+          gapY: 0,
+          padding: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+          paddingLeft: 0,
+          margin: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          marginLeft: 0
         };
         break;
       }
@@ -585,11 +572,13 @@ export class EditorState {
           type: "frame",
           x,
           y,
-          width: 420,
-          height: 200,
+          width: 320,
+          height: 80,
           rotation: 0,
-          fill: "rgba(255, 255, 255, 0.03)",
-          borderRadius: 12,
+          widthMode: "fixed",
+          heightMode: "fixed",
+          fill: "transparent",
+          borderRadius: 0,
           borderWidth: 0,
           borderColor: "transparent",
           borderStyle: "none",
@@ -599,8 +588,19 @@ export class EditorState {
           flexDirection: "row",
           justifyContent: "flex-start",
           alignItems: "center",
-          gap: 12,
-          padding: 16
+          gap: 0,
+          gapX: 0,
+          gapY: 0,
+          padding: 0,
+          paddingTop: 0,
+          paddingRight: 0,
+          paddingBottom: 0,
+          paddingLeft: 0,
+          margin: 0,
+          marginTop: 0,
+          marginRight: 0,
+          marginBottom: 0,
+          marginLeft: 0
         };
         break;
       case "rectangle":

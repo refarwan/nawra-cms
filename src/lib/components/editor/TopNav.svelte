@@ -9,7 +9,7 @@
   let { editor }: { editor: EditorState } = $props();
 
   const devices: { mode: DeviceMode; label: string; icon: string }[] = [
-    { mode: "desktop", label: "Desktop (1440px)", icon: "lucide:monitor" },
+    { mode: "desktop", label: "Desktop (1280px)", icon: "lucide:monitor" },
     { mode: "tablet", label: "Tablet (768px)", icon: "lucide:tablet" },
     { mode: "mobile", label: "Mobile (390px)", icon: "lucide:smartphone" }
   ];
@@ -27,7 +27,7 @@
     >
       <!-- Colorful studio icon -->
       <div
-        class="flex h-6 w-6 items-center justify-center rounded bg-linear-to-tr from-[#0d99ff] via-[#9747ff] to-[#ff4785] p-1 shadow-sm"
+        class="flex h-6 w-6 items-center justify-center rounded bg-linear-to-tr from-[#0d99ff] via-[#9747ff] to-[#ff4785] p-1"
       >
         <Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-white" />
       </div>
@@ -74,7 +74,7 @@
           onclick={() => editor.setDevice(dev.mode)}
           class="flex h-7 items-center gap-1.5 rounded-md px-2.5 transition {editor.device ===
           dev.mode
-            ? 'bg-[#323238] font-medium text-white shadow-sm'
+            ? 'bg-[#323238] font-medium text-white'
             : 'text-neutral-400 hover:text-white'}"
           title={dev.label}
         >
@@ -129,7 +129,7 @@
     <!-- Publish Website CTA -->
     <button
       onclick={() => editor.publish()}
-      class="flex items-center gap-1.5 rounded-md bg-[#0d99ff] px-3.5 py-1.5 text-xs font-semibold text-white shadow transition hover:brightness-110 active:scale-95"
+      class="flex items-center gap-1.5 rounded-md bg-[#0d99ff] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
     >
       <Icon icon="lucide:upload-cloud" class="h-3.5 w-3.5" />
       <span>Publikasikan</span>
