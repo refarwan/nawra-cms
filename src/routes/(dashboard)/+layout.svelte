@@ -13,6 +13,8 @@
       authStore.setAccessToken(data.accessToken);
     } else if (data.user) {
       authStore.setUser(data.user);
+    } else {
+      authStore.clear();
     }
   });
 
@@ -22,9 +24,15 @@
     try {
       const res = await fetch("/api/auth/check");
       if (res.ok) {
-        const result = await res.json();
-        if (result.status === "authenticated" && result.accessToken) {
+        const result = (await res.json()) as {
+          authenticated?: boolean;
+          accessToken?: string;
+          user?: unknown;
+        };
+        if (result.authenticated && result.accessToken) {
           authStore.setAccessToken(result.accessToken);
+        } else if (result.authenticated && result.user) {
+          authStore.setUser(result.user as typeof authStore.user);
         } else {
           authStore.clear();
         }

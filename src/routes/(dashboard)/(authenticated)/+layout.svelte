@@ -13,7 +13,7 @@
   let { data, children }: LayoutProps = $props();
 
   $effect(() => {
-    if (authStore.initialized && !authStore.user && !authStore.accessToken && !data.user) {
+    if (authStore.initialized && !authStore.user && !authStore.accessToken) {
       void goto(resolve("/(dashboard)/(unauthenticated)/login"), {
         replace: true,
         replaceState: true
@@ -22,7 +22,7 @@
   });
 </script>
 
-{#if authStore.user || authStore.accessToken || data.user}
+{#if authStore.user || authStore.accessToken || (data.user && !authStore.initialized)}
   <div class="relative min-h-screen bg-gray-50/70 font-sans text-gray-900">
     <DashboardSidebar title="Nawra CMS" />
 

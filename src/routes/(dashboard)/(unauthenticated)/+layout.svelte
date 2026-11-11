@@ -6,10 +6,10 @@
 
   import type { LayoutProps } from "./$types";
 
-  let { data, children }: LayoutProps = $props();
+  let { children }: LayoutProps = $props();
 
   $effect(() => {
-    if ((authStore.initialized && authStore.accessToken) || data?.user) {
+    if (authStore.initialized && (authStore.accessToken || authStore.user)) {
       void goto(resolve("/(dashboard)/(authenticated)/dashboard"), {
         replace: true,
         replaceState: true
@@ -18,6 +18,6 @@
   });
 </script>
 
-{#if !authStore.accessToken && !data?.user}
+{#if !authStore.accessToken && !authStore.user}
   {@render children()}
 {/if}

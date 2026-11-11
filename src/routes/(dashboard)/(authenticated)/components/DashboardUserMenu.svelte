@@ -1,7 +1,7 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
-  import { goto } from "$app/navigation";
+  import { goto, invalidateAll } from "$app/navigation";
   import { resolve } from "$app/paths";
 
   import { authStore } from "../../../../lib/stores/auth.svelte";
@@ -25,6 +25,7 @@
   });
 
   const handleLogout = async () => {
+    if (isLoggingOut) return;
     isLoggingOut = true;
     try {
       await fetch("/api/auth/logout", { method: "POST" });
@@ -32,7 +33,15 @@
       // Abaikan error saat logout
     } finally {
       authStore.clear();
-      void goto(resolve("/(dashboard)/(unauthenticated)/login"));
+      try {
+        await invalidateAll();
+      } catch {
+        // Abaikan jika invalidateAll gagal
+      }
+      void goto(resolve("/(dashboard)/(unauthenticated)/login"), {
+        replaceState: true,
+        invalidateAll: true
+      });
     }
   };
 </script>
