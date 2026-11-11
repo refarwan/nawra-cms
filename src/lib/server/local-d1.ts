@@ -20,6 +20,31 @@ function getSqliteInstance(): SqliteDatabase | null {
 
   try {
     const req = createRequire(import.meta.url);
+    try {
+      const { DatabaseSync } = req("node:sqlite");
+      if (DatabaseSync) {
+        const db = new DatabaseSync(".local.sqlite");
+        db.exec("PRAGMA journal_mode = WAL;");
+        dbInstance = {
+          run: (sql: string, ...args: unknown[]) => db.prepare(sql).run(...args),
+          exec: (sql: string) => db.exec(sql),
+          prepare: (sql: string) => {
+            const stmt = db.prepare(sql);
+            return {
+              all: (...args: unknown[]) => stmt.all(...args),
+              get: (...args: unknown[]) => stmt.get(...args),
+              run: (...args: unknown[]) => stmt.run(...args),
+              values: (...args: unknown[]) =>
+                stmt.all(...args).map((r: unknown) => Object.values(r as object))
+            };
+          }
+        };
+        return dbInstance;
+      }
+    } catch {
+      // Fallback jika node:sqlite tidak tersedia
+    }
+
     if (typeof process !== "undefined" && process.versions?.bun) {
       const { Database } = req("bun:sqlite");
       const db = new Database(".local.sqlite");
@@ -27,24 +52,7 @@ function getSqliteInstance(): SqliteDatabase | null {
       dbInstance = db;
       return dbInstance;
     }
-    const { DatabaseSync } = req("node:sqlite");
-    const db = new DatabaseSync(".local.sqlite");
-    db.exec("PRAGMA journal_mode = WAL;");
-    dbInstance = {
-      run: (sql: string, ...args: unknown[]) => db.prepare(sql).run(...args),
-      exec: (sql: string) => db.exec(sql),
-      prepare: (sql: string) => {
-        const stmt = db.prepare(sql);
-        return {
-          all: (...args: unknown[]) => stmt.all(...args),
-          get: (...args: unknown[]) => stmt.get(...args),
-          run: (...args: unknown[]) => stmt.run(...args),
-          values: (...args: unknown[]) =>
-            stmt.all(...args).map((r: unknown) => Object.values(r as object))
-        };
-      }
-    };
-    return dbInstance;
+    return null;
   } catch (err) {
     console.warn("Could not load native SQLite, falling back to in-memory:", err);
     return null;

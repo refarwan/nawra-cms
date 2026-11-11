@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "npm@10.8.2",
   "imports": {
     "#lib": "./src/lib/index.js",
     "#lib/*": "./src/lib/*"

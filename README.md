@@ -29,7 +29,7 @@ Klik tombol **Fork** di pojok kanan atas halaman GitHub ini untuk menyalin repos
 2. Klik tombol **Connect to Git** dan pilih repository hasil fork Anda (`username/nawra-cms`).
 3. Pengaturan build otomatis terdeteksi:
    - **Framework preset**: `SvelteKit`
-   - **Build command**: `bun run build`
+   - **Build command**: `npm run build`
    - **Build output directory**: `.svelte-kit/cloudflare`
 4. Klik **Save and Deploy**.
 
@@ -55,7 +55,7 @@ Kunjungi URL domain Worker Anda (contoh: `https://nawra-cms.workers.dev/login`):
 
 - Database D1 otomatis menginisialisasi skema tabel saat halaman pertama kali dibuka.
 - Masuk menggunakan kredensial default admin:
-  - **Email**: `admin@nawra.com`
+  - **Username**: `admin` (atau **Email**: `admin@nawra.com`)
   - **Kata Sandi**: `admin123`
 
 ---
@@ -80,10 +80,10 @@ git clone https://github.com/<username>/nawra-cms.git
 cd nawra-cms
 
 # 2. Pasang dependensi
-bun install
+npm install
 
 # 3. Jalankan server lokal
-bun run dev
+npm run dev
 ```
 
 Buka `http://localhost:5173/login`:
@@ -96,14 +96,14 @@ Buka `http://localhost:5173/login`:
 
 ```bash
 # Validasi tipe data (Type Check)
-bun run check
+npm run check
 
 # Pemeriksaan linter dan format kode
-bun run lint
+npm run lint
 
 # Format kode otomatis
-bun run format
+npm run format
 
 # Kompilasi produksi (Build bundle)
-bun run build
+npm run build
 ```
