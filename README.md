@@ -14,33 +14,20 @@ Klik tombol **Fork** di pojok kanan atas halaman GitHub ini untuk menyalin repos
 
 ---
 
-### Langkah 2: Sambungkan Fork ke Cloudflare Workers & Pages
+### Langkah 2: Sambungkan Fork ke Cloudflare Workers
 
 1. Buka [Cloudflare Dashboard](https://dash.cloudflare.com/) ➔ **Compute (Workers)** ➔ **Workers & Pages** ➔ klik **Create**.
-2. Klik **Import a repository** (atau **Connect to Git**) dan pilih repository hasil fork Anda (`username/nawra-cms`).
+2. Klik **Import a repository** dan pilih repository hasil fork Anda (`username/nawra-cms`).
 3. Pastikan pengaturan build sebagai berikut:
    - **Build command**: `npm run build`
-   - **Deploy command** (jika menggunakan Workers Builds): `npx wrangler deploy`
-   - **Build output directory** (jika menggunakan Pages): `.svelte-kit/cloudflare`
+   - **Deploy command**: `npx wrangler deploy`
 4. Klik **Save and Deploy**.
 
-> **Catatan Auto-Provisioning Wrangler 4**: Jika menggunakan **Cloudflare Workers Builds** (`npx wrangler deploy`), Wrangler 4 akan **otomatis membuatkan database D1 baru** dan menghubungkannya ke binding `DB` pada saat deploy pertama kali — atau otomatis mewarisi (_inherit_) binding `DB` jika Anda sudah memasangnya di Dashboard.
+> **Otomatis 100% (Tanpa Setting Binding Manual)**: Pada saat build pertama berjalan, Wrangler 4 membaca `"database_name": "nawra-cms-db"` tanpa `database_id` di `wrangler.jsonc`. Wrangler akan **otomatis membuatkan database D1 `nawra-cms-db`** di akun Cloudflare Anda (atau menghubungkannya jika sudah ada) dan langsung mengikatnya ke binding `DB` tanpa perlu Anda atur manual di menu Settings!
 
 ---
 
-### Langkah 3: Pastikan Binding Database D1 Bernama `DB` (Jika Menggunakan Pages atau Custom DB)
-
-Jika Anda mengatur binding D1 secara manual melalui Cloudflare Dashboard:
-
-1. Buka halaman project Worker / Pages Anda di Cloudflare Dashboard.
-2. Masuk ke tab **Settings** ➔ pilih menu **Bindings**.
-3. Pastikan binding **D1 database** menggunakan:
-   - **Variable name**: `DB` _(Wajib menggunakan huruf kapital `DB`, bukan `MY_BINDING`)_
-   - **D1 database**: Pilih database D1 Anda.
-
----
-
-### Langkah 4: Selesai & Login ke Dashboard
+### Langkah 3: Selesai & Login ke Dashboard
 
 Kunjungi URL domain aplikasi Anda (contoh: `https://nawra-cms.pages.dev/login`):
 
