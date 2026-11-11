@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 
-import { refreshUserToken } from "./lib/server/auth";
-import { getDb } from "./lib/server/db";
+import { refreshUserToken, seedInitialAdmin } from "./lib/server/auth";
+import { ensureTables, getDb } from "./lib/server/db";
 import { verifyJwt } from "./lib/server/jwt";
 
 import type { Handle } from "@sveltejs/kit/hooks";
@@ -10,6 +10,17 @@ import type { JwtAccessTokenPayload } from "./lib/server/auth";
 export const handle: Handle = async ({ event, resolve }) => {
   const jwtSecret = event.platform?.env?.JWT_SECRET;
   const isSecure = process.env.NODE_ENV === "production" || event.url.protocol === "https:";
+
+  const d1 = event.platform?.env?.DB;
+  if (d1) {
+    try {
+      await ensureTables(d1);
+      const db = getDb(d1);
+      await seedInitialAdmin(db, d1);
+    } catch (err) {
+      console.error("Auto D1 init error:", err);
+    }
+  }
 
   event.locals.user = null;
   event.locals.session = null;
