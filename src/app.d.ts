@@ -8,10 +8,12 @@ export interface UserSession {
 
 export interface AuthUser {
   id: string;
+  username: string;
   email: string;
   name: string;
   role: "admin" | "editor";
   createdAt: number;
+  updatedAt?: number;
 }
 
 declare global {
@@ -34,6 +36,7 @@ declare global {
     interface Locals {
       user: AuthUser | null;
       session: UserSession | null;
+      accessToken: string | null;
     }
     // interface PageData {}
     // interface PageState {}
@@ -41,6 +44,7 @@ declare global {
       env: {
         DB?: D1Database;
         ASSETS?: Fetcher;
+        JWT_SECRET?: string;
       };
       cf: CfProperties;
       ctx: ExecutionContext;
