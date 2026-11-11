@@ -9,6 +9,8 @@
   import RightSidebar from "./RightSidebar.svelte";
   import TopNav from "./TopNav.svelte";
 
+  import type { EditorTargetType } from "./types";
+
   let {
     serverTimestamp,
     cfCountry,
@@ -18,7 +20,7 @@
     serverTimestamp?: string;
     cfCountry?: string;
     targetItem?: { id: string; title: string; contentJson: string; contentHtml: string } | null;
-    targetType?: "header" | "footer" | null;
+    targetType?: EditorTargetType | null;
   } = $props();
 
   const editor = new EditorState();

@@ -3,8 +3,8 @@ import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { footers } from "#db/schema";
-import { generateHtmlFromElements } from "#lib/components/editor/html-generator";
 import { ensureTables } from "#lib/server/db";
+import { getDefaultFooterTemplate } from "#lib/server/default-templates";
 
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
@@ -47,53 +47,9 @@ export const actions: Actions = {
 
       const id = crypto.randomUUID();
       const now = Date.now();
-      const defaultElements = [
-        {
-          id: "footer-wrapper",
-          name: "Footer Wrapper",
-          type: "frame" as const,
-          x: 0,
-          y: 0,
-          width: 1280,
-          height: 100,
-          fill: "#0e0e10",
-          borderRadius: 0,
-          borderWidth: 1,
-          borderColor: "#262626",
-          borderStyle: "solid" as const,
-          opacity: 100,
-          boxShadow: "none",
-          isAutoLayout: true,
-          flexDirection: "row" as const,
-          justifyContent: "space-between" as const,
-          alignItems: "center" as const,
-          padding: 30
-        },
-        {
-          id: "copyright-text",
-          name: "Copyright Text",
-          type: "text" as const,
-          parentId: "footer-wrapper",
-          content: `© ${new Date().getFullYear()} ${title}. Hak cipta dilindungi.`,
-          color: "#a3a3a3",
-          fontSize: 13,
-          fontWeight: "400" as const,
-          fill: "transparent",
-          borderRadius: 0,
-          borderWidth: 0,
-          borderColor: "transparent",
-          borderStyle: "none" as const,
-          opacity: 100,
-          boxShadow: "none",
-          x: 0,
-          y: 0,
-          width: 400,
-          height: 24
-        }
-      ];
-      const defaultFrame = { name: title, width: 1280, height: 100, background: "#0e0e10" };
-      const contentJson = JSON.stringify({ elements: defaultElements, frame: defaultFrame });
-      const contentHtml = generateHtmlFromElements(defaultElements, defaultFrame);
+      const template = getDefaultFooterTemplate();
+      const contentJson = template.contentJson;
+      const contentHtml = template.contentHtml;
       const isActive = isFirst ? 1 : 0;
 
       await db.insert(footers).values({

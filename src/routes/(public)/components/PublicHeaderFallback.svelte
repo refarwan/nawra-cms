@@ -7,7 +7,7 @@
 </script>
 
 <header
-  class="relative z-20 flex h-16 w-full items-center justify-between border-b border-neutral-800/80 bg-[#141416]/80 px-6 backdrop-blur-md lg:px-12"
+  class="relative z-20 flex h-16 w-full items-center justify-between border-b border-gray-200 bg-white px-6 lg:px-12"
 >
   <div class="flex items-center gap-3">
     <div
@@ -17,9 +17,9 @@
     </div>
     <div class="flex flex-col">
       <div class="flex items-center gap-2">
-        <span class="text-sm font-bold tracking-tight text-white">Nawra CMS</span>
+        <span class="text-sm font-bold tracking-tight text-gray-900">Nawra CMS</span>
         <span
-          class="rounded-full border border-neutral-700 bg-neutral-800/60 px-2 py-0.5 text-[10px] font-medium text-neutral-400"
+          class="rounded-full border border-gray-200 bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500"
         >
           No-Code Studio
         </span>
@@ -30,7 +30,7 @@
   <div class="flex items-center gap-4">
     {#if cfCountry}
       <div
-        class="hidden items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-3 py-1 text-xs text-neutral-400 sm:flex"
+        class="hidden items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600 sm:flex"
       >
         <span class="relative flex h-2 w-2">
           <span
@@ -44,7 +44,7 @@
 
     <a
       href={resolve("/(dashboard)/(authenticated)/dashboard")}
-      class="flex items-center gap-1.5 rounded-lg border border-neutral-700 bg-neutral-800/80 px-3 py-2 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700 hover:text-white"
+      class="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-100 hover:text-gray-900"
     >
       <Icon icon="lucide:layout-dashboard" class="h-3.5 w-3.5" />
       <span>Dashboard</span>
@@ -52,13 +52,10 @@
 
     <a
       href={resolve("/editor")}
-      class="group flex items-center gap-2 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition-all hover:bg-[#0082df] active:scale-95"
+      class="flex items-center gap-2 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[#0082df] active:scale-95"
     >
+      <Icon icon="lucide:pen-tool" class="h-3.5 w-3.5" />
       <span>Buka Editor</span>
-      <Icon
-        icon="lucide:arrow-right"
-        class="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"
-      />
     </a>
   </div>
 </header>

@@ -2,7 +2,7 @@ import { json } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
-import { footers, headers } from "#db/schema";
+import { footers, headers, homepages } from "#db/schema";
 
 import type { RequestHandler } from "./$types";
 
@@ -13,7 +13,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 
   try {
     const body = (await request.json()) as {
-      type: "header" | "footer";
+      type: "header" | "footer" | "homepage" | "home";
       id: string;
       title?: string;
       contentJson: string;
@@ -65,6 +65,28 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
         await db.insert(footers).values({
           id,
           title: title || "Footer Baru",
+          contentJson,
+          contentHtml,
+          isActive: 0,
+          createdAt: now,
+          updatedAt: now
+        });
+      }
+    } else if (type === "homepage" || type === "home") {
+      const existing = await db.query.homepages.findFirst({ where: eq(homepages.id, id) });
+      if (existing) {
+        const updateData: {
+          contentJson: string;
+          contentHtml: string;
+          updatedAt: number;
+          title?: string;
+        } = { contentJson, contentHtml, updatedAt: now };
+        if (title) updateData.title = title;
+        await db.update(homepages).set(updateData).where(eq(homepages.id, id));
+      } else {
+        await db.insert(homepages).values({
+          id,
+          title: title || "Home Page Baru",
           contentJson,
           contentHtml,
           isActive: 0,

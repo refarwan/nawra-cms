@@ -94,3 +94,5 @@ export interface CanvasFrame {
 }
 
 export type DeviceMode = "desktop" | "tablet" | "mobile";
+
+export type EditorTargetType = "header" | "footer" | "homepage" | "home";

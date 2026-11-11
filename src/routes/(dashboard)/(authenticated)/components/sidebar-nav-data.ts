@@ -17,6 +17,12 @@ export const navGroups: NavGroup[] = [
     label: "CMS Builder",
     items: [
       {
+        label: "Kelola Home Page",
+        href: "/dashboard/home",
+        routeId: "/(dashboard)/(authenticated)/dashboard/home",
+        icon: "lucide:home"
+      },
+      {
         label: "Kelola Header",
         href: "/dashboard/header",
         routeId: "/(dashboard)/(authenticated)/dashboard/header",

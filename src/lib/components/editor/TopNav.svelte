@@ -19,7 +19,9 @@
       ? resolve("/(dashboard)/(authenticated)/dashboard/header")
       : editor.targetType === "footer"
         ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
-        : resolve("/(dashboard)/(authenticated)/dashboard")
+        : editor.targetType === "homepage" || editor.targetType === "home"
+          ? resolve("/(dashboard)/(authenticated)/dashboard/home")
+          : resolve("/(dashboard)/(authenticated)/dashboard")
   );
 </script>
 

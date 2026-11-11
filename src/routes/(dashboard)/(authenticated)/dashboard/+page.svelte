@@ -32,20 +32,27 @@
         </p>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
+          href={resolve("/(dashboard)/(authenticated)/dashboard/home")}
           class="flex items-center gap-2 rounded-xl bg-[#0d99ff] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#008ae6]"
         >
-          <Icon icon="lucide:plus" class="h-4 w-4" />
-          <span>Buat Header</span>
+          <Icon icon="lucide:home" class="h-4 w-4" />
+          <span>Kelola Home Page</span>
+        </a>
+        <a
+          href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
+          class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
+        >
+          <Icon icon="lucide:panel-top" class="h-4 w-4" />
+          <span>Kelola Header</span>
         </a>
         <a
           href={resolve("/(dashboard)/(authenticated)/dashboard/footer")}
           class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
         >
-          <Icon icon="lucide:plus" class="h-4 w-4" />
-          <span>Buat Footer</span>
+          <Icon icon="lucide:panel-bottom" class="h-4 w-4" />
+          <span>Kelola Footer</span>
         </a>
       </div>
     </div>

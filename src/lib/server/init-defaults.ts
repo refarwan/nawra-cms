@@ -1,4 +1,5 @@
 import { hashPassword } from "./crypto";
+import { getDefaultHomeTemplate } from "./default-home-template";
 import { getDefaultFooterTemplate, getDefaultHeaderTemplate } from "./default-templates";
 
 export interface D1Executor {
@@ -52,6 +53,20 @@ export async function registerDefaultHeaderAndFooter(client: D1Executor): Promis
     await client
       .prepare(
         `INSERT INTO footers (id, title, content_json, content_html, is_active, created_at, updated_at)
+         VALUES (?, ?, ?, ?, 1, ?, ?)`
+      )
+      .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)
+      .run();
+  }
+
+  const homePrep = client.prepare("SELECT count(*) as count FROM homepages");
+  const homeRes = homePrep.first ? await homePrep.first<{ count: number }>() : null;
+  if (!homeRes || homeRes.count === 0) {
+    const { title, contentJson, contentHtml } = getDefaultHomeTemplate();
+    const now = Date.now();
+    await client
+      .prepare(
+        `INSERT INTO homepages (id, title, content_json, content_html, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 1, ?, ?)`
       )
       .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)

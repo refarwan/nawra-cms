@@ -1,6 +1,13 @@
 import { SvelteDate } from "svelte/reactivity";
 
-import type { CanvasElement, CanvasFrame, DeviceMode, ElementType, ToolMode } from "./types";
+import type {
+  CanvasElement,
+  CanvasFrame,
+  DeviceMode,
+  EditorTargetType,
+  ElementType,
+  ToolMode
+} from "./types";
 
 const INITIAL_ELEMENTS: CanvasElement[] = [];
 
@@ -797,11 +804,11 @@ export class EditorState {
     }
   }
 
-  targetType = $state<"header" | "footer" | null>(null);
+  targetType = $state<EditorTargetType | null>(null);
   targetId = $state<string | null>(null);
   isSaving = $state<boolean>(false);
 
-  loadFromJson(jsonString: string, title?: string, type?: "header" | "footer", id?: string) {
+  loadFromJson(jsonString: string, title?: string, type?: EditorTargetType, id?: string) {
     if (type) this.targetType = type;
     if (id) this.targetId = id;
     if (title) this.frame.name = title;

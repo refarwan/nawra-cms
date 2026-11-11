@@ -2,11 +2,13 @@ import { generateHtmlFromElements } from "#lib/components/editor/html-generator"
 
 import type { CanvasElement, CanvasFrame } from "#lib/components/editor/types";
 
-export function getDefaultHeaderTemplate(): {
+export interface DefaultTemplateResult {
   title: string;
   contentJson: string;
   contentHtml: string;
-} {
+}
+
+export function getDefaultHeaderTemplate(): DefaultTemplateResult {
   const title = "Header Utama";
   const elements: CanvasElement[] = [
     {
@@ -17,10 +19,10 @@ export function getDefaultHeaderTemplate(): {
       y: 0,
       width: 1280,
       height: 70,
-      fill: "#141416",
+      fill: "#ffffff",
       borderRadius: 0,
       borderWidth: 1,
-      borderColor: "#262626",
+      borderColor: "#e5e7eb",
       borderStyle: "solid",
       opacity: 100,
       boxShadow: "none",
@@ -36,7 +38,7 @@ export function getDefaultHeaderTemplate(): {
       type: "heading",
       parentId: "nav-wrapper",
       content: "Nawra CMS",
-      color: "#ffffff",
+      color: "#111827",
       fontSize: 18,
       fontWeight: "700",
       fill: "transparent",
@@ -52,18 +54,14 @@ export function getDefaultHeaderTemplate(): {
       height: 30
     }
   ];
-  const frame: CanvasFrame = { name: title, width: 1280, height: 70, background: "#141416" };
+  const frame: CanvasFrame = { name: title, width: 1280, height: 70, background: "#ffffff" };
   const contentJson = JSON.stringify({ elements, frame });
   const contentHtml = generateHtmlFromElements(elements, frame);
 
   return { title, contentJson, contentHtml };
 }
 
-export function getDefaultFooterTemplate(): {
-  title: string;
-  contentJson: string;
-  contentHtml: string;
-} {
+export function getDefaultFooterTemplate(): DefaultTemplateResult {
   const title = "Footer Utama";
   const elements: CanvasElement[] = [
     {
@@ -74,10 +72,10 @@ export function getDefaultFooterTemplate(): {
       y: 0,
       width: 1280,
       height: 80,
-      fill: "#0e0e10",
+      fill: "#ffffff",
       borderRadius: 0,
       borderWidth: 1,
-      borderColor: "#262626",
+      borderColor: "#e5e7eb",
       borderStyle: "solid",
       opacity: 100,
       boxShadow: "none",
@@ -93,7 +91,7 @@ export function getDefaultFooterTemplate(): {
       type: "text",
       parentId: "footer-wrapper",
       content: `© ${new Date().getFullYear()} Nawra CMS. Hak cipta dilindungi.`,
-      color: "#a3a3a3",
+      color: "#6b7280",
       fontSize: 13,
       fontWeight: "400",
       fill: "transparent",
@@ -109,7 +107,7 @@ export function getDefaultFooterTemplate(): {
       height: 24
     }
   ];
-  const frame: CanvasFrame = { name: title, width: 1280, height: 80, background: "#0e0e10" };
+  const frame: CanvasFrame = { name: title, width: 1280, height: 80, background: "#ffffff" };
   const contentJson = JSON.stringify({ elements, frame });
   const contentHtml = generateHtmlFromElements(elements, frame);
 

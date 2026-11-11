@@ -60,6 +60,14 @@
       </a>
 
       <a
+        href={resolve("/(dashboard)/(authenticated)/dashboard/home")}
+        class="inline-flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700"
+      >
+        <Icon icon="lucide:home" class="h-4 w-4" />
+        <span>Kelola Home Page</span>
+      </a>
+
+      <a
         href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
         class="inline-flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700"
       >

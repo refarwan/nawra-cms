@@ -3,8 +3,8 @@ import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { headers } from "#db/schema";
-import { generateHtmlFromElements } from "#lib/components/editor/html-generator";
 import { ensureTables } from "#lib/server/db";
+import { getDefaultHeaderTemplate } from "#lib/server/default-templates";
 
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
@@ -47,53 +47,9 @@ export const actions: Actions = {
 
       const id = crypto.randomUUID();
       const now = Date.now();
-      const defaultElements = [
-        {
-          id: "nav-wrapper",
-          name: "Nav Wrapper",
-          type: "frame" as const,
-          x: 0,
-          y: 0,
-          width: 1280,
-          height: 70,
-          fill: "#141416",
-          borderRadius: 0,
-          borderWidth: 1,
-          borderColor: "#262626",
-          borderStyle: "solid" as const,
-          opacity: 100,
-          boxShadow: "none",
-          isAutoLayout: true,
-          flexDirection: "row" as const,
-          justifyContent: "space-between" as const,
-          alignItems: "center" as const,
-          padding: 20
-        },
-        {
-          id: "logo-text",
-          name: "Logo Text",
-          type: "heading" as const,
-          parentId: "nav-wrapper",
-          content: title,
-          color: "#ffffff",
-          fontSize: 18,
-          fontWeight: "700" as const,
-          fill: "transparent",
-          borderRadius: 0,
-          borderWidth: 0,
-          borderColor: "transparent",
-          borderStyle: "none" as const,
-          opacity: 100,
-          boxShadow: "none",
-          x: 0,
-          y: 0,
-          width: 200,
-          height: 30
-        }
-      ];
-      const defaultFrame = { name: title, width: 1280, height: 70, background: "#141416" };
-      const contentJson = JSON.stringify({ elements: defaultElements, frame: defaultFrame });
-      const contentHtml = generateHtmlFromElements(defaultElements, defaultFrame);
+      const template = getDefaultHeaderTemplate();
+      const contentJson = template.contentJson;
+      const contentHtml = template.contentHtml;
       const isActive = isFirst ? 1 : 0;
 
       await db.insert(headers).values({

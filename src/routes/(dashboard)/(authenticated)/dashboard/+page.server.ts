@@ -14,8 +14,13 @@ export const load: PageServerLoad = async ({ platform, locals }) => {
     columns: { id: true, title: true, isActive: true }
   });
 
+  const homepages = await db.query.homepages.findMany({
+    columns: { id: true, title: true, isActive: true }
+  });
+
   const activeHeader = headers.find((h) => h.isActive === 1) || null;
   const activeFooter = footers.find((f) => f.isActive === 1) || null;
+  const activeHome = homepages.find((p) => p.isActive === 1) || null;
 
   return {
     user: locals.user,
@@ -23,7 +28,9 @@ export const load: PageServerLoad = async ({ platform, locals }) => {
       totalHeaders: headers.length,
       activeHeaderTitle: activeHeader?.title ?? "Belum ada yang aktif",
       totalFooters: footers.length,
-      activeFooterTitle: activeFooter?.title ?? "Belum ada yang aktif"
+      activeFooterTitle: activeFooter?.title ?? "Belum ada yang aktif",
+      totalHomes: homepages.length,
+      activeHomeTitle: activeHome?.title ?? "Belum ada yang aktif"
     }
   };
 };

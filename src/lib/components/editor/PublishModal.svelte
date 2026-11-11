@@ -14,12 +14,47 @@
   let saveSuccess = $state(false);
   let saveError = $state<string | null>(null);
 
+  const isHome = $derived(editor.targetType === "homepage" || editor.targetType === "home");
   const targetLabel = $derived(
     editor.targetType === "header"
       ? "Header"
       : editor.targetType === "footer"
         ? "Footer"
-        : "Desain Kanvas"
+        : isHome
+          ? "Home Page"
+          : "Desain Kanvas"
+  );
+
+  const backHref = $derived(
+    editor.targetType === "header"
+      ? resolve("/(dashboard)/(authenticated)/dashboard/header")
+      : editor.targetType === "footer"
+        ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
+        : isHome
+          ? resolve("/(dashboard)/(authenticated)/dashboard/home")
+          : null
+  );
+
+  const statusTitle = $derived(
+    saving
+      ? "Menyimpan ke Database..."
+      : saveError
+        ? "Gagal Mempublikasikan"
+        : `${targetLabel} Berhasil Diterbitkan!`
+  );
+  const statusDesc = $derived(
+    saving
+      ? "Mengenerate HTML dan menyimpan ke Cloudflare D1"
+      : saveError
+        ? "Terjadi kendala saat menyimpan"
+        : "Konten HTML & JSON tersimpan di Cloudflare D1"
+  );
+  const statusColorClass = $derived(
+    saveError
+      ? "bg-red-500/15 text-red-400"
+      : saveSuccess
+        ? "bg-emerald-500/15 text-emerald-400"
+        : "bg-blue-500/15 text-blue-400"
   );
 
   async function saveToDatabase() {
@@ -82,40 +117,19 @@
     <!-- Header -->
     <div class="flex items-start justify-between">
       <div class="flex items-center gap-3">
-        <div
-          class="flex h-11 w-11 items-center justify-center rounded-xl {saveError
-            ? 'bg-red-500/15 text-red-400'
-            : saveSuccess
-              ? 'bg-emerald-500/15 text-emerald-400'
-              : 'bg-blue-500/15 text-blue-400'}"
-        >
-          {#if saving}
-            <Icon icon="lucide:loader-2" class="h-6 w-6 animate-spin" />
-          {:else if saveError}
-            <Icon icon="lucide:alert-circle" class="h-6 w-6" />
-          {:else}
-            <Icon icon="lucide:check-circle" class="h-6 w-6" />
-          {/if}
+        <div class="flex h-11 w-11 items-center justify-center rounded-xl {statusColorClass}">
+          <Icon
+            icon={saving
+              ? "lucide:loader-2"
+              : saveError
+                ? "lucide:alert-circle"
+                : "lucide:check-circle"}
+            class="h-6 w-6 {saving ? 'animate-spin' : ''}"
+          />
         </div>
         <div>
-          <h3 class="text-base font-bold text-white">
-            {#if saving}
-              Menyimpan ke Database...
-            {:else if saveError}
-              Gagal Mempublikasikan
-            {:else}
-              {targetLabel} Berhasil Diterbitkan!
-            {/if}
-          </h3>
-          <p class="text-xs text-neutral-400">
-            {#if saving}
-              Mengenerate HTML dan menyimpan ke Cloudflare D1
-            {:else if saveError}
-              Terjadi kendala saat menyimpan
-            {:else}
-              Konten HTML & JSON tersimpan di Cloudflare D1
-            {/if}
-          </p>
+          <h3 class="text-base font-bold text-white">{statusTitle}</h3>
+          <p class="text-xs text-neutral-400">{statusDesc}</p>
         </div>
       </div>
       <button
@@ -133,26 +147,14 @@
     {/if}
 
     <!-- Details Card -->
-    <div class="mt-5 space-y-3 rounded-xl border border-neutral-800 bg-neutral-900/60 p-4 text-xs">
-      <div class="flex items-center justify-between">
-        <span class="text-neutral-400">Tipe Konten:</span>
-        <span class="font-medium text-white">{targetLabel}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-neutral-400">Judul:</span>
-        <span class="font-medium text-white">{editor.frame.name}</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-neutral-400">Format:</span>
-        <span class="text-neutral-300">JSON (Editor) & HTML (Frontend)</span>
-      </div>
-      <div class="flex items-center justify-between">
-        <span class="text-neutral-400">Status Server:</span>
-        <span class="inline-flex items-center gap-1.5 font-medium text-emerald-400">
-          <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-          Cloudflare D1 Tersinkron
-        </span>
-      </div>
+    <div
+      class="mt-5 space-y-2 rounded-xl border border-neutral-800 bg-neutral-900/60 p-3.5 text-xs"
+    >
+      {#each [["Tipe:", targetLabel, "font-medium text-white"], ["Judul:", editor.frame.name, "font-medium text-white"], ["Format:", "JSON & HTML", "text-neutral-300"], ["Database:", "Cloudflare D1", "font-medium text-emerald-400"]] as [label, val, cls] (label)}
+        <div class="flex justify-between">
+          <span class="text-neutral-400">{label}</span><span class={cls}>{val}</span>
+        </div>
+      {/each}
     </div>
 
     <!-- Action Buttons -->
@@ -163,21 +165,13 @@
       >
         Tutup
       </button>
-      {#if editor.targetType === "header"}
+      {#if backHref}
         <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
+          href={backHref}
           class="flex items-center gap-1.5 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
         >
           <Icon icon="lucide:arrow-left" class="h-3.5 w-3.5" />
-          <span>Kembali ke Kelola Header</span>
-        </a>
-      {:else if editor.targetType === "footer"}
-        <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/footer")}
-          class="flex items-center gap-1.5 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
-        >
-          <Icon icon="lucide:arrow-left" class="h-3.5 w-3.5" />
-          <span>Kembali ke Kelola Footer</span>
+          <span>Kembali ke Kelola {targetLabel}</span>
         </a>
       {:else}
         <button

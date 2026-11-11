@@ -2,8 +2,9 @@ import { redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
-import { footers, headers } from "#db/schema";
+import { footers, headers, homepages } from "#db/schema";
 
+import type { EditorTargetType } from "#lib/components/editor/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
@@ -11,7 +12,11 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
     throw redirect(302, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
   }
 
-  const type = url.searchParams.get("type") as "header" | "footer" | null;
+  const rawType = url.searchParams.get("type");
+  const type: EditorTargetType | null =
+    rawType === "header" || rawType === "footer" || rawType === "homepage" || rawType === "home"
+      ? (rawType as EditorTargetType)
+      : null;
   const id = url.searchParams.get("id");
 
   let targetItem: { id: string; title: string; contentJson: string; contentHtml: string } | null =
@@ -40,9 +45,19 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
             contentHtml: row.contentHtml || ""
           };
         }
+      } else if (type === "homepage" || type === "home") {
+        const row = await db.query.homepages.findFirst({ where: eq(homepages.id, id) });
+        if (row) {
+          targetItem = {
+            id: row.id,
+            title: row.title || "Home Page",
+            contentJson: row.contentJson || "",
+            contentHtml: row.contentHtml || ""
+          };
+        }
       }
     } catch (err) {
-      console.warn("Gagal memuat target header/footer editor:", err);
+      console.warn("Gagal memuat target header/footer/homepage editor:", err);
     }
   }
 
