@@ -1,3 +1,5 @@
+import { toYouTubeEmbedUrl } from "./youtube-utils";
+
 import type { CanvasElement, CanvasFrame, EditorTargetType } from "./types";
 
 function escapeHtml(str: string): string {
@@ -164,7 +166,7 @@ function renderElement(
     case "image":
       return `<img src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}" style="object-fit: cover; ${escapeHtml(style)}" />`;
     case "youtube":
-      return `<div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: ${el.borderRadius || 0}px;"><iframe src="${escapeHtml(el.src || "https://www.youtube.com/embed/dQw4w9WgXcQ")}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe></div>`;
+      return `<div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: ${el.borderRadius || 0}px;"><iframe src="${escapeHtml(toYouTubeEmbedUrl(el.src))}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe></div>`;
     case "frame":
     case "rectangle":
     default: {
