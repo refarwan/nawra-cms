@@ -721,7 +721,7 @@
 
             <!-- Figma-style Alignment Grid (Left) & Gap (Right) Side-by-Side -->
             <div class="flex items-start gap-2">
-              <div class="w-[120px] shrink-0">
+              <div class="w-30 shrink-0">
                 <FlexboxAlignBox
                   flexDirection={el.flexDirection || "row"}
                   justifyContent={el.justifyContent || "flex-start"}

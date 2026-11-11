@@ -61,7 +61,7 @@
   }
 </script>
 
-<div bind:this={containerEl} class="relative flex h-[74px] flex-col justify-between">
+<div bind:this={containerEl} class="relative flex h-18.5 flex-col justify-between">
   <!-- Gap Primary Input (Figma Auto layout style) -->
   <div
     class="flex h-9 items-center justify-between rounded-lg border border-[#333] bg-[#252528] px-2.5 transition focus-within:border-[#0d99ff] hover:border-[#444]"
