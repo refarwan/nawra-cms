@@ -1,24 +1,31 @@
 import { redirect } from "@sveltejs/kit";
 
-import { refreshUserToken, seedInitialAdmin } from "./lib/server/auth";
-import { ensureTables, getDb } from "./lib/server/db";
+import { refreshUserToken } from "./lib/server/auth";
+import { getDb } from "./lib/server/db";
+import { checkDatabaseStatus } from "./lib/server/init-db";
 import { verifyJwt } from "./lib/server/jwt";
 
 import type { Handle } from "@sveltejs/kit/hooks";
 import type { JwtAccessTokenPayload } from "./lib/server/auth";
 
+let isDatabaseReady = false;
+
 export const handle: Handle = async ({ event, resolve }) => {
   const jwtSecret = event.platform?.env?.JWT_SECRET;
   const isSecure = process.env.NODE_ENV === "production" || event.url.protocol === "https:";
+  const path = event.url.pathname;
+  const isExcludedFromStartupCheck =
+    path === "/startup" ||
+    path.startsWith("/api") ||
+    path.startsWith("/_app") ||
+    path.includes(".");
 
-  const d1 = event.platform?.env?.DB;
-  if (d1) {
-    try {
-      await ensureTables(d1);
-      const db = getDb(d1);
-      await seedInitialAdmin(db, d1);
-    } catch (err) {
-      console.error("Auto D1 init error:", err);
+  if (!isDatabaseReady) {
+    const status = await checkDatabaseStatus(event.platform?.env?.DB);
+    if (status.initialized) {
+      isDatabaseReady = true;
+    } else if (!isExcludedFromStartupCheck) {
+      throw redirect(302, "/startup");
     }
   }
 
@@ -44,7 +51,7 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // 2. Jika Access Token tidak ada atau expired, coba segarkan via Refresh Token
-  if (!event.locals.user) {
+  if (!event.locals.user && isDatabaseReady) {
     const refreshToken = event.cookies.get("refresh_token");
     if (refreshToken) {
       const db = getDb(event.platform?.env?.DB);
@@ -73,7 +80,6 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   // 3. Route protection
-  const path = event.url.pathname;
   if (path.startsWith("/dashboard") && !event.locals.user) {
     throw redirect(302, `/login?redirect=${encodeURIComponent(path)}`);
   }
