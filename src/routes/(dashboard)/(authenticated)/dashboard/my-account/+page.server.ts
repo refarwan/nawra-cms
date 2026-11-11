@@ -1,8 +1,8 @@
 import { fail } from "@sveltejs/kit";
 import { and, eq, ne } from "drizzle-orm";
 
-import { getDb } from "../../../../../lib/server/db";
-import { users } from "../../../../../lib/server/schema";
+import { getDb } from "../../../../../db/index";
+import { users } from "../../../../../db/schema";
 
 import type { Actions, PageServerLoad } from "./$types";
 

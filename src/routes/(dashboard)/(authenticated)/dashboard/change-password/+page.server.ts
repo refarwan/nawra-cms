@@ -1,9 +1,9 @@
 import { fail } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
+import { getDb } from "../../../../../db/index";
+import { users } from "../../../../../db/schema";
 import { hashPassword, verifyPassword } from "../../../../../lib/server/crypto";
-import { getDb } from "../../../../../lib/server/db";
-import { users } from "../../../../../lib/server/schema";
 
 import type { Actions, PageServerLoad } from "./$types";
 

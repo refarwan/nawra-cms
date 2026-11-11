@@ -10,4 +10,9 @@
   <title>Nawra CMS — No-Code Visual Studio</title>
 </svelte:head>
 
-<Editor serverTimestamp={data.serverTimestamp} cfCountry={data.cfCountry} />
+<Editor
+  serverTimestamp={data.serverTimestamp}
+  cfCountry={data.cfCountry}
+  targetItem={data.targetItem}
+  targetType={data.targetType}
+/>

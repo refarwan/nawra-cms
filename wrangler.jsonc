@@ -7,5 +7,12 @@
   "assets": {
     "binding": "ASSETS",
     "directory": ".svelte-kit/cloudflare"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "nawra-cms-db",
+      "database_id": "5b9a7acb-7830-4cab-87de-7d0447519aae"
+    }
+  ]
 }

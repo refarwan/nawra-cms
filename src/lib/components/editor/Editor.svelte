@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from "svelte";
+
   import BottomToolbar from "./BottomToolbar.svelte";
   import Canvas from "./Canvas.svelte";
   import { EditorState } from "./editor-state.svelte";
@@ -7,9 +9,42 @@
   import RightSidebar from "./RightSidebar.svelte";
   import TopNav from "./TopNav.svelte";
 
-  let { serverTimestamp, cfCountry }: { serverTimestamp?: string; cfCountry?: string } = $props();
+  let {
+    serverTimestamp,
+    cfCountry,
+    targetItem,
+    targetType
+  }: {
+    serverTimestamp?: string;
+    cfCountry?: string;
+    targetItem?: { id: string; title: string; contentJson: string; contentHtml: string } | null;
+    targetType?: "header" | "footer" | null;
+  } = $props();
 
   const editor = new EditorState();
+  let loadedTargetId: string | null = null;
+
+  $effect(() => {
+    const current = targetItem;
+    const currentType = targetType;
+    if (current && current.id && loadedTargetId !== current.id) {
+      loadedTargetId = current.id;
+      untrack(() => {
+        if (currentType) editor.targetType = currentType;
+        editor.targetId = current.id;
+        if (current.title) editor.frame.name = current.title;
+
+        if (current.contentJson) {
+          editor.loadFromJson(
+            current.contentJson,
+            current.title,
+            currentType || undefined,
+            current.id
+          );
+        }
+      });
+    }
+  });
 </script>
 
 <div

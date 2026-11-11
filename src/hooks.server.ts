@@ -2,10 +2,10 @@ import { redirect } from "@sveltejs/kit";
 
 import { refreshUserToken } from "./lib/server/auth";
 import { getDb } from "./lib/server/db";
-import { checkDatabaseStatus } from "./lib/server/init-db";
+import { ensureDatabaseReady } from "./lib/server/init-db";
 import { verifyJwt } from "./lib/server/jwt";
 
-import type { Handle } from "@sveltejs/kit/hooks";
+import type { Handle, HandleServerError } from "@sveltejs/kit/hooks";
 import type { JwtAccessTokenPayload } from "./lib/server/auth";
 
 let isDatabaseReady = false;
@@ -14,18 +14,16 @@ export const handle: Handle = async ({ event, resolve }) => {
   const jwtSecret = event.platform?.env?.JWT_SECRET;
   const isSecure = process.env.NODE_ENV === "production" || event.url.protocol === "https:";
   const path = event.url.pathname;
-  const isExcludedFromStartupCheck =
-    path === "/startup" ||
-    path.startsWith("/api") ||
-    path.startsWith("/_app") ||
-    path.includes(".");
 
+  // Cek database otomatis: jika belum ada tabel, otomatis buat tabel & register admin
   if (!isDatabaseReady) {
-    const status = await checkDatabaseStatus(event.platform?.env?.DB);
-    if (status.initialized) {
-      isDatabaseReady = true;
-    } else if (!isExcludedFromStartupCheck) {
-      throw redirect(302, "/startup");
+    try {
+      const ready = await ensureDatabaseReady(event.platform?.env?.DB);
+      if (ready) {
+        isDatabaseReady = true;
+      }
+    } catch (err) {
+      console.warn("Database initialization check skipped:", err);
     }
   }
 
@@ -54,25 +52,31 @@ export const handle: Handle = async ({ event, resolve }) => {
   if (!event.locals.user && isDatabaseReady) {
     const refreshToken = event.cookies.get("refresh_token");
     if (refreshToken) {
-      const db = getDb(event.platform?.env?.DB);
-      const refreshed = await refreshUserToken(
-        db,
-        refreshToken,
-        jwtSecret,
-        event.platform?.env?.DB
-      );
+      try {
+        const db = getDb(event.platform?.env?.DB);
+        const refreshed = await refreshUserToken(
+          db,
+          refreshToken,
+          jwtSecret,
+          event.platform?.env?.DB
+        );
 
-      if (refreshed) {
-        event.locals.accessToken = refreshed.accessToken;
-        event.locals.user = refreshed.user;
-        event.cookies.set("access_token", refreshed.accessToken, {
-          path: "/",
-          httpOnly: true,
-          sameSite: "lax",
-          secure: isSecure,
-          maxAge: 15 * 60 // 15 menit
-        });
-      } else {
+        if (refreshed) {
+          event.locals.accessToken = refreshed.accessToken;
+          event.locals.user = refreshed.user;
+          event.cookies.set("access_token", refreshed.accessToken, {
+            path: "/",
+            httpOnly: true,
+            sameSite: "lax",
+            secure: isSecure,
+            maxAge: 15 * 60 // 15 menit
+          });
+        } else {
+          event.cookies.delete("access_token", { path: "/" });
+          event.cookies.delete("refresh_token", { path: "/" });
+        }
+      } catch (err) {
+        console.warn("Refresh token failed, clearing session cookies:", err);
         event.cookies.delete("access_token", { path: "/" });
         event.cookies.delete("refresh_token", { path: "/" });
       }
@@ -89,4 +93,11 @@ export const handle: Handle = async ({ event, resolve }) => {
   }
 
   return resolve(event);
+};
+
+export const handleError: HandleServerError = async ({ error, event }) => {
+  console.error("Unhandled error at", event.url.pathname, error);
+  return {
+    message: error instanceof Error ? error.message : "Terjadi kesalahan pada server."
+  };
 };

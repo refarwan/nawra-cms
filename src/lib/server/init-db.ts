@@ -1,6 +1,5 @@
-import { hashPassword } from "./crypto";
-import { localSqliteD1Instance } from "./local-d1";
-import { TABLE_STATEMENTS } from "./schema";
+import { d1HttpClientInstance } from "../../db/d1-http";
+import { registerDefaultAdmin, registerDefaultHeaderAndFooter } from "./init-defaults";
 
 export interface DatabaseStatus {
   initialized: boolean;
@@ -9,8 +8,45 @@ export interface DatabaseStatus {
   error?: string;
 }
 
+const CREATE_TABLES_SQL = [
+  `CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    name TEXT,
+    role TEXT NOT NULL DEFAULT 'editor',
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at INTEGER NOT NULL,
+    created_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS headers (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content_json TEXT NOT NULL,
+    content_html TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS footers (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content_json TEXT NOT NULL,
+    content_html TEXT NOT NULL,
+    is_active INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
+  )`
+];
+
 export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStatus> {
-  const client = d1 || (localSqliteD1Instance as unknown as D1Database);
+  const client = d1 || (d1HttpClientInstance as unknown as D1Database);
   if (!client) {
     return {
       initialized: false,
@@ -50,26 +86,21 @@ export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStat
   }
 }
 
-export async function initializeDatabase(
-  d1?: D1Database
-): Promise<{ success: boolean; message: string }> {
-  const client = d1 || (localSqliteD1Instance as unknown as D1Database);
-  if (!client) {
-    return {
-      success: false,
-      message: "Koneksi database (D1) tidak ditemukan."
-    };
-  }
+export async function ensureDatabaseReady(d1?: D1Database): Promise<boolean> {
+  const client = d1 || (d1HttpClientInstance as unknown as D1Database);
+  if (!client) return false;
 
   try {
-    for (const stmt of TABLE_STATEMENTS) {
-      await client.prepare(stmt).run();
-    }
+    const tableRes = await client
+      .prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='users'")
+      .first<{ count: number }>();
 
-    try {
-      await client.prepare("ALTER TABLE users ADD COLUMN username TEXT").run();
-    } catch {
-      // Kolom username mungkin sudah ada
+    const tablesExist = Boolean(tableRes && tableRes.count > 0);
+
+    if (!tablesExist) {
+      for (const sql of CREATE_TABLES_SQL) {
+        await client.prepare(sql).run();
+      }
     }
 
     const userRes = await client
@@ -77,31 +108,32 @@ export async function initializeDatabase(
       .first<{ count: number }>();
 
     if (!userRes || userRes.count === 0) {
-      const passwordHash = await hashPassword("admin123");
-      const now = Date.now();
-      const adminId = crypto.randomUUID();
-
-      await client
-        .prepare(
-          `INSERT INTO users (id, username, email, password, name, role, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-        )
-        .bind(
-          adminId,
-          "admin",
-          "admin@nawra.com",
-          passwordHash,
-          "Administrator Nawra",
-          "admin",
-          now,
-          now
-        )
-        .run();
+      await registerDefaultAdmin(client);
     }
 
+    await registerDefaultHeaderAndFooter(client);
+
+    return true;
+  } catch (err) {
+    console.error("ensureDatabaseReady error:", err);
+    return false;
+  }
+}
+
+export async function initializeDatabase(
+  d1?: D1Database
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const ready = await ensureDatabaseReady(d1);
+    if (!ready) {
+      return {
+        success: false,
+        message: "Gagal menyiapkan tabel dan data default."
+      };
+    }
     return {
       success: true,
-      message: "Database dan akun admin default berhasil diinisialisasi."
+      message: "Database dan data default berhasil diinisialisasi."
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

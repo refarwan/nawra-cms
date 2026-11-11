@@ -797,6 +797,33 @@ export class EditorState {
     }
   }
 
+  targetType = $state<"header" | "footer" | null>(null);
+  targetId = $state<string | null>(null);
+  isSaving = $state<boolean>(false);
+
+  loadFromJson(jsonString: string, title?: string, type?: "header" | "footer", id?: string) {
+    if (type) this.targetType = type;
+    if (id) this.targetId = id;
+    if (title) this.frame.name = title;
+
+    try {
+      const parsed = JSON.parse(jsonString) as {
+        elements?: CanvasElement[];
+        frame?: CanvasFrame;
+      };
+      if (Array.isArray(parsed.elements)) {
+        this.elements = parsed.elements;
+      }
+      if (parsed.frame) {
+        this.frame = { ...this.frame, ...parsed.frame };
+      }
+      this.history = [JSON.parse(JSON.stringify(this.elements))];
+      this.historyIndex = 0;
+    } catch (err) {
+      console.warn("Failed to parse editor JSON content:", err);
+    }
+  }
+
   publish() {
     this.isPublishModalOpen = true;
     this.lastPublishedAt = new SvelteDate().toLocaleTimeString("id-ID", {

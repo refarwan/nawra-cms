@@ -13,6 +13,14 @@
     { mode: "tablet", label: "Tablet (768px)", icon: "lucide:tablet" },
     { mode: "mobile", label: "Mobile (390px)", icon: "lucide:smartphone" }
   ];
+
+  const backUrl = $derived(
+    editor.targetType === "header"
+      ? resolve("/(dashboard)/(authenticated)/dashboard/header")
+      : editor.targetType === "footer"
+        ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
+        : resolve("/(dashboard)/(authenticated)/dashboard")
+  );
 </script>
 
 <header
@@ -21,8 +29,8 @@
   <!-- Left: Logo & File Info -->
   <div class="flex items-center gap-3">
     <a
-      href={resolve("/(dashboard)/(authenticated)/dashboard")}
-      title="Kembali ke Dashboard CMS"
+      href={backUrl}
+      title="Kembali ke Dashboard"
       class="flex items-center gap-2 rounded px-1.5 py-1 transition hover:bg-[#2c2c2c]"
     >
       <!-- Colorful studio icon -->

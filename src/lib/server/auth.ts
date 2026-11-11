@@ -1,9 +1,9 @@
 import { eq, or } from "drizzle-orm";
 
+import { refreshTokens, users } from "../../db/schema";
 import { hashPassword, verifyPassword } from "./crypto";
 import { ensureTables } from "./db";
 import { decodeJwt, signJwt, verifyJwt } from "./jwt";
-import { refreshTokens, users } from "./schema";
 
 import type { AuthUser } from "../../app.d";
 import type { AppDb } from "./db";

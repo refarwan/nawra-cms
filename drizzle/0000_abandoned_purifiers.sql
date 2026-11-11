@@ -1,7 +1,8 @@
 CREATE TABLE `footers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
-	`content` text NOT NULL,
+	`content_json` text NOT NULL,
+	`content_html` text NOT NULL,
 	`is_active` integer DEFAULT 0 NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
@@ -10,7 +11,8 @@ CREATE TABLE `footers` (
 CREATE TABLE `headers` (
 	`id` text PRIMARY KEY NOT NULL,
 	`title` text NOT NULL,
-	`content` text NOT NULL,
+	`content_json` text NOT NULL,
+	`content_html` text NOT NULL,
 	`is_active` integer DEFAULT 0 NOT NULL,
 	`created_at` integer NOT NULL,
 	`updated_at` integer NOT NULL
@@ -26,6 +28,7 @@ CREATE TABLE `refresh_tokens` (
 --> statement-breakpoint
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
+	`username` text NOT NULL,
 	`email` text NOT NULL,
 	`password` text NOT NULL,
 	`name` text,
@@ -34,4 +37,5 @@ CREATE TABLE `users` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
+CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);--> statement-breakpoint
 CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);

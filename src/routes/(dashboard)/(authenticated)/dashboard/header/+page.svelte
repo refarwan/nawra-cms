@@ -6,12 +6,14 @@
 
   import { pageTitleStore } from "../../../stores/page-title.svelte";
   import CreateHeaderCard from "./components/CreateHeaderCard.svelte";
+  import EditHeaderModal from "./components/EditHeaderModal.svelte";
 
   import type { ActionData, PageProps } from "./$types";
 
   let { data, form }: PageProps & { form?: ActionData } = $props();
 
   let isCreating = $state(false);
+  let editingHeader = $state<{ id: string; title: string } | null>(null);
 
   $effect(() => {
     pageTitleStore.set("Kelola Header");
@@ -53,9 +55,12 @@
     </div>
   {/if}
 
-  <!-- Create Header Card -->
   {#if isCreating}
     <CreateHeaderCard onClose={() => (isCreating = false)} />
+  {/if}
+
+  {#if editingHeader}
+    <EditHeaderModal header={editingHeader} onClose={() => (editingHeader = null)} />
   {/if}
 
   <!-- Header List -->
@@ -67,9 +72,7 @@
         <Icon icon="lucide:panel-top" class="h-6 w-6" />
       </div>
       <h3 class="mt-4 text-sm font-bold text-gray-900">Belum ada header</h3>
-      <p class="mt-1 text-xs text-gray-500">
-        Mulai dengan membuat header pertama untuk website Anda.
-      </p>
+      <p class="mt-1 text-xs text-gray-500">Mulai dengan membuat header pertama untuk website.</p>
       <button
         type="button"
         onclick={() => (isCreating = true)}
@@ -119,6 +122,16 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onclick={() => (editingHeader = header)}
+              class="flex cursor-pointer items-center gap-1.5 rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-700 hover:border-gray-300 hover:bg-gray-50"
+              title="Ubah judul header"
+            >
+              <Icon icon="lucide:pencil" class="h-3.5 w-3.5" />
+              <span>Edit Nama</span>
+            </button>
+
             {#if !isActive}
               <form method="POST" action="?/activate" use:enhance>
                 <input type="hidden" name="id" value={header.id} />

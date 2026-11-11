@@ -2,8 +2,7 @@
   import "./layout.css";
 
   import favicon from "#lib/assets/favicon.svg";
-
-  import { authStore } from "../lib/stores/auth.svelte";
+  import { authStore } from "#lib/stores/auth.svelte";
 
   import type { LayoutProps } from "./$types";
 

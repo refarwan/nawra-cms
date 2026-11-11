@@ -203,7 +203,7 @@
         0
           ? 'border-l-2 border-[#0d99ff]/50 pl-2'
           : ''} {isSelected
-          ? 'bg-[#0d99ff] font-medium text-white shadow-sm'
+          ? 'bg-[#0d99ff] font-medium text-white'
           : 'text-neutral-300 hover:bg-[#2c2c2c]'} {isBeingDragged
           ? 'scale-[0.98] opacity-30 ring-1 ring-neutral-500'
           : ''} {isDraggable

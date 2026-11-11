@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from "svelte";
   import Icon from "@iconify/svelte";
 
   import { getGapCss, getMarginCss, getPaddingCss } from "./spacing-utils";
@@ -51,7 +52,12 @@
   );
 
   $effect(() => {
-    editor.frame.height = autoCanvasHeight;
+    const targetHeight = autoCanvasHeight;
+    untrack(() => {
+      if (editor.frame.height !== targetHeight) {
+        editor.frame.height = targetHeight;
+      }
+    });
   });
 
   const activeFollower = $derived.by(() => {
