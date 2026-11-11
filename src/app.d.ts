@@ -46,10 +46,12 @@ declare global {
         ASSETS?: Fetcher;
         JWT_SECRET?: string;
       };
-      cf: CfProperties;
-      ctx: ExecutionContext;
+      cf?: CfProperties;
+      ctx?: ExecutionContext;
     }
   }
+
+  var __sveltekit_cloudflare_platform: App.Platform | undefined;
 }
 
 export {};

@@ -12,9 +12,10 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
   const title = "Header Utama";
   const elements: CanvasElement[] = [
     {
-      id: "nav-wrapper",
-      name: "Nav Wrapper",
+      id: "flexbox-default",
+      name: "header",
       type: "frame",
+      isDefault: true,
       x: 0,
       y: 0,
       width: 1280,
@@ -36,7 +37,7 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
       id: "logo-text",
       name: "Logo Text",
       type: "heading",
-      parentId: "nav-wrapper",
+      parentId: "flexbox-default",
       content: "Nawra CMS",
       color: "#111827",
       fontSize: 18,
@@ -56,7 +57,7 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
   ];
   const frame: CanvasFrame = { name: title, width: 1280, height: 70, background: "#ffffff" };
   const contentJson = JSON.stringify({ elements, frame });
-  const contentHtml = generateHtmlFromElements(elements, frame);
+  const contentHtml = generateHtmlFromElements(elements, frame, "header");
 
   return { title, contentJson, contentHtml };
 }
@@ -65,9 +66,10 @@ export function getDefaultFooterTemplate(): DefaultTemplateResult {
   const title = "Footer Utama";
   const elements: CanvasElement[] = [
     {
-      id: "footer-wrapper",
-      name: "Footer Wrapper",
+      id: "flexbox-default",
+      name: "footer",
       type: "frame",
+      isDefault: true,
       x: 0,
       y: 0,
       width: 1280,
@@ -89,7 +91,7 @@ export function getDefaultFooterTemplate(): DefaultTemplateResult {
       id: "copyright-text",
       name: "Copyright Text",
       type: "text",
-      parentId: "footer-wrapper",
+      parentId: "flexbox-default",
       content: `© ${new Date().getFullYear()} Nawra CMS. Hak cipta dilindungi.`,
       color: "#6b7280",
       fontSize: 13,
@@ -109,7 +111,7 @@ export function getDefaultFooterTemplate(): DefaultTemplateResult {
   ];
   const frame: CanvasFrame = { name: title, width: 1280, height: 80, background: "#ffffff" };
   const contentJson = JSON.stringify({ elements, frame });
-  const contentHtml = generateHtmlFromElements(elements, frame);
+  const contentHtml = generateHtmlFromElements(elements, frame, "footer");
 
   return { title, contentJson, contentHtml };
 }

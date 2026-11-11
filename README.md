@@ -1,6 +1,6 @@
 # Nawra CMS ✦
 
-Sistem Manajemen Konten (CMS) Visual Modern tanpa koding yang dirancang untuk berjalan di **Cloudflare Workers** dan **Cloudflare D1 (SQLite di Edge)**.
+Sistem Manajemen Konten (CMS) Visual Modern tanpa koding yang dirancang untuk berjalan di **Cloudflare Pages / Workers** dan **Cloudflare D1 (SQLite di Edge)**.
 
 ---
 
@@ -23,11 +23,11 @@ Klik tombol **Fork** di pojok kanan atas halaman GitHub ini untuk menyalin repos
 
 ---
 
-### Langkah 3: Sambungkan Fork ke Cloudflare Workers
+### Langkah 3: Sambungkan Fork ke Cloudflare Pages
 
-1. Di Cloudflare Dashboard, buka **Compute (Workers)** ➔ **Create application** ➔ pilih tab **Pages / Workers**.
-2. Klik tombol **Connect to Git** dan pilih repository hasil fork Anda (`username/nawra-cms`).
-3. Pengaturan build otomatis terdeteksi:
+1. Di Cloudflare Dashboard, buka **Compute (Workers)** ➔ **Workers & Pages** ➔ klik **Create**.
+2. Pilih tab **Pages** ➔ klik **Connect to Git** dan pilih repository hasil fork Anda (`username/nawra-cms`).
+3. Pastikan pengaturan build sebagai berikut:
    - **Framework preset**: `SvelteKit`
    - **Build command**: `npm run build`
    - **Build output directory**: `.svelte-kit/cloudflare`
@@ -39,21 +39,21 @@ Klik tombol **Fork** di pojok kanan atas halaman GitHub ini untuk menyalin repos
 
 Setelah proses deployment pertama selesai:
 
-1. Buka halaman aplikasi Worker Anda di Cloudflare Dashboard.
+1. Buka halaman project Pages Anda di Cloudflare Dashboard.
 2. Masuk ke tab **Settings** ➔ pilih menu **Bindings**.
-3. Klik tombol **Add** ➔ pilih opsi **D1 Database**.
+3. Klik tombol **Add** ➔ pilih opsi **D1 database**.
 4. Masukkan konfigurasi berikut:
    - **Variable name**: `DB` _(Wajib menggunakan huruf kapital `DB`)_
    - **D1 database**: Pilih database yang telah dibuat pada Langkah 2 (`nawra-cms-db`).
-5. Klik **Save and deploy**.
+5. Buka tab **Deployments** ➔ klik **Retry deployment** pada deployment terakhir agar binding `DB` aktif.
 
 ---
 
 ### Langkah 5: Selesai & Login ke Dashboard
 
-Kunjungi URL domain Worker Anda (contoh: `https://nawra-cms.workers.dev/login`):
+Kunjungi URL domain aplikasi Anda (contoh: `https://nawra-cms.pages.dev/login`):
 
-- Database D1 otomatis menginisialisasi skema tabel saat halaman pertama kali dibuka.
+- Database D1 otomatis menginisialisasi skema tabel, meng-generate `jwt_secret` unik di tabel `settings`, serta membuat template bawaan (**Header**, **Footer**, dan **Home Page**) saat halaman pertama kali dibuka.
 - Masuk menggunakan kredensial default admin:
   - **Username**: `admin` (atau **Email**: `admin@nawra.com`)
   - **Kata Sandi**: `admin123`
@@ -72,7 +72,7 @@ Ketika ada pembaruan fitur atau perbaikan pada repository utama:
 
 ## 💻 Menjalankan di Lokal (Pengembangan / Kontributor)
 
-Untuk mencoba atau berkontribusi secara lokal, Anda **tidak memerlukan akun Cloudflare**:
+Untuk mencoba atau berkontribusi secara lokal, Anda **tidak memerlukan file `.env` maupun akun Cloudflare**:
 
 ```bash
 # 1. Clone repository hasil fork Anda
@@ -88,7 +88,7 @@ npm run dev
 
 Buka `http://localhost:5173/login`:
 
-- Sistem secara otomatis menggunakan _in-memory SQLite fallback_ dan _auto-seed_ akun demo.
+- Melalui `platformProxy` Wrangler, sistem secara otomatis membuat database SQLite D1 lokal yang persisten di folder `.wrangler/state` serta melakukan _auto-seed_ akun admin default (`admin` / `admin123`) beserta template awal Header, Footer, dan Home Page.
 
 ---
 

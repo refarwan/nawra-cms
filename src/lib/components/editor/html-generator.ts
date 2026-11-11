@@ -1,4 +1,4 @@
-import type { CanvasElement, CanvasFrame } from "./types";
+import type { CanvasElement, CanvasFrame, EditorTargetType } from "./types";
 
 function escapeHtml(str: string): string {
   return str
@@ -9,16 +9,80 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function getStyleString(el: CanvasElement): string {
-  const styles: string[] = [];
+function getRootSemanticTag(
+  el: CanvasElement,
+  targetType?: EditorTargetType | null
+): "header" | "footer" | "main" | "div" {
+  const isRootDefault =
+    !el.parentId &&
+    (el.isDefault ||
+      el.id === "flexbox-default" ||
+      el.name === "header" ||
+      el.name === "footer" ||
+      el.name === "main");
 
-  if (el.fill && el.fill !== "transparent") {
-    styles.push(`background-color: ${el.fill}`);
+  if (!isRootDefault) return "div";
+  const lowerName = (el.name || "").toLowerCase();
+  if (targetType === "header" || lowerName === "header") return "header";
+  if (targetType === "footer" || lowerName === "footer") return "footer";
+  return "main";
+}
+
+function getStyleString(
+  el: CanvasElement,
+  targetType?: EditorTargetType | null,
+  frame?: CanvasFrame
+): string {
+  const styles: string[] = ["box-sizing: border-box"];
+  const semanticTag = getRootSemanticTag(el, targetType);
+  const isDefaultFrame = semanticTag !== "div";
+  const widthMode = isDefaultFrame ? "fill" : el.widthMode || "fixed";
+  const heightMode = el.heightMode || "fixed";
+
+  const pt = el.paddingTop ?? el.padding ?? 0;
+  const pr = el.paddingRight ?? el.padding ?? 0;
+  const pb = el.paddingBottom ?? el.padding ?? 0;
+  const pl = el.paddingLeft ?? el.padding ?? 0;
+
+  // Width
+  if (widthMode === "fill") {
+    styles.push("width: 100%");
+  } else if (widthMode === "hug") {
+    styles.push("width: fit-content");
+    styles.push("max-width: 100%");
+  } else if (el.width) {
+    styles.push(`width: ${el.width + pl + pr}px`);
+    styles.push("max-width: 100%");
+  }
+
+  if (semanticTag === "main") {
+    styles.push("flex: 1 1 auto");
+  }
+
+  // Height
+  if (heightMode === "fixed" && el.height) {
+    const totalHeight = el.height + pt + pb;
+    if (el.type === "image" || el.type === "icon" || el.type === "youtube") {
+      styles.push(`height: ${totalHeight}px`);
+    } else {
+      styles.push(`min-height: ${totalHeight}px`);
+    }
+  } else if (heightMode === "fill") {
+    styles.push("height: 100%");
+    styles.push("align-self: stretch");
+  }
+
+  const bgColor =
+    el.fill && el.fill !== "transparent" ? el.fill : isDefaultFrame ? frame?.background : undefined;
+  if (bgColor && bgColor !== "transparent") {
+    styles.push(`background-color: ${bgColor}`);
   }
   if (el.color) styles.push(`color: ${el.color}`);
   if (el.fontSize) styles.push(`font-size: ${el.fontSize}px`);
   if (el.fontWeight) styles.push(`font-weight: ${el.fontWeight}`);
-  if (el.fontFamily) styles.push(`font-family: ${el.fontFamily}`);
+  if (el.fontFamily) {
+    styles.push(`font-family: ${el.fontFamily === "Inter" ? "Poppins" : el.fontFamily}`);
+  }
   if (el.textAlign) styles.push(`text-align: ${el.textAlign}`);
 
   if (el.borderRadius) styles.push(`border-radius: ${el.borderRadius}px`);
@@ -31,10 +95,6 @@ function getStyleString(el: CanvasElement): string {
   }
 
   // Padding
-  const pt = el.paddingTop ?? el.padding ?? 0;
-  const pr = el.paddingRight ?? el.padding ?? 0;
-  const pb = el.paddingBottom ?? el.padding ?? 0;
-  const pl = el.paddingLeft ?? el.padding ?? 0;
   if (pt || pr || pb || pl) {
     styles.push(`padding: ${pt}px ${pr}px ${pb}px ${pl}px`);
   }
@@ -52,22 +112,43 @@ function getStyleString(el: CanvasElement): string {
   if (el.type === "frame" || el.isAutoLayout) {
     styles.push("display: flex");
     styles.push(`flex-direction: ${el.flexDirection || "row"}`);
+    styles.push("flex-wrap: wrap");
     if (el.justifyContent) styles.push(`justify-content: ${el.justifyContent}`);
     if (el.alignItems) styles.push(`align-items: ${el.alignItems}`);
-    const gap = el.gap ?? 0;
-    if (gap) styles.push(`gap: ${gap}px`);
+    const rowGap = el.gapY ?? el.gap ?? 0;
+    const colGap = el.gapX ?? el.gap ?? 0;
+    if (rowGap || colGap) styles.push(`gap: ${rowGap}px ${colGap}px`);
+  } else if (
+    el.type === "heading" ||
+    el.type === "text" ||
+    el.type === "button" ||
+    el.type === "link" ||
+    el.type === "badge"
+  ) {
+    styles.push("display: inline-flex");
+    styles.push("align-items: center");
+    if (el.type === "button" || el.type === "badge") {
+      styles.push("justify-content: center");
+    }
   }
 
   return styles.join("; ");
 }
 
-function renderElement(el: CanvasElement, allElements: CanvasElement[]): string {
+function renderElement(
+  el: CanvasElement,
+  allElements: CanvasElement[],
+  targetType?: EditorTargetType | null,
+  frame?: CanvasFrame
+): string {
   if (el.hidden) return "";
 
-  const style = getStyleString(el);
+  const style = getStyleString(el, targetType, frame);
   const styleAttr = style ? ` style="${escapeHtml(style)}"` : "";
   const children = allElements.filter((child) => child.parentId === el.id);
-  const innerChildrenHtml = children.map((c) => renderElement(c, allElements)).join("\n");
+  const innerChildrenHtml = children
+    .map((c) => renderElement(c, allElements, targetType, frame))
+    .join("\n");
 
   switch (el.type) {
     case "heading":
@@ -75,26 +156,29 @@ function renderElement(el: CanvasElement, allElements: CanvasElement[]): string 
     case "text":
       return `<p${styleAttr}>${escapeHtml(el.content || "")}</p>`;
     case "button":
-      return `<a href="${escapeHtml(el.href || "#")}"${styleAttr} style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none; ${style}">${escapeHtml(el.content || "Button")}</a>`;
+      return `<a href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Button")}</a>`;
     case "link":
       return `<a href="${escapeHtml(el.href || "#")}"${styleAttr}>${escapeHtml(el.content || "Link")}</a>`;
     case "badge":
-      return `<span${styleAttr} style="display: inline-block; ${style}">${escapeHtml(el.content || "")}</span>`;
+      return `<span${styleAttr}>${escapeHtml(el.content || "")}</span>`;
     case "image":
-      return `<img src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}"${styleAttr} style="max-width: 100%; height: auto; ${style}" />`;
+      return `<img src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}" style="object-fit: cover; ${escapeHtml(style)}" />`;
     case "youtube":
       return `<div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: ${el.borderRadius || 0}px;"><iframe src="${escapeHtml(el.src || "https://www.youtube.com/embed/dQw4w9WgXcQ")}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe></div>`;
     case "frame":
     case "rectangle":
-    default:
-      return `<div${styleAttr}>\n${innerChildrenHtml}\n</div>`;
+    default: {
+      const tag = getRootSemanticTag(el, targetType);
+      return `<${tag}${styleAttr}>\n${innerChildrenHtml}\n</${tag}>`;
+    }
   }
 }
 
-export function generateHtmlFromElements(elements: CanvasElement[], frame?: CanvasFrame): string {
+export function generateHtmlFromElements(
+  elements: CanvasElement[],
+  frame?: CanvasFrame,
+  targetType?: EditorTargetType | null
+): string {
   const rootElements = elements.filter((el) => !el.parentId);
-  const bodyHtml = rootElements.map((el) => renderElement(el, elements)).join("\n");
-
-  const bgStyle = frame?.background ? `background-color: ${frame.background};` : "";
-  return `<div class="nawra-canvas-rendered" style="width: 100%; ${bgStyle}">\n${bodyHtml}\n</div>`;
+  return rootElements.map((el) => renderElement(el, elements, targetType, frame)).join("\n");
 }

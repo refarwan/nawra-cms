@@ -1,9 +1,11 @@
 import { redirect } from "@sveltejs/kit";
+import { env } from "cloudflare:workers";
 
 import { refreshUserToken } from "./lib/server/auth";
 import { getDb } from "./lib/server/db";
 import { ensureDatabaseReady } from "./lib/server/init-db";
 import { verifyJwt } from "./lib/server/jwt";
+import { getJwtSecret } from "./lib/server/settings";
 
 import type { Handle, HandleServerError } from "@sveltejs/kit/hooks";
 import type { JwtAccessTokenPayload } from "./lib/server/auth";
@@ -11,7 +13,13 @@ import type { JwtAccessTokenPayload } from "./lib/server/auth";
 let isDatabaseReady = false;
 
 export const handle: Handle = async ({ event, resolve }) => {
-  const jwtSecret = event.platform?.env?.JWT_SECRET;
+  if (!event.platform) {
+    (event as { platform?: App.Platform }).platform =
+      globalThis.__sveltekit_cloudflare_platform ?? {
+        env: env as App.Platform["env"]
+      };
+  }
+
   const isSecure = process.env.NODE_ENV === "production" || event.url.protocol === "https:";
   const path = event.url.pathname;
 
@@ -26,6 +34,8 @@ export const handle: Handle = async ({ event, resolve }) => {
       console.warn("Database initialization check skipped:", err);
     }
   }
+
+  const jwtSecret = await getJwtSecret(event.platform?.env?.DB);
 
   event.locals.user = null;
   event.locals.session = null;

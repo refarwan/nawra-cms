@@ -71,7 +71,11 @@
         elements: editor.elements,
         frame: editor.frame
       });
-      const contentHtml = generateHtmlFromElements(editor.elements, editor.frame);
+      const contentHtml = generateHtmlFromElements(
+        editor.elements,
+        editor.frame,
+        editor.targetType
+      );
 
       const res = await fetch("/api/editor/save", {
         method: "POST",

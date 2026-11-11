@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-import { d1HttpClientInstance } from "./d1-http";
+import { getPlatformProxy } from "wrangler";
 
 interface MigrationJournal {
   entries: Array<{
@@ -13,67 +13,81 @@ interface MigrationJournal {
 }
 
 export async function migrate() {
-  console.log("Running D1 migrations...");
+  console.log("Running D1 migrations via Wrangler DB binding...");
 
-  // Pastikan tabel riwayat migrasi ada
-  await d1HttpClientInstance.exec(`
-    CREATE TABLE IF NOT EXISTS __drizzle_migrations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      hash text NOT NULL,
-      created_at numeric
-    );
-  `);
+  const { env, dispose } = await getPlatformProxy<{ DB: D1Database }>({
+    configPath: "wrangler.jsonc"
+  });
 
-  const drizzleDir = path.resolve(process.cwd(), "drizzle");
-  const journalPath = path.join(drizzleDir, "meta", "_journal.json");
+  try {
+    const db = env.DB;
+    if (!db) {
+      throw new Error("Binding DB tidak ditemukan di wrangler.jsonc");
+    }
 
-  const tags = fs.existsSync(journalPath)
-    ? (JSON.parse(fs.readFileSync(journalPath, "utf-8")) as MigrationJournal).entries.map(
-        (e) => e.tag
+    await db
+      .prepare(
+        `CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          hash text NOT NULL,
+          created_at numeric
+        )`
       )
-    : fs
-        .readdirSync(drizzleDir)
-        .filter((f) => f.endsWith(".sql"))
-        .sort();
-
-  const executedRes = await d1HttpClientInstance
-    .prepare("SELECT hash FROM __drizzle_migrations")
-    .all<{ hash: string }>();
-  const executedHashes = new Set((executedRes.results || []).map((r) => r.hash));
-
-  for (const tag of tags) {
-    const fileName = tag.endsWith(".sql") ? tag : `${tag}.sql`;
-    if (executedHashes.has(fileName)) {
-      console.log(`⏩ Migration ${fileName} already applied.`);
-      continue;
-    }
-
-    const filePath = path.join(drizzleDir, fileName);
-    if (!fs.existsSync(filePath)) continue;
-
-    console.time(`Migration ${fileName}`);
-    console.log(`Applying migration ${fileName}...`);
-
-    const sqlContent = fs.readFileSync(filePath, "utf-8");
-    const statements = sqlContent
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter(Boolean);
-
-    for (const stmt of statements) {
-      await d1HttpClientInstance.exec(stmt);
-    }
-
-    await d1HttpClientInstance
-      .prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)")
-      .bind(fileName, Date.now())
       .run();
 
-    console.timeEnd(`Migration ${fileName}`);
-    console.log(`✅ ${fileName} applied successfully.`);
-  }
+    const drizzleDir = path.resolve(process.cwd(), "drizzle");
+    const journalPath = path.join(drizzleDir, "meta", "_journal.json");
 
-  console.log("🎉 All migrations applied to Cloudflare D1.");
+    const tags = fs.existsSync(journalPath)
+      ? (JSON.parse(fs.readFileSync(journalPath, "utf-8")) as MigrationJournal).entries.map(
+          (e) => e.tag
+        )
+      : fs
+          .readdirSync(drizzleDir)
+          .filter((f) => f.endsWith(".sql"))
+          .sort();
+
+    const executedRes = await db
+      .prepare("SELECT hash FROM __drizzle_migrations")
+      .all<{ hash: string }>();
+    const executedHashes = new Set((executedRes.results || []).map((r) => r.hash));
+
+    for (const tag of tags) {
+      const fileName = tag.endsWith(".sql") ? tag : `${tag}.sql`;
+      if (executedHashes.has(fileName)) {
+        console.log(`⏩ Migration ${fileName} already applied.`);
+        continue;
+      }
+
+      const filePath = path.join(drizzleDir, fileName);
+      if (!fs.existsSync(filePath)) continue;
+
+      console.time(`Migration ${fileName}`);
+      console.log(`Applying migration ${fileName}...`);
+
+      const sqlContent = fs.readFileSync(filePath, "utf-8");
+      const statements = sqlContent
+        .split("--> statement-breakpoint")
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      for (const stmt of statements) {
+        await db.prepare(stmt).run();
+      }
+
+      await db
+        .prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)")
+        .bind(fileName, Date.now())
+        .run();
+
+      console.timeEnd(`Migration ${fileName}`);
+      console.log(`✅ ${fileName} applied successfully.`);
+    }
+
+    console.log("🎉 All migrations applied to Cloudflare D1 binding (DB).");
+  } finally {
+    await dispose();
+  }
 }
 
 if (process.argv[1]?.includes("migrate")) {

@@ -1,6 +1,7 @@
 import { hashPassword } from "./crypto";
 import { getDefaultHomeTemplate } from "./default-home-template";
 import { getDefaultFooterTemplate, getDefaultHeaderTemplate } from "./default-templates";
+import { generateRandomSecret } from "./settings";
 
 export interface D1Executor {
   prepare: (sql: string) => {
@@ -70,6 +71,30 @@ export async function registerDefaultHeaderAndFooter(client: D1Executor): Promis
          VALUES (?, ?, ?, ?, 1, ?, ?)`
       )
       .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)
+      .run();
+  }
+}
+
+export async function registerDefaultSettings(client: D1Executor): Promise<void> {
+  const now = Date.now();
+  const defaults: Array<[string, string]> = [
+    ["jwt_secret", generateRandomSecret()],
+    ["site_title", "Nawra CMS — Visual No-Code Canvas Studio"],
+    [
+      "site_description",
+      "Sistem Manajemen Konten (CMS) Visual Modern tanpa koding di Cloudflare Edge."
+    ],
+    ["site_icon", "lucide:sparkles"],
+    ["favicon", "/favicon.svg"]
+  ];
+
+  for (const [id, value] of defaults) {
+    await client
+      .prepare(
+        `INSERT OR IGNORE INTO settings (id, value, created_at, updated_at)
+         VALUES (?, ?, ?, ?)`
+      )
+      .bind(id, value, now, now)
       .run();
   }
 }

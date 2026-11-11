@@ -4,6 +4,7 @@ import { refreshTokens, users } from "../../db/schema";
 import { hashPassword, verifyPassword } from "./crypto";
 import { ensureTables } from "./db";
 import { decodeJwt, signJwt, verifyJwt } from "./jwt";
+import { getJwtSecret } from "./settings";
 
 import type { AuthUser } from "../../app.d";
 import type { AppDb } from "./db";
@@ -91,7 +92,8 @@ export async function loginUser(
     createdAt: row.createdAt
   };
 
-  const { accessToken, refreshToken, jti, expiresAt } = await generateTokens(user, secret);
+  const resolvedSecret = secret || (await getJwtSecret(d1));
+  const { accessToken, refreshToken, jti, expiresAt } = await generateTokens(user, resolvedSecret);
 
   await db.insert(refreshTokens).values({
     id: jti,
@@ -109,7 +111,8 @@ export async function refreshUserToken(
   secret?: string,
   d1?: D1Database
 ): Promise<{ user: AuthUser; accessToken: string } | null> {
-  const decoded = await verifyJwt<JwtRefreshTokenPayload>(refreshToken, secret);
+  const resolvedSecret = secret || (await getJwtSecret(d1));
+  const decoded = await verifyJwt<JwtRefreshTokenPayload>(refreshToken, resolvedSecret);
   if (!decoded || !decoded.jti || !decoded.sub) return null;
 
   await ensureTables(d1);
@@ -154,7 +157,7 @@ export async function refreshUserToken(
       iat: now,
       exp: now + ACCESS_TOKEN_EXP_SECONDS
     },
-    secret
+    resolvedSecret
   );
 
   return { user, accessToken: newAccessToken };

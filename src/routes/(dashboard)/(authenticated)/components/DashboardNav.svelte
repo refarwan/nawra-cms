@@ -40,6 +40,24 @@
       />
       <span class="flex-1 truncate">{item.label}</span>
     </a>
+  {:else if item.routeId === "/(dashboard)/(authenticated)/dashboard/home"}
+    <a
+      href={resolve("/(dashboard)/(authenticated)/dashboard/home")}
+      onclick={() => (adminSidebar.open = false)}
+      class={`group flex h-12 items-center gap-2.5 rounded-lg px-3 text-sm transition-colors ${
+        active
+          ? "bg-blue-50 font-semibold text-[#0d99ff]"
+          : "font-medium text-gray-600 hover:bg-gray-100/80 hover:text-gray-900"
+      }`}
+    >
+      <Icon
+        icon={item.icon}
+        class={`h-4.5 w-4.5 shrink-0 transition-colors ${
+          active ? "text-[#0d99ff]" : "text-gray-400 group-hover:text-gray-600"
+        }`}
+      />
+      <span class="flex-1 truncate">{item.label}</span>
+    </a>
   {:else if item.routeId === "/(dashboard)/(authenticated)/dashboard/header"}
     <a
       href={resolve("/(dashboard)/(authenticated)/dashboard/header")}

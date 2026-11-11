@@ -67,7 +67,7 @@
           {el.type}
         </span>
         {#if el.isDefault || el.id === "flexbox-default"}
-          <span class="px-1 font-medium text-white select-none">Container</span>
+          <span class="px-1 font-medium text-white select-none">{el.name}</span>
         {:else}
           <input
             type="text"
@@ -80,14 +80,14 @@
         {/if}
       </div>
       <div class="flex items-center gap-1">
-        <button
-          onclick={() => editor.duplicateElement(el.id)}
-          class="rounded p-1 text-neutral-400 hover:bg-[#2c2c2c] hover:text-white"
-          title="Duplikat (Ctrl+D)"
-        >
-          <Icon icon="lucide:copy" class="h-3.5 w-3.5" />
-        </button>
         {#if !el.isDefault && el.id !== "flexbox-default"}
+          <button
+            onclick={() => editor.duplicateElement(el.id)}
+            class="rounded p-1 text-neutral-400 hover:bg-[#2c2c2c] hover:text-white"
+            title="Duplikat (Ctrl+D)"
+          >
+            <Icon icon="lucide:copy" class="h-3.5 w-3.5" />
+          </button>
           <button
             onclick={() => editor.deleteElement(el.id)}
             class="rounded p-1 text-red-400 hover:bg-red-500/20 hover:text-red-300"

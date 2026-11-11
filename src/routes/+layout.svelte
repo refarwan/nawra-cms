@@ -1,7 +1,17 @@
 <script lang="ts">
   import "./layout.css";
+  import "@fontsource/poppins/100.css";
+  import "@fontsource/poppins/200.css";
+  import "@fontsource/poppins/300.css";
+  import "@fontsource/poppins/400.css";
+  import "@fontsource/poppins/500.css";
+  import "@fontsource/poppins/600.css";
+  import "@fontsource/poppins/700.css";
+  import "@fontsource/poppins/800.css";
+  import "@fontsource/poppins/900.css";
 
   import favicon from "#lib/assets/favicon.svg";
+  import TopLoader from "#lib/components/TopLoader.svelte";
   import { authStore } from "#lib/stores/auth.svelte";
 
   import type { LayoutProps } from "./$types";
@@ -23,4 +33,5 @@
   <link rel="icon" href={favicon} />
 </svelte:head>
 
+<TopLoader />
 {@render children()}

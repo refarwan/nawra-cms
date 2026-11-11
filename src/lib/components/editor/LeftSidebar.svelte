@@ -316,22 +316,19 @@
             >
               <Icon icon="lucide:chevron-down" class="h-3 w-3" />
             </button>
-          {/if}
+            <!-- Duplicate -->
+            <button
+              onclick={(e) => {
+                e.stopPropagation();
+                editor.duplicateElement(element.id);
+              }}
+              class="rounded p-0.5 hover:bg-black/20"
+              title="Duplikat (Ctrl+D)"
+            >
+              <Icon icon="lucide:copy" class="h-3 w-3" />
+            </button>
 
-          <!-- Duplicate -->
-          <button
-            onclick={(e) => {
-              e.stopPropagation();
-              editor.duplicateElement(element.id);
-            }}
-            class="rounded p-0.5 hover:bg-black/20"
-            title="Duplikat (Ctrl+D)"
-          >
-            <Icon icon="lucide:copy" class="h-3 w-3" />
-          </button>
-
-          <!-- Delete -->
-          {#if !element.isDefault && element.id !== "flexbox-default"}
+            <!-- Delete -->
             <button
               onclick={(e) => {
                 e.stopPropagation();

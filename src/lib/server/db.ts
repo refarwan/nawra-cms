@@ -1,4 +1,4 @@
-export { getDb, db } from "../../db/index";
+export { getDb } from "../../db/index";
 export type { AppDb } from "../../db/index";
 
 export async function ensureTables(..._args: unknown[]): Promise<void> {

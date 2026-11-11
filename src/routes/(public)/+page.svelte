@@ -19,20 +19,16 @@
 >
   <!-- Header: Active from Cloudflare D1 or Fallback -->
   {#if data.headerHtml}
-    <div class="relative z-20 w-full">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html data.headerHtml}
-    </div>
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html data.headerHtml}
   {:else}
     <PublicHeaderFallback cfCountry={data.cfCountry} />
   {/if}
 
   <!-- Main Content (Home Page): Active from Cloudflare D1 or Fallback -->
   {#if data.homeHtml}
-    <main class="relative z-10 w-full flex-1">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html data.homeHtml}
-    </main>
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html data.homeHtml}
   {:else}
     <main class="relative z-10 mx-auto max-w-6xl flex-1 px-6 pt-16 pb-24 lg:px-12">
       <PublicHeroSection />
@@ -43,10 +39,8 @@
 
   <!-- Footer: Active from Cloudflare D1 or Fallback -->
   {#if data.footerHtml}
-    <div class="relative z-10 w-full">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      {@html data.footerHtml}
-    </div>
+    <!-- eslint-disable-next-line svelte/no-at-html-tags -->
+    {@html data.footerHtml}
   {:else}
     <PublicFooterFallback />
   {/if}

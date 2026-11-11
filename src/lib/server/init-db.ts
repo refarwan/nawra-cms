@@ -1,5 +1,9 @@
-import { d1HttpClientInstance } from "../../db/d1-http";
-import { registerDefaultAdmin, registerDefaultHeaderAndFooter } from "./init-defaults";
+import { getD1Binding } from "../../db/index";
+import {
+  registerDefaultAdmin,
+  registerDefaultHeaderAndFooter,
+  registerDefaultSettings
+} from "./init-defaults";
 
 export interface DatabaseStatus {
   initialized: boolean;
@@ -51,17 +55,23 @@ const CREATE_TABLES_SQL = [
     is_active INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL
+  )`,
+  `CREATE TABLE IF NOT EXISTS settings (
+    id TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL
   )`
 ];
 
 export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStatus> {
-  const client = d1 || (d1HttpClientInstance as unknown as D1Database);
+  const client = getD1Binding(d1);
   if (!client) {
     return {
       initialized: false,
       tablesExist: false,
       adminExists: false,
-      error: "Koneksi database (D1) tidak tersedia."
+      error: "Binding database Cloudflare D1 (DB) tidak tersedia."
     };
   }
 
@@ -96,7 +106,7 @@ export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStat
 }
 
 export async function ensureDatabaseReady(d1?: D1Database): Promise<boolean> {
-  const client = d1 || (d1HttpClientInstance as unknown as D1Database);
+  const client = getD1Binding(d1);
   if (!client) return false;
 
   try {
@@ -114,6 +124,7 @@ export async function ensureDatabaseReady(d1?: D1Database): Promise<boolean> {
     }
 
     await registerDefaultHeaderAndFooter(client);
+    await registerDefaultSettings(client);
 
     return true;
   } catch (err) {

@@ -7,9 +7,10 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
   const title = "Beranda Utama";
   const elements: CanvasElement[] = [
     {
-      id: "hero-section",
-      name: "Hero Section",
+      id: "flexbox-default",
+      name: "main",
       type: "frame",
+      isDefault: true,
       x: 0,
       y: 0,
       width: 1280,
@@ -31,7 +32,7 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
       id: "hero-badge",
       name: "Hero Badge",
       type: "text",
-      parentId: "hero-section",
+      parentId: "flexbox-default",
       content: "No-Code Visual CMS Studio",
       color: "#0d99ff",
       fontSize: 13,
@@ -52,7 +53,7 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
       id: "hero-title",
       name: "Hero Title",
       type: "heading",
-      parentId: "hero-section",
+      parentId: "flexbox-default",
       content: "Bangun Website Impian Anda Tanpa Koding",
       color: "#111827",
       fontSize: 36,
@@ -73,7 +74,7 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
       id: "hero-desc",
       name: "Hero Description",
       type: "text",
-      parentId: "hero-section",
+      parentId: "flexbox-default",
       content:
         "Kelola konten, rancang tata letak header, footer, dan landing page secara langsung melalui visual kanvas studio yang cepat dan responsif.",
       color: "#4b5563",
@@ -95,7 +96,7 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
       id: "hero-cta",
       name: "Hero CTA Button",
       type: "button",
-      parentId: "hero-section",
+      parentId: "flexbox-default",
       content: "Mulai Mendesain",
       color: "#ffffff",
       fontSize: 14,
@@ -115,7 +116,7 @@ export function getDefaultHomeTemplate(): DefaultTemplateResult {
   ];
   const frame: CanvasFrame = { name: title, width: 1280, height: 520, background: "#ffffff" };
   const contentJson = JSON.stringify({ elements, frame });
-  const contentHtml = generateHtmlFromElements(elements, frame);
+  const contentHtml = generateHtmlFromElements(elements, frame, "homepage");
 
   return { title, contentJson, contentHtml };
 }

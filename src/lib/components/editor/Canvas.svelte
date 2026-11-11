@@ -30,8 +30,36 @@
   let isMouseInsideCanvas = $state(false);
   let hoveredElementId = $state<string | null>(null);
 
+  const defaultFrameEl = $derived(
+    editor.elements.find((el) => el.isDefault || el.id === "flexbox-default") ||
+      editor.elements.find((el) => !el.parentId && el.type === "frame")
+  );
+
+  function getElTotalHeight(el: CanvasElement): number {
+    const pt = el.paddingTop ?? el.padding ?? 0;
+    const pb = el.paddingBottom ?? el.padding ?? 0;
+    return (el.height || 0) + pt + pb;
+  }
+
+  function getElTotalWidth(el: CanvasElement): number {
+    const pl = el.paddingLeft ?? el.padding ?? 0;
+    const pr = el.paddingRight ?? el.padding ?? 0;
+    return (el.width || 0) + pl + pr;
+  }
+
   const activePresetMinHeight = $derived.by(() => {
+    if (defaultFrameEl) {
+      if ((defaultFrameEl.heightMode || "fixed") === "fixed" && defaultFrameEl.height) {
+        return getElTotalHeight(defaultFrameEl);
+      }
+      if (defaultFrameEl.heightMode === "hug") {
+        return 40;
+      }
+    }
     if (editor.frame.minHeight) return editor.frame.minHeight;
+    if (editor.targetType === "header" || editor.targetType === "footer") {
+      return editor.frame.height || 80;
+    }
     if (editor.device === "mobile" || editor.frame.width <= 480) return 780;
     if (editor.device === "tablet" || editor.frame.width <= 820) return 900;
     return 720;
@@ -577,6 +605,8 @@
           child.type === "frame" ? editor.elements.filter((c) => c.parentId === child.id) : []}
         {@const widthMode = child.widthMode || "fixed"}
         {@const heightMode = child.heightMode || "fixed"}
+        {@const childTotalW = getElTotalWidth(child)}
+        {@const childTotalH = getElTotalHeight(child)}
         {@const wText =
           widthMode === "fill" ? "Penuh" : widthMode === "hug" ? "Ikuti" : `${child.width}px`}
         {@const hText =
@@ -603,17 +633,21 @@
               : ''} {isChildSelected ? 'z-20' : ''}"
           style="
 						{widthMode === 'fixed'
-            ? `width: ${child.width}px;`
+            ? `width: ${childTotalW}px;`
             : widthMode === 'hug'
-              ? `min-width: fit-content; max-width: 100%;`
+              ? `width: fit-content; max-width: 100%;`
               : `width: 100%; min-width: 0;`}
 						{heightMode === 'fixed'
-            ? `height: ${child.height}px; min-height: ${child.height}px;`
+            ? child.type === 'image' || child.type === 'icon' || child.type === 'youtube'
+              ? `height: ${childTotalH}px; min-height: ${childTotalH}px;`
+              : `height: auto; min-height: ${childTotalH}px;`
             : heightMode === 'hug'
               ? child.type === 'frame' && subChildren.length === 0
-                ? `height: ${child.height || 80}px; min-height: ${child.height || 80}px;`
+                ? `height: auto; min-height: ${(child.height || 80) + (child.paddingTop ?? child.padding ?? 0) + (child.paddingBottom ?? child.padding ?? 0)}px;`
                 : `height: auto; min-height: fit-content;`
               : `height: 100%; min-height: 0; align-self: stretch;`}
+						{child.type !== 'frame' ? 'display: flex; align-items: center;' : ''}
+						{child.type === 'button' ? 'justify-content: center;' : ''}
 						background-color: {child.fill};
 						border-radius: {child.borderRadius}px;
 						border-width: {child.borderWidth}px;
@@ -624,7 +658,7 @@
 						color: {child.color || 'inherit'};
 						font-size: {child.fontSize ? child.fontSize + 'px' : 'inherit'};
 						font-weight: {child.fontWeight || 'normal'};
-						font-family: {child.fontFamily || 'Inter'};
+						font-family: {child.fontFamily || 'Poppins'};
 						text-align: {child.textAlign || 'left'};
 						{child.type !== 'frame' ? getPaddingCss(child) : ''}
 						{getMarginCss(child)}
@@ -643,7 +677,7 @@
         >
           {#if child.type === "heading"}
             <h2
-              class="flex h-full w-full items-center p-1 leading-tight tracking-tight {isChildSelected
+              class="flex w-full items-center leading-tight tracking-tight {isChildSelected
                 ? 'cursor-text select-text'
                 : 'select-none'}"
             >
@@ -651,22 +685,18 @@
             </h2>
           {:else if child.type === "text"}
             <p
-              class="h-full w-full p-1 leading-relaxed {isChildSelected
+              class="w-full leading-relaxed {isChildSelected
                 ? 'cursor-text select-text'
                 : 'select-none'}"
             >
               {child.content}
             </p>
           {:else if child.type === "button"}
-            <div
-              class="flex h-full w-full items-center justify-center px-4 py-2 font-semibold select-none"
-            >
+            <div class="flex w-full items-center justify-center font-semibold select-none">
               {child.content}
             </div>
           {:else if child.type === "link"}
-            <span
-              class="flex h-full w-full items-center p-1 underline-offset-4 select-none hover:underline"
-            >
+            <span class="flex w-full items-center underline-offset-4 select-none hover:underline">
               {child.content}
             </span>
           {:else if child.type === "image"}
@@ -690,10 +720,15 @@
           {:else if child.type === "frame"}
             <!-- Nested Flexbox Frame Renderer -->
             <div
-              class="flex h-full w-full overflow-auto {child.flexDirection === 'column'
+              class="flex w-full overflow-auto {child.flexDirection === 'column'
                 ? 'flex-col'
                 : 'flex-row'}"
               style="
+								min-height: {heightMode === 'fixed'
+                ? `${childTotalH}px`
+                : subChildren.length === 0
+                  ? `${childTotalH || 80}px`
+                  : 'fit-content'};
 								justify-content: {child.justifyContent || 'flex-start'};
 								align-items: {child.alignItems || 'center'};
 								{getGapCss(child)}
@@ -752,13 +787,16 @@
       {#each editor.elements.filter((el) => !el.parentId) as el (el.id)}
         {#if !el.hidden}
           {@const isSelected = editor.selectedId === el.id}
-          {@const isDefaultFrame = el.isDefault || el.id === "flexbox-default"}
+          {@const isDefaultFrame =
+            el.isDefault || el.id === "flexbox-default" || defaultFrameEl?.id === el.id}
           {@const currentX = isDefaultFrame ? 0 : el.x}
           {@const currentY = isDefaultFrame ? 0 : el.y}
           {@const widthMode = isDefaultFrame ? "fill" : el.widthMode || "fixed"}
           {@const heightMode = el.heightMode || "fixed"}
+          {@const rootTotalW = getElTotalWidth(el)}
+          {@const rootTotalH = getElTotalHeight(el)}
           {@const currentWidth =
-            isDefaultFrame || widthMode === "fill" ? editor.frame.width : el.width}
+            isDefaultFrame || widthMode === "fill" ? editor.frame.width : rootTotalW}
           {@const rootWText = isDefaultFrame
             ? `${editor.frame.width}px`
             : widthMode === "fill"
@@ -788,12 +826,22 @@
 							top: {currentY}px;
 							width: {widthMode === 'hug' ? 'auto' : `${currentWidth}px`};
 							min-width: {widthMode === 'hug' ? 'fit-content' : undefined};
-							height: {isDefaultFrame ? 'auto' : heightMode === 'hug' ? 'auto' : `${el.height}px`};
+							height: {isDefaultFrame ||
+            heightMode === 'hug' ||
+            el.type === 'frame' ||
+            el.type === 'heading' ||
+            el.type === 'text' ||
+            el.type === 'button' ||
+            el.type === 'link' ||
+            el.type === 'rectangle' ||
+            el.type === 'badge'
+              ? 'auto'
+              : `${rootTotalH}px`};
 							min-height: {isDefaultFrame
-              ? `${activePresetMinHeight}px`
+              ? `${heightMode === 'fixed' && el.height ? rootTotalH : activePresetMinHeight}px`
               : heightMode === 'hug'
                 ? 'fit-content'
-                : undefined};
+                : `${rootTotalH}px`};
 							cursor: {isCanvasPanning
               ? 'grabbing'
               : isPanActive
@@ -811,10 +859,15 @@
           >
             <!-- Element Visual Rendering -->
             <div
-              class="{isDefaultFrame ? 'min-h-full' : 'h-full'} w-full {isDefaultFrame
-                ? ''
-                : 'overflow-hidden'}"
+              class="w-full {isDefaultFrame ? '' : 'overflow-hidden'}"
               style="
+								min-height: {isDefaultFrame
+                ? `${heightMode === 'fixed' && el.height ? rootTotalH : activePresetMinHeight}px`
+                : heightMode === 'hug'
+                  ? 'fit-content'
+                  : `${rootTotalH}px`};
+								{el.type !== 'frame' ? 'display: flex; align-items: center;' : ''}
+								{el.type === 'button' || el.type === 'badge' ? 'justify-content: center;' : ''}
 								background-color: {el.fill};
 								border-radius: {el.borderRadius}px;
 								border-width: {el.borderWidth}px;
@@ -825,7 +878,7 @@
 								color: {el.color || 'inherit'};
 								font-size: {el.fontSize ? el.fontSize + 'px' : 'inherit'};
 								font-weight: {el.fontWeight || 'normal'};
-								font-family: {el.fontFamily || 'Inter'};
+								font-family: {el.fontFamily || 'Poppins'};
 								text-align: {el.textAlign || 'left'};
 								{el.type !== 'frame' ? getPaddingCss(el) : ''}
 								{getMarginCss(el)}
@@ -833,7 +886,7 @@
             >
               {#if el.type === "heading"}
                 <h2
-                  class="flex h-full w-full items-center leading-tight tracking-tight {isSelected
+                  class="flex w-full items-center leading-tight tracking-tight {isSelected
                     ? 'cursor-text select-text'
                     : 'select-none'}"
                 >
@@ -841,22 +894,18 @@
                 </h2>
               {:else if el.type === "text"}
                 <p
-                  class="h-full w-full leading-relaxed {isSelected
+                  class="w-full leading-relaxed {isSelected
                     ? 'cursor-text select-text'
                     : 'select-none'}"
                 >
                   {el.content}
                 </p>
               {:else if el.type === "button"}
-                <div
-                  class="flex h-full w-full items-center justify-center font-semibold select-none"
-                >
+                <div class="flex w-full items-center justify-center font-semibold select-none">
                   {el.content}
                 </div>
               {:else if el.type === "badge"}
-                <div
-                  class="flex h-full w-full items-center justify-center font-semibold select-none"
-                >
+                <div class="flex w-full items-center justify-center font-semibold select-none">
                   {el.content}
                 </div>
               {:else if el.type === "image"}
@@ -877,7 +926,7 @@
                 </div>
               {:else if el.type === "link"}
                 <span
-                  class="pointer-events-none flex h-full w-full items-center underline-offset-4 select-none hover:underline"
+                  class="pointer-events-none flex w-full items-center underline-offset-4 select-none hover:underline"
                 >
                   {el.content}
                 </span>
@@ -892,11 +941,25 @@
                 </div>
               {:else if el.type === "frame"}
                 {@const children = editor.elements.filter((c) => c.parentId === el.id)}
-                <div
-                  class="flex {isDefaultFrame ? 'min-h-full' : 'h-full'} w-full {isDefaultFrame
-                    ? ''
-                    : 'overflow-auto'} {el.flexDirection === 'column' ? 'flex-col' : 'flex-row'}"
+                {@const frameTag = isDefaultFrame
+                  ? editor.targetType === "header" || el.name === "header"
+                    ? "header"
+                    : editor.targetType === "footer" || el.name === "footer"
+                      ? "footer"
+                      : "main"
+                  : "div"}
+                <svelte:element
+                  this={frameTag}
+                  class="flex w-full {isDefaultFrame ? '' : 'overflow-auto'} {el.flexDirection ===
+                  'column'
+                    ? 'flex-col'
+                    : 'flex-row'}"
                   style="
+										min-height: {isDefaultFrame
+                    ? `${heightMode === 'fixed' && el.height ? rootTotalH : activePresetMinHeight}px`
+                    : heightMode === 'fixed'
+                      ? `${rootTotalH}px`
+                      : 'fit-content'};
 										justify-content: {el.justifyContent || 'flex-start'};
 										align-items: {el.alignItems || 'center'};
 										{getGapCss(el)}
@@ -907,7 +970,7 @@
                   {#each children as child (child.id)}
                     {@render renderChildElement(child)}
                   {/each}
-                </div>
+                </svelte:element>
               {:else}
                 <!-- Container / Frame / Rectangle -->
                 <div class="h-full w-full"></div>

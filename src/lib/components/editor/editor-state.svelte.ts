@@ -9,7 +9,30 @@ import type {
   ToolMode
 } from "./types";
 
-const INITIAL_ELEMENTS: CanvasElement[] = [];
+const INITIAL_ELEMENTS: CanvasElement[] = [
+  {
+    id: "flexbox-default",
+    name: "main",
+    type: "frame",
+    isDefault: true,
+    x: 0,
+    y: 0,
+    width: 1280,
+    height: 520,
+    fill: "#ffffff",
+    borderRadius: 0,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderStyle: "solid",
+    opacity: 100,
+    boxShadow: "none",
+    isAutoLayout: true,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40
+  }
+];
 
 export class EditorState {
   elements = $state<CanvasElement[]>(INITIAL_ELEMENTS);
@@ -135,7 +158,7 @@ export class EditorState {
           color: "#0f172a",
           fontSize: 24,
           fontWeight: "700",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -163,7 +186,7 @@ export class EditorState {
           color: "#475569",
           fontSize: 14,
           fontWeight: "400",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -191,14 +214,19 @@ export class EditorState {
           color: "#ffffff",
           fontSize: 14,
           fontWeight: "600",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "center",
           borderRadius: 8,
           borderWidth: 0,
           borderColor: "transparent",
           borderStyle: "none",
           opacity: 100,
-          boxShadow: "0 4px 12px rgba(13, 153, 255, 0.3)"
+          boxShadow: "none",
+          padding: 12,
+          paddingTop: 10,
+          paddingRight: 20,
+          paddingBottom: 10,
+          paddingLeft: 20
         };
         break;
       case "link":
@@ -220,7 +248,7 @@ export class EditorState {
           color: "#0d99ff",
           fontSize: 14,
           fontWeight: "600",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -400,7 +428,7 @@ export class EditorState {
           color: "#0f172a",
           fontSize: 32,
           fontWeight: "700",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -425,7 +453,7 @@ export class EditorState {
           color: "#475569",
           fontSize: 16,
           fontWeight: "400",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -450,14 +478,19 @@ export class EditorState {
           color: "#ffffff",
           fontSize: 14,
           fontWeight: "600",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "center",
           borderRadius: 8,
           borderWidth: 0,
           borderColor: "transparent",
           borderStyle: "none",
           opacity: 100,
-          boxShadow: "0 4px 12px rgba(13, 153, 255, 0.3)"
+          boxShadow: "none",
+          padding: 12,
+          paddingTop: 10,
+          paddingRight: 20,
+          paddingBottom: 10,
+          paddingLeft: 20
         };
         break;
       case "badge":
@@ -475,7 +508,7 @@ export class EditorState {
           color: "#38bdf8",
           fontSize: 12,
           fontWeight: "600",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "center",
           borderRadius: 999,
           borderWidth: 1,
@@ -521,7 +554,7 @@ export class EditorState {
           color: "#0d99ff",
           fontSize: 14,
           fontWeight: "600",
-          fontFamily: "Inter",
+          fontFamily: "Poppins",
           textAlign: "left",
           borderRadius: 0,
           borderWidth: 0,
@@ -650,6 +683,7 @@ export class EditorState {
       // Sinkronkan tinggi kanvas dengan tinggi container bawaan
       if ((target.isDefault || id === "flexbox-default") && updates.height) {
         this.frame.height = updates.height;
+        this.frame.minHeight = updates.height;
       }
     }
   }
@@ -680,7 +714,7 @@ export class EditorState {
 
   duplicateElement(id: string) {
     const target = this.elements.find((el) => el.id === id);
-    if (!target) return;
+    if (!target || target.isDefault || id === "flexbox-default") return;
 
     const clone: CanvasElement = {
       ...JSON.parse(JSON.stringify(target)),
@@ -808,21 +842,71 @@ export class EditorState {
   targetId = $state<string | null>(null);
   isSaving = $state<boolean>(false);
 
+  getDefaultContainerName(type?: EditorTargetType | null): "header" | "footer" | "main" {
+    if (type === "header") return "header";
+    if (type === "footer") return "footer";
+    return "main";
+  }
+
   loadFromJson(jsonString: string, title?: string, type?: EditorTargetType, id?: string) {
     if (type) this.targetType = type;
     if (id) this.targetId = id;
     if (title) this.frame.name = title;
+
+    const defaultName = this.getDefaultContainerName(this.targetType);
 
     try {
       const parsed = JSON.parse(jsonString) as {
         elements?: CanvasElement[];
         frame?: CanvasFrame;
       };
-      if (Array.isArray(parsed.elements)) {
-        this.elements = parsed.elements;
-      }
       if (parsed.frame) {
-        this.frame = { ...this.frame, ...parsed.frame };
+        this.frame = {
+          ...this.frame,
+          ...parsed.frame,
+          minHeight: parsed.frame.minHeight ?? parsed.frame.height ?? 80
+        };
+      }
+      if (Array.isArray(parsed.elements)) {
+        let defaultFrame =
+          parsed.elements.find((el) => el.isDefault || el.id === "flexbox-default") ||
+          parsed.elements.find((el) => !el.parentId && el.type === "frame");
+
+        if (defaultFrame) {
+          defaultFrame.isDefault = true;
+          defaultFrame.name = defaultName;
+        } else {
+          defaultFrame = {
+            id: "flexbox-default",
+            name: defaultName,
+            type: "frame",
+            isDefault: true,
+            x: 0,
+            y: 0,
+            width: this.frame.width || 1280,
+            height:
+              this.frame.height ||
+              (this.targetType === "header" ? 70 : this.targetType === "footer" ? 80 : 520),
+            fill: "#ffffff",
+            borderRadius: 0,
+            borderWidth: 1,
+            borderColor: "#e5e7eb",
+            borderStyle: "solid",
+            opacity: 100,
+            boxShadow: "none",
+            isAutoLayout: true,
+            flexDirection:
+              this.targetType === "header" || this.targetType === "footer" ? "row" : "column",
+            justifyContent:
+              this.targetType === "header" || this.targetType === "footer"
+                ? "space-between"
+                : "center",
+            alignItems: "center",
+            padding: 20
+          };
+          parsed.elements.unshift(defaultFrame);
+        }
+        this.elements = parsed.elements;
       }
       this.history = [JSON.parse(JSON.stringify(this.elements))];
       this.historyIndex = 0;

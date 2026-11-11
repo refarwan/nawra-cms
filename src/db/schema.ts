@@ -60,6 +60,13 @@ export const homepages = sqliteTable("homepages", {
   updatedAt: integer("updated_at").notNull()
 });
 
+export const settings = sqliteTable("settings", {
+  id: text("id").primaryKey(),
+  value: text("value").notNull(),
+  createdAt: integer("created_at").notNull(),
+  updatedAt: integer("updated_at").notNull()
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type RefreshToken = typeof refreshTokens.$inferSelect;
@@ -70,3 +77,5 @@ export type Footer = typeof footers.$inferSelect;
 export type NewFooter = typeof footers.$inferInsert;
 export type Homepage = typeof homepages.$inferSelect;
 export type NewHomepage = typeof homepages.$inferInsert;
+export type Setting = typeof settings.$inferSelect;
+export type NewSetting = typeof settings.$inferInsert;
