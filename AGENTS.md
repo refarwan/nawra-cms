@@ -3,6 +3,7 @@
 ## 1. Code Size Constraint (Max 200 Lines)
 
 - **Hard Limit**: Setiap file kode (`.svelte`, `.ts`, `.js`, dll.) tidak boleh melebihi **200 baris** (No file should exceed 200 lines of code).
+- **Pengecualian (Exception)**: Aturan batas maksimal 200 baris **tidak berlaku** untuk semua file di dalam folder komponen editor (`src/lib/components/editor/**`).
 - **Pemecahan Komponen & Modul (Decomposition Rules)**:
   - Jika sebuah file komponen atau halaman (`+page.svelte`, `+layout.svelte`, atau komponen `.svelte` lainnya) mendekati atau melebihi 200 baris, **wajib dipecah menjadi beberapa sub-komponen terpisah**.
   - Letakkan sub-komponen pada folder `components/` terdekat dari rute terkait (misalnya: `src/routes/<rute>/components/<NamaKomponen>.svelte`) atau di `src/lib/components/` jika bersifat reusable/global.
@@ -23,7 +24,7 @@ Sebelum menyelesaikan tugas atau menyatakan pekerjaan selesai, Anda **WAJIB** me
    ```
 
 2. **Audit Jumlah Baris**:
-   Periksa kembali jumlah baris pada semua file yang baru dibuat atau diubah:
+   Periksa kembali jumlah baris pada semua file yang baru dibuat atau diubah (kecuali file di dalam `src/lib/components/editor/**`):
    - Jika setelah di-format ada file yang melebihi 200 baris, **segera pecahkan (refactor) menjadi sub-komponen atau helper terpisah**.
    - Jika ada file yang baru dipecah, jalankan `npm run format` kembali.
 

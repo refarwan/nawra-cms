@@ -1,4 +1,6 @@
-import type { CanvasElement, DeviceMode } from "./types";
+import { applyDeviceDimensions } from "./layer-utils";
+
+import type { CanvasElement, CanvasFrame, DeviceMode } from "./types";
 
 export const GLOBAL_METADATA_KEYS = new Set([
   "id",
@@ -81,4 +83,25 @@ export function isPropertyOverridden(
     return el.responsive?.tablet !== undefined && prop in el.responsive.tablet;
   }
   return el.responsive?.mobile !== undefined && prop in el.responsive.mobile;
+}
+
+export function updateDeviceWithPreservedScroll(
+  frame: CanvasFrame,
+  elements: CanvasElement[],
+  pan: { x: number; y: number },
+  currentZoom: number,
+  targetDevice: DeviceMode
+): { zoom: number; pan: { x: number; y: number } } {
+  const prevH = Math.max(1, frame.height);
+  const prevZ = Math.max(0.1, currentZoom);
+  const relY = pan.y / (prevH * prevZ);
+
+  const zoom = applyDeviceDimensions(frame, elements, targetDevice);
+  const newH = Math.max(1, frame.height);
+  const newPanY = Math.round(relY * newH * zoom);
+
+  return {
+    zoom,
+    pan: { x: 0, y: newPanY }
+  };
 }

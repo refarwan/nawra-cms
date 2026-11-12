@@ -51,10 +51,9 @@
   const currentY = $derived(isDefaultFrame ? 0 : el.y);
   const widthMode = $derived(isDefaultFrame ? "fill" : el.widthMode || "fixed");
   const heightMode = $derived(el.heightMode || "fixed");
-  const rootTotalW = $derived(getElTotalWidth(el));
   const rootTotalH = $derived(getElTotalHeight(el));
   const currentWidth = $derived(
-    isDefaultFrame || widthMode === "fill" ? editor.frame.width : rootTotalW
+    isDefaultFrame || widthMode === "fill" ? editor.frame.width : getElTotalWidth(el)
   );
   const sizeLabels = $derived(
     getRootSizeLabels(el, isDefaultFrame, editor.frame.width, widthMode, heightMode)
@@ -72,6 +71,7 @@
 
 <div
   role="button"
+  data-canvas-item={el.id}
   tabindex={isEditing ? -1 : 0}
   onmouseenter={(e) => {
     e.stopPropagation();

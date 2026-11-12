@@ -56,15 +56,19 @@
     saveError = null;
 
     try {
-      const contentJson = JSON.stringify({
-        elements: editor.elements,
-        frame: editor.frame
-      });
-      const contentHtml = generateHtmlFromElements(
-        editor.elements,
-        editor.frame,
-        editor.targetType
+      const exportFrame = {
+        ...editor.frame,
+        width: 1280,
+        minHeight: editor.frame.minHeight ?? 720
+      };
+      const exportElements = editor.elements.map((el) =>
+        el.isDefault || el.id === "flexbox-default" ? { ...el, width: 1280 } : el
       );
+      const contentJson = JSON.stringify({
+        elements: exportElements,
+        frame: exportFrame
+      });
+      const contentHtml = generateHtmlFromElements(exportElements, exportFrame, editor.targetType);
 
       const res = await fetch("/api/editor/save", {
         method: "POST",

@@ -12,17 +12,10 @@
     { label: "Smartphone (390 × 780)", w: 390, h: 780 }
   ];
 
-  function applyPreset(w: number, h: number) {
-    editor.frame.width = w;
-    editor.frame.minHeight = h;
-    if (w === 1280) editor.device = "desktop";
-    else if (w === 768) editor.device = "tablet";
-    else if (w === 390) editor.device = "mobile";
-
-    const defaultFb = editor.elements.find(
-      (item) => item.isDefault || item.id === "flexbox-default"
-    );
-    if (defaultFb) defaultFb.width = w;
+  function applyPreset(w: number) {
+    if (w === 1280) editor.setDevice("desktop");
+    else if (w === 768) editor.setDevice("tablet");
+    else if (w === 390) editor.setDevice("mobile");
   }
 </script>
 
@@ -38,7 +31,7 @@
     <div class="space-y-1.5">
       {#each framePresets as preset (preset.label)}
         <button
-          onclick={() => applyPreset(preset.w, preset.h)}
+          onclick={() => applyPreset(preset.w)}
           class="flex w-full items-center justify-between rounded border border-[#333] bg-[#252525] px-3 py-2 text-left transition hover:border-[#0d99ff] hover:text-white"
         >
           <span class="text-xs">{preset.label}</span>

@@ -1,20 +1,25 @@
 import { SvelteDate } from "svelte/reactivity";
 
+import { INITIAL_ELEMENTS, INITIAL_FRAME } from "./canvas-element-factory";
 import {
-  cloneCanvasElement,
-  createRootCanvasElement,
-  INITIAL_ELEMENTS,
-  INITIAL_FRAME
-} from "./canvas-element-factory";
-import { buildChildForFrame } from "./frame-element-factory";
+  addCanvasChildToFrame,
+  createAndAddRootElement,
+  deleteCanvasElement,
+  duplicateCanvasElement,
+  toggleElementLock,
+  toggleElementVisibility
+} from "./editor-element-actions";
 import {
   applyDeviceDimensions,
-  collectDeleteIds,
   moveLayerElements,
   parseLoadedEditorJson,
   reorderLayerElements
 } from "./layer-utils";
-import { applyElementUpdate, resolveElementForDevice } from "./responsive-utils";
+import {
+  applyElementUpdate,
+  resolveElementForDevice,
+  updateDeviceWithPreservedScroll
+} from "./responsive-utils";
 
 import type {
   CanvasElement,
@@ -50,9 +55,9 @@ export class EditorState {
     return raw ? resolveElementForDevice(raw, this.device) : null;
   });
 
-  resolvedElements = $derived.by<CanvasElement[]>(() => {
-    return this.elements.map((el) => resolveElementForDevice(el, this.device));
-  });
+  resolvedElements = $derived.by<CanvasElement[]>(() =>
+    this.elements.map((el) => resolveElementForDevice(el, this.device))
+  );
 
   constructor() {
     this.pushHistory();
@@ -60,8 +65,15 @@ export class EditorState {
 
   setDevice(device: DeviceMode) {
     this.device = device;
-    this.zoom = applyDeviceDimensions(this.frame, this.elements, device);
-    this.pan = { x: 0, y: 0 };
+    const res = updateDeviceWithPreservedScroll(
+      this.frame,
+      this.elements,
+      this.pan,
+      this.zoom,
+      device
+    );
+    this.zoom = res.zoom;
+    this.pan = res.pan;
   }
 
   pushHistory() {
@@ -94,18 +106,18 @@ export class EditorState {
     options?: { flexDirection?: "row" | "column" }
   ) {
     const dir = options?.flexDirection ?? this.pendingFrameDirection ?? "row";
-    const newEl = buildChildForFrame(this.elements, frameId, type, dir);
-    if (!newEl) return;
-    this.elements.push(newEl);
-    this.selectedId = newEl.id;
+    const res = addCanvasChildToFrame(this.elements, frameId, type, dir);
+    if (!res) return;
+    this.elements = res.updatedElements;
+    this.selectedId = res.newId;
     this.pendingElementType = null;
     this.pushHistory();
   }
 
   addElement(type: ElementType, x = 80, y = 80) {
-    const newEl = createRootCanvasElement(type, this.elements.length + 1, x, y);
-    this.elements.push(newEl);
-    this.selectedId = newEl.id;
+    const res = createAndAddRootElement(this.elements, type, x, y);
+    this.elements = res.updatedElements;
+    this.selectedId = res.newId;
     this.tool = "select";
     this.pushHistory();
   }
@@ -114,9 +126,10 @@ export class EditorState {
     const idx = this.elements.findIndex((el) => el.id === id);
     if (idx === -1) return;
     const target = this.elements[idx];
-    if ((target.isDefault || id === "flexbox-default") && "name" in updates) delete updates.name;
+    const isDef = target.isDefault || id === "flexbox-default";
+    if (isDef && "name" in updates) delete updates.name;
     this.elements[idx] = applyElementUpdate(target, updates, this.device);
-    if ((target.isDefault || id === "flexbox-default") && updates.height) {
+    if (isDef && updates.height) {
       this.frame.height = updates.height;
       this.frame.minHeight = updates.height;
     }
@@ -125,20 +138,18 @@ export class EditorState {
   commitUpdate = () => this.pushHistory();
 
   deleteElement(id: string) {
-    const target = this.elements.find((el) => el.id === id);
-    if (target?.isDefault || id === "flexbox-default") return;
-    const ids = collectDeleteIds(this.elements, id);
-    this.elements = this.elements.filter((el) => !ids.includes(el.id));
-    if (this.selectedId && ids.includes(this.selectedId)) this.selectedId = null;
+    const res = deleteCanvasElement(this.elements, id, this.selectedId);
+    if (!res) return;
+    this.elements = res.updatedElements;
+    this.selectedId = res.nextSelectedId;
     this.pushHistory();
   }
 
   duplicateElement(id: string) {
-    const target = this.elements.find((el) => el.id === id);
-    if (!target || target.isDefault || id === "flexbox-default") return;
-    const clone = cloneCanvasElement(target);
-    this.elements.push(clone);
-    this.selectedId = clone.id;
+    const res = duplicateCanvasElement(this.elements, id);
+    if (!res) return;
+    this.elements = res.updatedElements;
+    this.selectedId = res.clonedId;
     this.pushHistory();
   }
 
@@ -157,30 +168,22 @@ export class EditorState {
   }
 
   toggleVisibility(id: string) {
-    const el = this.elements.find((e) => e.id === id);
-    if (!el) return;
-    el.hidden = !el.hidden;
-    this.pushHistory();
+    if (toggleElementVisibility(this.elements, id)) this.pushHistory();
   }
 
   toggleLock(id: string) {
-    const el = this.elements.find((e) => e.id === id);
-    if (!el) return;
-    el.locked = !el.locked;
-    this.pushHistory();
+    if (toggleElementLock(this.elements, id)) this.pushHistory();
   }
 
   loadFromJson(jsonString: string, title?: string, type?: EditorTargetType, id?: string) {
     if (type) this.targetType = type;
     if (id) this.targetId = id;
     const res = parseLoadedEditorJson(jsonString, this.frame, this.targetType);
-    if (!res) {
-      if (title) this.frame.name = title;
-      return;
-    }
-    this.frame = res.frame;
     if (title) this.frame.name = title;
+    if (!res) return;
+    this.frame = res.frame;
     if (res.elements) this.elements = res.elements;
+    this.zoom = applyDeviceDimensions(this.frame, this.elements, this.device);
     this.history = [JSON.parse(JSON.stringify(this.elements))];
     this.historyIndex = 0;
   }
@@ -193,6 +196,7 @@ export class EditorState {
       minute: "2-digit"
     });
   }
+
   zoomIn = () => (this.zoom = Math.min(2.5, +(this.zoom + 0.1).toFixed(2)));
   zoomOut = () => (this.zoom = Math.max(0.3, +(this.zoom - 0.1).toFixed(2)));
   resetZoom = () => ((this.zoom = 1), (this.pan = { x: 0, y: 0 }));

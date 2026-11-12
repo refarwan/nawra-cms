@@ -54,6 +54,7 @@
 
 <div
   role="button"
+  data-canvas-item={child.id}
   tabindex={isEditingChild ? -1 : 0}
   onmouseenter={(e) => {
     e.stopPropagation();

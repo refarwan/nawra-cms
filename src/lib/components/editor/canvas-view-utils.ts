@@ -111,3 +111,17 @@ export function placeCaretAtPoint(node: HTMLElement, x?: number, y?: number) {
     sel.addRange(fallback);
   }
 }
+
+export function centerSelectedElementInCanvas(editor: EditorState): void {
+  if (!editor.selectedId) return;
+  requestAnimationFrame(() => {
+    const canvasBg = document.querySelector('[data-role="canvas-background"]');
+    const targetEl = document.querySelector(`[data-canvas-item="${editor.selectedId}"]`);
+    if (!canvasBg || !targetEl) return;
+
+    const bgRect = canvasBg.getBoundingClientRect();
+    const targetRect = targetEl.getBoundingClientRect();
+    const diffY = targetRect.top + targetRect.height / 2 - (bgRect.top + bgRect.height / 2);
+    editor.pan.y = Math.round(editor.pan.y - diffY);
+  });
+}

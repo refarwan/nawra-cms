@@ -8,9 +8,13 @@
     handleCanvasShortcuts,
     handlePendingElementInsert
   } from "./canvas-interactions";
-  import { getCanvasFrameMetrics, isEditableTextElement } from "./canvas-view-utils";
+  import {
+    centerSelectedElementInCanvas,
+    getCanvasFrameMetrics,
+    isEditableTextElement
+  } from "./canvas-view-utils";
+  import CanvasArtboard from "./CanvasArtboard.svelte";
   import CanvasOverlays from "./CanvasOverlays.svelte";
-  import CanvasRootItem from "./CanvasRootItem.svelte";
 
   import type { EditorState } from "./editor-state.svelte";
   import type { CanvasElement } from "./types";
@@ -32,6 +36,7 @@
   let editingElementId = $state<string | null>(null);
   let editClickPos = $state<{ x: number; y: number } | null>(null);
   let defaultFrameHeight = $state(0);
+  let lastDevice: string | null = null;
 
   const isPanActive = $derived(editor.tool === "pan" || isSpacePressed);
   const canvasCursorClass = $derived(
@@ -41,6 +46,14 @@
   const defaultFrameEl = $derived(metrics.defaultFrameEl);
   const activePresetMinHeight = $derived(metrics.activePresetMinHeight);
   const autoCanvasHeight = $derived(metrics.autoCanvasHeight);
+
+  $effect(() => {
+    const d = editor.device;
+    if (lastDevice !== null && d !== lastDevice) {
+      centerSelectedElementInCanvas(editor);
+    }
+    lastDevice = d;
+  });
 
   $effect(() => {
     const h = autoCanvasHeight;
@@ -150,45 +163,22 @@
     {mouseClientPos}
   />
 
-  <div
-    class="absolute top-1/2 left-1/2 origin-center transition-transform duration-75 ease-out"
-    style="transform: translate(calc(-50% + {editor.pan.x}px), calc(-50% + {editor.pan
-      .y}px)) scale({editor.zoom});"
-  >
-    <div class="absolute -top-7 left-0 flex items-center gap-2">
-      <span class="text-xs font-semibold text-neutral-400">{editor.frame.name}</span>
-      <span class="rounded bg-[#222] px-1.5 py-0.5 text-[10px] text-neutral-400">
-        {editor.frame.width} × {autoCanvasHeight}
-      </span>
-    </div>
-
-    <div
-      data-role="artboard"
-      class="relative overflow-x-hidden transition-all"
-      style="width: {editor.frame
-        .width}px; min-height: {activePresetMinHeight}px; height: {autoCanvasHeight}px; background-color: {editor
-        .frame.background}; border-radius: 4px; border: 1px solid #2c2c2c;"
-    >
-      {#each editor.resolvedElements.filter((el) => !el.parentId && !el.hidden) as el (el.id)}
-        <CanvasRootItem
-          {editor}
-          {el}
-          isDefaultFrame={Boolean(el.isDefault || defaultFrameEl?.id === el.id)}
-          {activePresetMinHeight}
-          {hoveredElementId}
-          {editingElementId}
-          {editClickPos}
-          {isPanActive}
-          {isCanvasPanning}
-          bind:defaultFrameHeight
-          onHover={(id) => (hoveredElementId = id)}
-          onElementMouseDown={(e, item) => onItemMouseDown(e, item, true)}
-          onChildMouseDown={(e, item) => onItemMouseDown(e, item, false)}
-          {onResizeMouseDown}
-          {onStartEdit}
-          onStopEdit={() => (editingElementId = null)}
-        />
-      {/each}
-    </div>
-  </div>
+  <CanvasArtboard
+    {editor}
+    {autoCanvasHeight}
+    {activePresetMinHeight}
+    {defaultFrameEl}
+    {hoveredElementId}
+    {editingElementId}
+    {editClickPos}
+    {isPanActive}
+    {isCanvasPanning}
+    bind:defaultFrameHeight
+    onHover={(id) => (hoveredElementId = id)}
+    onElementMouseDown={(e, item) => onItemMouseDown(e, item, true)}
+    onChildMouseDown={(e, item) => onItemMouseDown(e, item, false)}
+    {onResizeMouseDown}
+    {onStartEdit}
+    onStopEdit={() => (editingElementId = null)}
+  />
 </div>
