@@ -64,7 +64,11 @@ function getStyleString(
   // Height
   if (heightMode === "fixed" && el.height) {
     const totalHeight = el.height + pt + pb;
-    if (el.type === "image" || el.type === "icon" || el.type === "youtube") {
+    const totalWidth = (el.width || 0) + pl + pr;
+    if ((el.type === "image" || el.type === "youtube") && widthMode === "fixed" && totalWidth > 0) {
+      styles.push(`aspect-ratio: ${totalWidth} / ${totalHeight}`);
+      styles.push("height: auto");
+    } else if (el.type === "image" || el.type === "icon" || el.type === "youtube") {
       styles.push(`height: ${totalHeight}px`);
     } else {
       styles.push(`min-height: ${totalHeight}px`);

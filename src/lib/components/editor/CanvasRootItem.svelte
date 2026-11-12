@@ -91,8 +91,10 @@
   style="
     left: {currentX}px;
     top: {currentY}px;
+    box-sizing: border-box;
     width: {widthMode === 'hug' ? 'auto' : `${currentWidth}px`};
-    min-width: {widthMode === 'hug' ? 'fit-content' : undefined};
+    max-width: 100%;
+    min-width: {widthMode === 'hug' ? 'fit-content' : '0'};
     height: {isAutoHeightType ? 'auto' : `${rootTotalH}px`};
     min-height: {isDefaultFrame
     ? `${heightMode === 'fixed' && el.height ? rootTotalH : activePresetMinHeight}px`
@@ -141,7 +143,8 @@
     {#if el.type === "frame"}
       <svelte:element
         this={frameTag}
-        class="flex w-full {isDefaultFrame ? '' : 'overflow-auto'} {el.flexDirection === 'column'
+        class="flex w-full min-w-0 {isDefaultFrame ? '' : 'overflow-hidden'} {el.flexDirection ===
+        'column'
           ? 'flex-col'
           : 'flex-row'}"
         style="

@@ -172,7 +172,7 @@
 
     <div
       data-role="artboard"
-      class="relative transition-all"
+      class="relative overflow-x-hidden transition-all"
       style="width: {editor.frame
         .width}px; min-height: {activePresetMinHeight}px; height: {autoCanvasHeight}px; background-color: {editor
         .frame.background}; border-radius: 4px; border: 1px solid #2c2c2c;"

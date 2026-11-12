@@ -52,8 +52,8 @@
     if (hoveredElementId === child.id) onHover(null);
   }}
   onmousedown={(e) => onChildMouseDown(e, child)}
-  class="relative {widthMode === 'fill'
-    ? 'w-full min-w-0 flex-1'
+  class="relative max-w-full min-w-0 {widthMode === 'fill'
+    ? 'w-full'
     : widthMode === 'hug'
       ? 'w-auto shrink-0'
       : 'shrink-0'} {heightMode === 'fill'
@@ -62,15 +62,20 @@
       ? 'h-auto'
       : ''} {isChildSelected ? 'z-20' : ''}"
   style="
+    box-sizing: border-box;
     {widthMode === 'fixed'
-    ? `width: ${childTotalW}px;`
+    ? `width: ${childTotalW}px; max-width: 100%;`
     : widthMode === 'hug'
       ? `width: fit-content; max-width: 100%;`
-      : `width: 100%; min-width: 0;`}
+      : `width: 100%; max-width: 100%; min-width: 0;`}
     {heightMode === 'fixed'
-    ? child.type === 'image' || child.type === 'icon' || child.type === 'youtube'
-      ? `height: ${childTotalH}px; min-height: ${childTotalH}px;`
-      : `height: auto; min-height: ${childTotalH}px;`
+    ? (child.type === 'image' || child.type === 'youtube') &&
+      widthMode === 'fixed' &&
+      childTotalW > 0
+      ? `height: auto; aspect-ratio: ${childTotalW} / ${childTotalH};`
+      : child.type === 'image' || child.type === 'icon' || child.type === 'youtube'
+        ? `height: ${childTotalH}px; min-height: ${childTotalH}px;`
+        : `height: auto; min-height: ${childTotalH}px;`
     : heightMode === 'hug'
       ? child.type === 'frame' && subChildren.length === 0
         ? `height: auto; min-height: ${(child.height || 80) + (child.paddingTop ?? child.padding ?? 0) + (child.paddingBottom ?? child.padding ?? 0)}px;`
@@ -106,7 +111,9 @@
 >
   {#if child.type === "frame"}
     <div
-      class="flex w-full overflow-auto {child.flexDirection === 'column' ? 'flex-col' : 'flex-row'}"
+      class="flex w-full min-w-0 overflow-hidden {child.flexDirection === 'column'
+        ? 'flex-col'
+        : 'flex-row'}"
       style="
         min-height: {heightMode === 'fixed'
         ? `${childTotalH}px`
