@@ -1,14 +1,84 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
 
+  import { placeCaretAtPoint } from "./canvas-view-utils";
   import { toYouTubeEmbedUrl } from "./youtube-utils";
 
+  import type { EditorState } from "./editor-state.svelte";
   import type { CanvasElement } from "./types";
 
-  let { el, isSelected }: { el: CanvasElement; isSelected: boolean } = $props();
+  let {
+    editor,
+    el,
+    isSelected,
+    isEditing = false,
+    editClickPos = null,
+    onStopEdit
+  }: {
+    editor: EditorState;
+    el: CanvasElement;
+    isSelected: boolean;
+    isEditing?: boolean;
+    editClickPos?: { x: number; y: number } | null;
+    onStopEdit?: () => void;
+  } = $props();
+
+  const editClass = $derived(
+    el.type === "heading"
+      ? "leading-tight tracking-tight"
+      : el.type === "text"
+        ? "leading-relaxed whitespace-pre-wrap"
+        : el.type === "link"
+          ? "underline-offset-4"
+          : "font-semibold"
+  );
+
+  function editableAction(node: HTMLElement, initialText: string) {
+    node.innerText = initialText;
+    node.focus();
+    placeCaretAtPoint(node, editClickPos?.x, editClickPos?.y);
+    requestAnimationFrame(() => {
+      if (document.activeElement === node) {
+        placeCaretAtPoint(node, editClickPos?.x, editClickPos?.y);
+      }
+    });
+    return { update() {} };
+  }
+
+  function onInput(e: Event) {
+    editor.updateElement(el.id, { content: (e.currentTarget as HTMLElement).innerText });
+  }
+
+  function onBlur() {
+    editor.commitUpdate();
+    onStopEdit?.();
+  }
+
+  function onKeydown(e: KeyboardEvent) {
+    e.stopPropagation();
+    if (e.key === "Escape" || (e.key === "Enter" && el.type !== "text")) {
+      e.preventDefault();
+      (e.currentTarget as HTMLElement).blur();
+    }
+  }
 </script>
 
-{#if el.type === "heading"}
+{#if isEditing}
+  <div
+    role="textbox"
+    tabindex="0"
+    aria-label="Edit teks {el.name}"
+    aria-multiline={el.type === "text"}
+    contenteditable="true"
+    use:editableAction={el.content || ""}
+    oninput={onInput}
+    onblur={onBlur}
+    onkeydown={onKeydown}
+    onmousedown={(e) => e.stopPropagation()}
+    style="user-select: text; -webkit-user-select: text;"
+    class="w-full cursor-text outline-none select-text {editClass}"
+  ></div>
+{:else if el.type === "heading"}
   <h2
     class="w-full leading-tight tracking-tight {isSelected
       ? 'cursor-text select-text'
@@ -17,7 +87,11 @@
     {el.content}
   </h2>
 {:else if el.type === "text"}
-  <p class="w-full leading-relaxed {isSelected ? 'cursor-text select-text' : 'select-none'}">
+  <p
+    class="w-full leading-relaxed whitespace-pre-wrap {isSelected
+      ? 'cursor-text select-text'
+      : 'select-none'}"
+  >
     {el.content}
   </p>
 {:else if el.type === "button" || el.type === "badge"}

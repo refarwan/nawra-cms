@@ -3,12 +3,12 @@
 
   import { createGestureAction, getActiveFollower } from "./canvas-gesture";
   import {
+    applyDragMove,
     applyResizeMove,
-    computeMaxFreeBottom,
-    computePresetMinHeight,
     handleCanvasShortcuts,
     handlePendingElementInsert
   } from "./canvas-interactions";
+  import { getCanvasFrameMetrics, isEditableTextElement } from "./canvas-view-utils";
   import CanvasOverlays from "./CanvasOverlays.svelte";
   import CanvasRootItem from "./CanvasRootItem.svelte";
 
@@ -18,36 +18,34 @@
   let { editor }: { editor: EditorState } = $props();
 
   let isDragging = $state(false);
-  let dragStartPos = $state({ x: 0, y: 0 });
-  let elementStartPos = $state({ x: 0, y: 0 });
   let isResizing = $state(false);
-  let resizeHandle = $state<string | null>(null);
-  let initialBox = $state({ x: 0, y: 0, w: 0, h: 0 });
   let isCanvasPanning = $state(false);
   let isSpacePressed = $state(false);
+  let isMouseInsideCanvas = $state(false);
+  let dragStartPos = $state({ x: 0, y: 0 });
+  let elementStartPos = $state({ x: 0, y: 0 });
   let panStart = $state({ x: 0, y: 0 });
   let mouseClientPos = $state({ x: 0, y: 0 });
-  let isMouseInsideCanvas = $state(false);
+  let initialBox = $state({ x: 0, y: 0, w: 0, h: 0 });
+  let resizeHandle = $state<string | null>(null);
   let hoveredElementId = $state<string | null>(null);
+  let editingElementId = $state<string | null>(null);
+  let editClickPos = $state<{ x: number; y: number } | null>(null);
   let defaultFrameHeight = $state(0);
 
   const isPanActive = $derived(editor.tool === "pan" || isSpacePressed);
   const canvasCursorClass = $derived(
     isCanvasPanning ? "cursor-grabbing" : isPanActive ? "cursor-grab" : "cursor-default"
   );
-  const defaultFrameEl = $derived(
-    editor.elements.find((el) => el.isDefault || el.id === "flexbox-default") ||
-      editor.elements.find((el) => !el.parentId && el.type === "frame")
-  );
-  const activePresetMinHeight = $derived(computePresetMinHeight(editor, defaultFrameEl));
-  const autoCanvasHeight = $derived(
-    Math.max(activePresetMinHeight, defaultFrameHeight, computeMaxFreeBottom(editor.elements))
-  );
+  const metrics = $derived(getCanvasFrameMetrics(editor, defaultFrameHeight));
+  const defaultFrameEl = $derived(metrics.defaultFrameEl);
+  const activePresetMinHeight = $derived(metrics.activePresetMinHeight);
+  const autoCanvasHeight = $derived(metrics.autoCanvasHeight);
 
   $effect(() => {
-    const targetHeight = autoCanvasHeight;
+    const h = autoCanvasHeight;
     untrack(() => {
-      if (editor.frame.height !== targetHeight) editor.frame.height = targetHeight;
+      if (editor.frame.height !== h) editor.frame.height = h;
     });
   });
 
@@ -65,24 +63,34 @@
     if (role === "canvas-background" || role === "artboard") editor.selectElement(null);
   }
 
-  function onElementMouseDown(e: MouseEvent, el: CanvasElement) {
-    if (isPanActive || e.button === 1) return onCanvasMouseDown(e);
-    if (handlePendingElementInsert(e, editor, el) || el.locked || editor.isPreviewMode) return;
-    e.stopPropagation();
+  function onStartEdit(el: CanvasElement, e?: MouseEvent) {
+    if (editingElementId === el.id || !isEditableTextElement(el, editor.isPreviewMode)) return;
     editor.selectElement(el.id);
-    if (!el.parentId && !el.isDefault && el.id !== "flexbox-default") {
-      isDragging = true;
-      dragStartPos = { x: e.clientX, y: e.clientY };
-      elementStartPos = { x: el.x, y: el.y };
-    }
+    editClickPos = e ? { x: e.clientX, y: e.clientY } : null;
+    editingElementId = el.id;
   }
 
-  function onChildMouseDown(e: MouseEvent, child: CanvasElement) {
+  function onItemMouseDown(e: MouseEvent, item: CanvasElement, isRoot: boolean) {
     if (isPanActive || e.button === 1) return onCanvasMouseDown(e);
-    if (handlePendingElementInsert(e, editor, child) || child.locked || editor.isPreviewMode)
-      return;
+    if (editingElementId === item.id) return e.stopPropagation();
+    if (handlePendingElementInsert(e, editor, item) || item.locked || editor.isPreviewMode) return;
     e.stopPropagation();
-    editor.selectElement(child.id);
+    if (
+      !isRoot &&
+      editor.selectedId === item.id &&
+      isEditableTextElement(item, editor.isPreviewMode)
+    ) {
+      e.preventDefault();
+      onStartEdit(item, e);
+      return;
+    }
+    editingElementId = null;
+    editor.selectElement(item.id);
+    if (isRoot && !item.parentId && !item.isDefault && item.id !== "flexbox-default") {
+      isDragging = true;
+      dragStartPos = { x: e.clientX, y: e.clientY };
+      elementStartPos = { x: item.x, y: item.y };
+    }
   }
 
   function onResizeMouseDown(e: MouseEvent, handle: string) {
@@ -97,24 +105,10 @@
 
   function onMouseMove(e: MouseEvent) {
     mouseClientPos = { x: e.clientX, y: e.clientY };
-    if (isCanvasPanning) {
-      editor.pan = { x: e.clientX - panStart.x, y: e.clientY - panStart.y };
-    } else if (isDragging && editor.selectedElement) {
-      editor.updateElement(editor.selectedElement.id, {
-        x: Math.round(elementStartPos.x + (e.clientX - dragStartPos.x) / editor.zoom),
-        y: Math.round(elementStartPos.y + (e.clientY - dragStartPos.y) / editor.zoom)
-      });
-    } else if (isResizing && resizeHandle) {
-      applyResizeMove(
-        editor,
-        resizeHandle,
-        initialBox,
-        dragStartPos,
-        e.clientX,
-        e.clientY,
-        activePresetMinHeight
-      );
-    }
+    if (isCanvasPanning) editor.pan = { x: e.clientX - panStart.x, y: e.clientY - panStart.y };
+    else if (isDragging) applyDragMove(editor, elementStartPos, dragStartPos, e.clientX, e.clientY);
+    else if (isResizing && resizeHandle)
+      applyResizeMove(editor, resizeHandle, initialBox, dragStartPos, e, activePresetMinHeight);
   }
 
   function onMouseUp() {
@@ -132,9 +126,7 @@
   onmousemove={onMouseMove}
   onmouseup={onMouseUp}
   onkeydown={(e) => handleCanvasShortcuts(e, editor, (val) => (isSpacePressed = val))}
-  onkeyup={(e) => {
-    if (e.code === "Space") isSpacePressed = false;
-  }}
+  onkeyup={(e) => e.code === "Space" && (isSpacePressed = false)}
 />
 
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -184,13 +176,17 @@
           isDefaultFrame={Boolean(el.isDefault || defaultFrameEl?.id === el.id)}
           {activePresetMinHeight}
           {hoveredElementId}
+          {editingElementId}
+          {editClickPos}
           {isPanActive}
           {isCanvasPanning}
           bind:defaultFrameHeight
           onHover={(id) => (hoveredElementId = id)}
-          {onElementMouseDown}
-          {onChildMouseDown}
+          onElementMouseDown={(e, item) => onItemMouseDown(e, item, true)}
+          onChildMouseDown={(e, item) => onItemMouseDown(e, item, false)}
           {onResizeMouseDown}
+          {onStartEdit}
+          onStopEdit={() => (editingElementId = null)}
         />
       {/each}
     </div>

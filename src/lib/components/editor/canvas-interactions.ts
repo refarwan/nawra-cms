@@ -3,19 +3,34 @@ import { computeResizedElementUpdates, getElTotalHeight } from "./canvas-gesture
 import type { EditorState } from "./editor-state.svelte";
 import type { CanvasElement } from "./types";
 
+export function applyDragMove(
+  editor: EditorState,
+  elementStartPos: { x: number; y: number },
+  dragStartPos: { x: number; y: number },
+  clientX: number,
+  clientY: number
+) {
+  if (!editor.selectedElement) return;
+  const dx = (clientX - dragStartPos.x) / editor.zoom;
+  const dy = (clientY - dragStartPos.y) / editor.zoom;
+  editor.updateElement(editor.selectedElement.id, {
+    x: Math.round(elementStartPos.x + dx),
+    y: Math.round(elementStartPos.y + dy)
+  });
+}
+
 export function applyResizeMove(
   editor: EditorState,
   resizeHandle: string,
   initialBox: { x: number; y: number; w: number; h: number },
   dragStartPos: { x: number; y: number },
-  clientX: number,
-  clientY: number,
+  e: MouseEvent,
   activePresetMinHeight: number
 ) {
   if (!editor.selectedElement) return;
   const isDef = editor.selectedElement.isDefault || editor.selectedElement.id === "flexbox-default";
-  const dx = (clientX - dragStartPos.x) / editor.zoom;
-  const dy = (clientY - dragStartPos.y) / editor.zoom;
+  const dx = (e.clientX - dragStartPos.x) / editor.zoom;
+  const dy = (e.clientY - dragStartPos.y) / editor.zoom;
   if (isDef) {
     editor.frame.minHeight = Math.max(activePresetMinHeight, Math.round(initialBox.h + dy));
     return;
@@ -59,13 +74,14 @@ export function handleCanvasShortcuts(
   editor: EditorState,
   setSpacePressed: (val: boolean) => void
 ) {
-  if (
-    e.code === "Space" &&
-    !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
-  ) {
+  const isEditingText =
+    e.target instanceof HTMLInputElement ||
+    e.target instanceof HTMLTextAreaElement ||
+    (e.target instanceof HTMLElement && e.target.isContentEditable);
+  if (e.code === "Space" && !isEditingText) {
     setSpacePressed(true);
   }
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+  if (isEditingText) return;
 
   if (!e.metaKey && !e.ctrlKey && !e.altKey) {
     if (e.key === "v" || e.key === "V") editor.tool = "select";

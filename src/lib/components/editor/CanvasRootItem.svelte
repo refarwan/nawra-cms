@@ -1,5 +1,6 @@
 <script lang="ts">
   import { getElTotalHeight, getElTotalWidth } from "./canvas-gesture";
+  import { getCanvasItemCursor, getRootFrameTag, getRootSizeLabels } from "./canvas-view-utils";
   import CanvasChildItem from "./CanvasChildItem.svelte";
   import CanvasLeafContent from "./CanvasLeafContent.svelte";
   import CanvasResizeHandles from "./CanvasResizeHandles.svelte";
@@ -14,19 +15,25 @@
     isDefaultFrame,
     activePresetMinHeight,
     hoveredElementId,
+    editingElementId = null,
+    editClickPos = null,
     isPanActive,
     isCanvasPanning,
     defaultFrameHeight = $bindable(0),
     onHover,
     onElementMouseDown,
     onChildMouseDown,
-    onResizeMouseDown
+    onResizeMouseDown,
+    onStartEdit,
+    onStopEdit
   }: {
     editor: EditorState;
     el: CanvasElement;
     isDefaultFrame: boolean;
     activePresetMinHeight: number;
     hoveredElementId: string | null;
+    editingElementId?: string | null;
+    editClickPos?: { x: number; y: number } | null;
     isPanActive: boolean;
     isCanvasPanning: boolean;
     defaultFrameHeight?: number;
@@ -34,9 +41,12 @@
     onElementMouseDown: (e: MouseEvent, el: CanvasElement) => void;
     onChildMouseDown: (e: MouseEvent, child: CanvasElement) => void;
     onResizeMouseDown: (e: MouseEvent, handle: string) => void;
+    onStartEdit: (el: CanvasElement, e?: MouseEvent) => void;
+    onStopEdit: () => void;
   } = $props();
 
   const isSelected = $derived(editor.selectedId === el.id);
+  const isEditing = $derived(editingElementId === el.id);
   const currentX = $derived(isDefaultFrame ? 0 : el.x);
   const currentY = $derived(isDefaultFrame ? 0 : el.y);
   const widthMode = $derived(isDefaultFrame ? "fill" : el.widthMode || "fixed");
@@ -46,28 +56,11 @@
   const currentWidth = $derived(
     isDefaultFrame || widthMode === "fill" ? editor.frame.width : rootTotalW
   );
-  const rootWText = $derived(
-    isDefaultFrame
-      ? `${editor.frame.width}px`
-      : widthMode === "fill"
-        ? "Penuh"
-        : widthMode === "hug"
-          ? "Ikuti"
-          : `${el.width}px`
-  );
-  const rootHText = $derived(
-    heightMode === "fill" ? "Penuh" : heightMode === "hug" ? "Ikuti" : `${el.height}px`
+  const sizeLabels = $derived(
+    getRootSizeLabels(el, isDefaultFrame, editor.frame.width, widthMode, heightMode)
   );
   const children = $derived(editor.elements.filter((c) => c.parentId === el.id));
-  const frameTag = $derived(
-    !isDefaultFrame
-      ? "div"
-      : editor.targetType === "header" || el.name === "header"
-        ? "header"
-        : editor.targetType === "footer" || el.name === "footer"
-          ? "footer"
-          : "main"
-  );
+  const frameTag = $derived(getRootFrameTag(el, isDefaultFrame, editor.targetType));
   const isAutoHeightType = $derived(
     isDefaultFrame ||
       heightMode === "hug" ||
@@ -77,7 +70,7 @@
 
 <div
   role="button"
-  tabindex="0"
+  tabindex={isEditing ? -1 : 0}
   onmouseenter={(e) => {
     e.stopPropagation();
     onHover(el.id);
@@ -86,6 +79,11 @@
     if (hoveredElementId === el.id) onHover(null);
   }}
   onmousedown={(e) => onElementMouseDown(e, el)}
+  ondblclick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onStartEdit(el, e);
+  }}
   bind:clientHeight={defaultFrameHeight}
   class="absolute {isSelected ? 'z-40' : ''}"
   style="
@@ -101,17 +99,15 @@
     : heightMode === 'hug'
       ? 'fit-content'
       : `${rootTotalH}px`};
-    cursor: {isCanvasPanning
-    ? 'grabbing'
-    : isPanActive
-      ? 'grab'
-      : editor.isPreviewMode || isDefaultFrame
-        ? 'default'
-        : el.locked
-          ? 'not-allowed'
-          : (el.type === 'heading' || el.type === 'text') && isSelected
-            ? 'text'
-            : 'move'};
+    cursor: {getCanvasItemCursor(
+    el,
+    isSelected,
+    editor.isPreviewMode,
+    isPanActive,
+    isCanvasPanning,
+    isDefaultFrame,
+    'move'
+  )};
   "
 >
   <div
@@ -165,15 +161,19 @@
             {editor}
             {child}
             {hoveredElementId}
+            {editingElementId}
+            {editClickPos}
             {isPanActive}
             {isCanvasPanning}
             {onHover}
             {onChildMouseDown}
+            {onStartEdit}
+            {onStopEdit}
           />
         {/each}
       </svelte:element>
     {:else}
-      <CanvasLeafContent {el} {isSelected} />
+      <CanvasLeafContent {editor} {el} {isSelected} {isEditing} {editClickPos} {onStopEdit} />
     {/if}
   </div>
 
@@ -185,6 +185,12 @@
   {/if}
 
   {#if isSelected && !el.locked && !editor.isPreviewMode && !isPanActive}
-    <CanvasResizeHandles {el} {isDefaultFrame} {rootWText} {rootHText} {onResizeMouseDown} />
+    <CanvasResizeHandles
+      {el}
+      {isDefaultFrame}
+      rootWText={sizeLabels.wText}
+      rootHText={sizeLabels.hText}
+      {onResizeMouseDown}
+    />
   {/if}
 </div>

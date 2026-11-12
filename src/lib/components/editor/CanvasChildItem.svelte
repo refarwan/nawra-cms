@@ -11,21 +11,30 @@
     editor,
     child,
     hoveredElementId,
+    editingElementId = null,
+    editClickPos = null,
     isPanActive,
     isCanvasPanning,
     onHover,
-    onChildMouseDown
+    onChildMouseDown,
+    onStartEdit,
+    onStopEdit
   }: {
     editor: EditorState;
     child: CanvasElement;
     hoveredElementId: string | null;
+    editingElementId?: string | null;
+    editClickPos?: { x: number; y: number } | null;
     isPanActive: boolean;
     isCanvasPanning: boolean;
     onHover: (id: string | null) => void;
     onChildMouseDown: (e: MouseEvent, child: CanvasElement) => void;
+    onStartEdit: (el: CanvasElement, e?: MouseEvent) => void;
+    onStopEdit: () => void;
   } = $props();
 
   const isChildSelected = $derived(editor.selectedId === child.id);
+  const isEditingChild = $derived(editingElementId === child.id);
   const subChildren = $derived(
     child.type === "frame" ? editor.elements.filter((c) => c.parentId === child.id) : []
   );
@@ -43,7 +52,7 @@
 
 <div
   role="button"
-  tabindex="0"
+  tabindex={isEditingChild ? -1 : 0}
   onmouseenter={(e) => {
     e.stopPropagation();
     onHover(child.id);
@@ -52,6 +61,11 @@
     if (hoveredElementId === child.id) onHover(null);
   }}
   onmousedown={(e) => onChildMouseDown(e, child)}
+  ondblclick={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onStartEdit(child, e);
+  }}
   class="relative max-w-full min-w-0 {widthMode === 'fill'
     ? 'w-full'
     : widthMode === 'hug'
@@ -132,15 +146,26 @@
           {editor}
           child={subChild}
           {hoveredElementId}
+          {editingElementId}
+          {editClickPos}
           {isPanActive}
           {isCanvasPanning}
           {onHover}
           {onChildMouseDown}
+          {onStartEdit}
+          {onStopEdit}
         />
       {/each}
     </div>
   {:else}
-    <CanvasLeafContent el={child} isSelected={isChildSelected} />
+    <CanvasLeafContent
+      {editor}
+      el={child}
+      isSelected={isChildSelected}
+      isEditing={isEditingChild}
+      {editClickPos}
+      {onStopEdit}
+    />
   {/if}
 
   {#if (isChildSelected || (hoveredElementId === child.id && !child.locked && !isPanActive)) && !editor.isPreviewMode}
