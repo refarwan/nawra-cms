@@ -31,6 +31,7 @@
 
   const siteTitle = $derived(page.data.siteSettings?.siteTitle || "Nawra CMS");
   const faviconUrl = $derived(page.data.siteSettings?.faviconUrl || "/favicon.svg");
+  const passwordChanged = $derived(page.url.searchParams.get("passwordChanged") === "1");
 
   $effect(() => {
     const serverIdentifier = form?.identifier || form?.username || form?.email;
@@ -93,6 +94,18 @@
           <span>
             <strong>Cloudflare D1 belum terhubung!</strong> Pasang binding <code>DB</code> di Cloudflare
             Settings agar data Anda tidak hilang saat Worker restart.
+          </span>
+        </div>
+      {/if}
+
+      {#if passwordChanged}
+        <div
+          class="mb-5 flex items-start gap-2.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5 text-sm text-emerald-700"
+        >
+          <Icon icon="lucide:check-circle-2" class="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <span>
+            Kata sandi berhasil diperbarui. Semua sesi login telah dikeluarkan, silakan masuk
+            kembali.
           </span>
         </div>
       {/if}

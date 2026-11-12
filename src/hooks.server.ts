@@ -1,6 +1,8 @@
 import { redirect } from "@sveltejs/kit";
 import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 
+import { refreshTokens } from "./db/schema";
 import { refreshUserToken } from "./lib/server/auth";
 import { getDb } from "./lib/server/db";
 import { ensureDatabaseReady } from "./lib/server/init-db";
@@ -41,21 +43,36 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.session = null;
   event.locals.accessToken = null;
 
-  // 1. Coba verifikasi Access Token (Stateless via Web Crypto, 0 query D1!)
+  // 1. Coba verifikasi Access Token dan pastikan sesi belum dicabut (mis. saat ganti password)
   const accessToken = event.cookies.get("access_token");
   if (accessToken) {
     const payload = await verifyJwt<JwtAccessTokenPayload>(accessToken, jwtSecret);
-    if (payload) {
-      event.locals.accessToken = accessToken;
-      event.locals.user = {
-        id: payload.sub,
-        username: payload.username || payload.email.split("@")[0],
-        email: payload.email,
-        name: payload.name,
-        avatarUrl: payload.avatarUrl || "",
-        role: payload.role,
-        createdAt: payload.iat * 1000
-      };
+    if (payload && (!isDatabaseReady || payload.sid)) {
+      let isSessionActive = true;
+      if (isDatabaseReady && payload.sid) {
+        const db = getDb(event.platform?.env?.DB);
+        const sessionRow = await db.query.refreshTokens.findFirst({
+          where: eq(refreshTokens.id, payload.sid),
+          columns: { id: true, expiresAt: true }
+        });
+        isSessionActive = Boolean(sessionRow && Date.now() < sessionRow.expiresAt);
+      }
+
+      if (isSessionActive) {
+        event.locals.accessToken = accessToken;
+        event.locals.user = {
+          id: payload.sub,
+          username: payload.username || payload.email.split("@")[0],
+          email: payload.email,
+          name: payload.name,
+          avatarUrl: payload.avatarUrl || "",
+          role: payload.role,
+          createdAt: payload.iat * 1000
+        };
+      } else {
+        event.cookies.delete("access_token", { path: "/" });
+        event.cookies.delete("refresh_token", { path: "/" });
+      }
     }
   }
 

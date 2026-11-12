@@ -1,7 +1,13 @@
+import { eq } from "drizzle-orm";
+
+import { users } from "../../db/schema";
 import { hashPassword } from "./crypto";
+import { ensureTables } from "./db";
 import { getDefaultHomeTemplate } from "./default-home-template";
 import { getDefaultFooterTemplate, getDefaultHeaderTemplate } from "./default-templates";
 import { generateRandomSecret } from "./settings";
+
+import type { AppDb } from "./db";
 
 export interface D1Executor {
   prepare: (sql: string) => {
@@ -135,5 +141,27 @@ export async function registerDefaultSettings(client: D1Executor): Promise<void>
       )
       .bind(id, value, now, now)
       .run();
+  }
+}
+
+export async function seedInitialAdmin(db: AppDb, d1?: D1Database): Promise<void> {
+  await ensureTables(d1);
+  const firstUser = await db.query.users.findFirst();
+
+  if (!firstUser) {
+    const password = await hashPassword("admin123");
+    const now = Date.now();
+    await db.insert(users).values({
+      id: crypto.randomUUID(),
+      username: "admin",
+      email: "admin@nawra.com",
+      password,
+      name: "Administrator Nawra",
+      role: "admin",
+      createdAt: now,
+      updatedAt: now
+    });
+  } else if (!firstUser.username) {
+    await db.update(users).set({ username: "admin" }).where(eq(users.id, firstUser.id));
   }
 }

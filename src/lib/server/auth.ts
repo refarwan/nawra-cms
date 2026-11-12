@@ -1,8 +1,9 @@
 import { eq, or } from "drizzle-orm";
 
 import { refreshTokens, users } from "../../db/schema";
-import { hashPassword, verifyPassword } from "./crypto";
+import { verifyPassword } from "./crypto";
 import { ensureTables } from "./db";
+import { seedInitialAdmin } from "./init-defaults";
 import { decodeJwt, signJwt, verifyJwt } from "./jwt";
 import { getJwtSecret } from "./settings";
 
@@ -11,6 +12,7 @@ import type { AppDb } from "./db";
 
 export interface JwtAccessTokenPayload {
   sub: string;
+  sid?: string;
   username?: string;
   email: string;
   name: string;
@@ -30,11 +32,16 @@ export interface JwtRefreshTokenPayload {
 const ACCESS_TOKEN_EXP_SECONDS = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXP_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
-export async function createAccessToken(user: AuthUser, secret?: string): Promise<string> {
+export async function createAccessToken(
+  user: AuthUser,
+  secret?: string,
+  sid?: string
+): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   return signJwt(
     {
       sub: user.id,
+      ...(sid ? { sid } : {}),
       username: user.username,
       email: user.email,
       name: user.name,
@@ -55,7 +62,7 @@ export async function generateTokens(
   const jti = "rt-" + crypto.randomUUID();
   const expiresAt = Date.now() + REFRESH_TOKEN_EXP_MS;
 
-  const accessToken = await createAccessToken(user, secret);
+  const accessToken = await createAccessToken(user, secret, jti);
 
   const refreshToken = await signJwt(
     {
@@ -155,7 +162,7 @@ export async function refreshUserToken(
     createdAt: userRow.createdAt
   };
 
-  const newAccessToken = await createAccessToken(user, resolvedSecret);
+  const newAccessToken = await createAccessToken(user, resolvedSecret, decoded.jti);
 
   return { user, accessToken: newAccessToken };
 }
@@ -172,24 +179,11 @@ export async function revokeRefreshToken(
   await db.delete(refreshTokens).where(eq(refreshTokens.id, decoded.jti));
 }
 
-export async function seedInitialAdmin(db: AppDb, d1?: D1Database): Promise<void> {
+export async function revokeAllUserSessions(
+  db: AppDb,
+  userId: string,
+  d1?: D1Database
+): Promise<void> {
   await ensureTables(d1);
-  const firstUser = await db.query.users.findFirst();
-
-  if (!firstUser) {
-    const password = await hashPassword("admin123");
-    const now = Date.now();
-    await db.insert(users).values({
-      id: crypto.randomUUID(),
-      username: "admin",
-      email: "admin@nawra.com",
-      password,
-      name: "Administrator Nawra",
-      role: "admin",
-      createdAt: now,
-      updatedAt: now
-    });
-  } else if (!firstUser.username) {
-    await db.update(users).set({ username: "admin" }).where(eq(users.id, firstUser.id));
-  }
+  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
 }

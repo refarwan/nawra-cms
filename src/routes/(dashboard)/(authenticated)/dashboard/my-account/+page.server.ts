@@ -5,10 +5,12 @@ import { getDb } from "#db/index";
 import { users } from "#db/schema";
 import { createAccessToken } from "#lib/server/auth";
 import { ensureTables } from "#lib/server/db";
+import { decodeJwt } from "#lib/server/jwt";
 import { deleteAvatarObject } from "#lib/server/media";
 import { getJwtSecret } from "#lib/server/settings";
 
 import type { Cookies } from "@sveltejs/kit";
+import type { JwtRefreshTokenPayload } from "#lib/server/auth";
 import type { AuthUser } from "../../../../../app.d";
 import type { Actions, PageServerLoad } from "./$types";
 
@@ -28,8 +30,10 @@ async function refreshSessionCookie(
     role: row.role,
     createdAt: row.createdAt
   };
+  const refreshToken = cookies.get("refresh_token");
+  const sid = refreshToken ? decodeJwt<JwtRefreshTokenPayload>(refreshToken)?.jti : undefined;
   const jwtSecret = await getJwtSecret(d1);
-  const accessToken = await createAccessToken(user, jwtSecret);
+  const accessToken = await createAccessToken(user, jwtSecret, sid);
   cookies.set("access_token", accessToken, {
     path: "/",
     httpOnly: true,

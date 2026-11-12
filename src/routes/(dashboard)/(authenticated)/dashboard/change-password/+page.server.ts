@@ -1,8 +1,9 @@
-import { fail } from "@sveltejs/kit";
+import { fail, redirect } from "@sveltejs/kit";
 import { eq } from "drizzle-orm";
 
 import { getDb } from "../../../../../db/index";
 import { users } from "../../../../../db/schema";
+import { revokeAllUserSessions } from "../../../../../lib/server/auth";
 import { hashPassword, verifyPassword } from "../../../../../lib/server/crypto";
 
 import type { Actions, PageServerLoad } from "./$types";
@@ -14,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals, platform }) => {
+  default: async ({ request, locals, platform, cookies }) => {
     if (!locals.user) {
       return fail(401, { error: "Sesi tidak valid. Silakan login kembali." });
     }
@@ -75,11 +76,15 @@ export const actions: Actions = {
         })
         .where(eq(users.id, locals.user.id));
 
-      return {
-        success: true,
-        message: "Kata sandi Anda berhasil diperbarui."
-      };
+      await revokeAllUserSessions(db, locals.user.id, platform?.env?.DB);
+      cookies.delete("access_token", { path: "/" });
+      cookies.delete("refresh_token", { path: "/" });
+
+      throw redirect(303, "/login?passwordChanged=1");
     } catch (err) {
+      if (err && typeof err === "object" && "status" in err && "location" in err) {
+        throw err;
+      }
       const msg = err instanceof Error ? err.message : String(err);
       return fail(500, {
         error: `Gagal memperbarui kata sandi: ${msg}`

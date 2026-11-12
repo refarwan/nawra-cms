@@ -74,18 +74,10 @@
     <div class="mb-6">
       <h2 class="text-base font-bold text-gray-900 md:text-lg">Ubah Kata Sandi Akun</h2>
       <p class="mt-1 text-xs text-gray-500">
-        Perbarui kata sandi secara berkala untuk menjaga keamanan akun Nawra CMS Anda.
+        Perbarui kata sandi secara berkala. Setelah diubah, semua sesi login aktif di seluruh
+        perangkat akan dikeluarkan.
       </p>
     </div>
-
-    {#if form?.success}
-      <div
-        class="mb-6 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-800"
-      >
-        <Icon icon="lucide:check-circle-2" class="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
-        <span class="font-medium">{form.message}</span>
-      </div>
-    {/if}
 
     {#if form?.error}
       <div
