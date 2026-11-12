@@ -20,19 +20,19 @@ Sebelum menyelesaikan tugas atau menyatakan pekerjaan selesai, Anda **WAJIB** me
    Jalankan:
 
    ```bash
-   npm run format
+   bun run format
    ```
 
 2. **Audit Jumlah Baris**:
    Periksa kembali jumlah baris pada semua file yang baru dibuat atau diubah (kecuali file di dalam `src/lib/components/editor/**`):
    - Jika setelah di-format ada file yang melebihi 200 baris, **segera pecahkan (refactor) menjadi sub-komponen atau helper terpisah**.
-   - Jika ada file yang baru dipecah, jalankan `npm run format` kembali.
+   - Jika ada file yang baru dipecah, jalankan `bun run format` kembali.
 
 3. **Linting**:
    Jalankan:
 
    ```bash
-   npm run lint
+   bun run lint
    ```
 
    Perbaiki segera jika terdapat error atau warning.
@@ -41,7 +41,7 @@ Sebelum menyelesaikan tugas atau menyatakan pekerjaan selesai, Anda **WAJIB** me
    Jalankan:
 
    ```bash
-   npm run check
+   bun run check
    ```
 
    Pastikan tidak ada kesalahan diagnostik Svelte / TypeScript (0 errors & 0 warnings) sebelum mengakhiri tugas.

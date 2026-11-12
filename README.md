@@ -19,8 +19,8 @@ Klik tombol **Fork** di pojok kanan atas halaman GitHub ini untuk menyalin repos
 1. Buka [Cloudflare Dashboard](https://dash.cloudflare.com/) ➔ **Compute (Workers)** ➔ **Workers & Pages** ➔ klik **Create**.
 2. Klik **Import a repository** dan pilih repository hasil fork Anda (`username/nawra-cms`).
 3. Pastikan pengaturan build sebagai berikut:
-   - **Build command**: `npm run build`
-   - **Deploy command**: `npx wrangler deploy`
+   - **Build command**: `bun run build`
+   - **Deploy command**: `bunx wrangler deploy`
 4. Klik **Save and Deploy**.
 
 > **Otomatis 100% (Tanpa Setting Binding Manual)**: Pada saat build pertama berjalan, Wrangler 4 membaca `"database_name": "nawra-cms-db"` tanpa `database_id` di `wrangler.jsonc`. Wrangler akan **otomatis membuatkan database D1 `nawra-cms-db`** di akun Cloudflare Anda (atau menghubungkannya jika sudah ada) dan langsung mengikatnya ke binding `DB` tanpa perlu Anda atur manual di menu Settings!
@@ -58,10 +58,10 @@ git clone https://github.com/<username>/nawra-cms.git
 cd nawra-cms
 
 # 2. Pasang dependensi
-npm install
+bun install
 
 # 3. Jalankan server lokal
-npm run dev
+bun run dev
 ```
 
 Buka `http://localhost:5173/login`:
@@ -74,14 +74,14 @@ Buka `http://localhost:5173/login`:
 
 ```bash
 # Validasi tipe data (Type Check)
-npm run check
+bun run check
 
 # Pemeriksaan linter dan format kode
-npm run lint
+bun run lint
 
 # Format kode otomatis
-npm run format
+bun run format
 
 # Kompilasi produksi (Build bundle)
-npm run build
+bun run build
 ```
