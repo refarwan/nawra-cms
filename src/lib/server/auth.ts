@@ -14,6 +14,7 @@ export interface JwtAccessTokenPayload {
   username?: string;
   email: string;
   name: string;
+  avatarUrl?: string;
   role: "admin" | "editor";
   iat: number;
   exp: number;
@@ -29,6 +30,23 @@ export interface JwtRefreshTokenPayload {
 const ACCESS_TOKEN_EXP_SECONDS = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXP_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
 
+export async function createAccessToken(user: AuthUser, secret?: string): Promise<string> {
+  const now = Math.floor(Date.now() / 1000);
+  return signJwt(
+    {
+      sub: user.id,
+      username: user.username,
+      email: user.email,
+      name: user.name,
+      avatarUrl: user.avatarUrl || "",
+      role: user.role,
+      iat: now,
+      exp: now + ACCESS_TOKEN_EXP_SECONDS
+    },
+    secret
+  );
+}
+
 export async function generateTokens(
   user: AuthUser,
   secret?: string
@@ -37,18 +55,7 @@ export async function generateTokens(
   const jti = "rt-" + crypto.randomUUID();
   const expiresAt = Date.now() + REFRESH_TOKEN_EXP_MS;
 
-  const accessToken = await signJwt(
-    {
-      sub: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      iat: now,
-      exp: now + ACCESS_TOKEN_EXP_SECONDS
-    },
-    secret
-  );
+  const accessToken = await createAccessToken(user, secret);
 
   const refreshToken = await signJwt(
     {
@@ -88,6 +95,7 @@ export async function loginUser(
     username: row.username,
     email: row.email,
     name: row.name || row.username,
+    avatarUrl: row.avatarUrl || "",
     role: row.role,
     createdAt: row.createdAt
   };
@@ -142,23 +150,12 @@ export async function refreshUserToken(
     username: userRow.username,
     email: userRow.email,
     name: userRow.name || userRow.username,
+    avatarUrl: userRow.avatarUrl || "",
     role: userRow.role,
     createdAt: userRow.createdAt
   };
 
-  const now = Math.floor(Date.now() / 1000);
-  const newAccessToken = await signJwt(
-    {
-      sub: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      role: user.role,
-      iat: now,
-      exp: now + ACCESS_TOKEN_EXP_SECONDS
-    },
-    resolvedSecret
-  );
+  const newAccessToken = await createAccessToken(user, resolvedSecret);
 
   return { user, accessToken: newAccessToken };
 }

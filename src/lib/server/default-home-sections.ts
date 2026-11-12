@@ -164,7 +164,7 @@ export function buildHomeFeatureAndCtaSections(): CanvasElement[] {
         fill: "#ffffff",
         borderRadius: 16,
         borderWidth: highlight ? 2 : 1,
-        borderColor: highlight ? "#2563eb" : "#e5e7eb",
+        borderColor: highlight ? "#0d99ff" : "#e5e7eb",
         borderStyle: "solid",
         alignItems: "flex-start",
         justifyContent: "space-between",
@@ -172,15 +172,15 @@ export function buildHomeFeatureAndCtaSections(): CanvasElement[] {
         padding: 28
       }),
       elBadge(`${id}-badge`, `Badge ${title}`, id, step, {
-        fill: highlight ? "#2563eb" : "#eff6ff",
-        color: highlight ? "#ffffff" : "#1d4ed8",
-        borderColor: highlight ? "#2563eb" : "#bfdbfe"
+        fill: highlight ? "#0d99ff" : "#f0f9ff",
+        color: highlight ? "#ffffff" : "#0369a1",
+        borderColor: highlight ? "#0d99ff" : "#bae6fd"
       }),
       elHeading(`${id}-title`, `Judul ${title}`, id, title, { fontSize: 20, fontWeight: "700" }),
       elText(`${id}-desc`, `Isi ${title}`, id, desc, { fontSize: 14 }),
       elButton(`${id}-btn`, `Tombol ${title}`, id, "Coba di Editor →", "/editor", {
         widthMode: "fill",
-        fill: highlight ? "#2563eb" : "#f3f4f6",
+        fill: highlight ? "#0d99ff" : "#f3f4f6",
         color: highlight ? "#ffffff" : "#1f2937"
       })
     );

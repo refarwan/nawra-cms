@@ -19,6 +19,7 @@ const CREATE_TABLES_SQL = [
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     name TEXT,
+    avatar_url TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'editor',
     created_at INTEGER NOT NULL,
     updated_at INTEGER NOT NULL

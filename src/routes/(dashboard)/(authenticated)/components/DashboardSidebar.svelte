@@ -8,9 +8,10 @@
 
   interface Props {
     title?: string;
+    favicon?: string;
   }
 
-  const { title = "Nawra CMS" }: Props = $props();
+  const { title = "Nawra CMS", favicon = "/favicon.svg" }: Props = $props();
 </script>
 
 {#snippet logo()}
@@ -20,12 +21,8 @@
       onclick={() => (adminSidebar.open = false)}
       class="flex items-center gap-2.5 rounded-lg focus:outline-hidden focus-visible:ring-2 focus-visible:ring-[#0d99ff]"
     >
-      <div
-        class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0d99ff] text-xs font-bold text-white"
-      >
-        <Icon icon="lucide:layout-template" class="h-4.5 w-4.5" />
-      </div>
-      <span class="text-sm font-semibold tracking-tight text-gray-900">{title}</span>
+      <img src={favicon} alt={title} class="h-8 w-8 shrink-0 rounded-lg object-contain" />
+      <span class="truncate text-sm font-semibold tracking-tight text-gray-900">{title}</span>
     </a>
 
     <button

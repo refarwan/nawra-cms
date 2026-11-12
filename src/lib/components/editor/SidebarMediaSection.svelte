@@ -1,4 +1,8 @@
 <script lang="ts">
+  import Icon from "@iconify/svelte";
+
+  import ImagePickerModal from "#lib/components/media/ImagePickerModal.svelte";
+
   import ColorPickerInput from "./ColorPickerInput.svelte";
   import FlexboxAlignBox from "./FlexboxAlignBox.svelte";
   import FlexboxGapInput from "./FlexboxGapInput.svelte";
@@ -8,22 +12,43 @@
   import type { CanvasElement } from "./types";
 
   let { editor, el }: { editor: EditorState; el: CanvasElement } = $props();
+  let showImagePicker = $state(false);
 </script>
 
 <!-- Image Source (if image) -->
 {#if el.type === "image"}
   <div class="border-t border-[#2c2c2c] pt-4">
-    <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
-      Link URL Gambar
+    <div class="mb-2 flex items-center justify-between">
+      <span class="text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
+        Link URL Gambar
+      </span>
+      <button
+        type="button"
+        onclick={() => (showImagePicker = true)}
+        class="inline-flex cursor-pointer items-center gap-1 rounded bg-[#252525] px-2 py-0.5 text-[10px] font-medium text-[#0d99ff] hover:bg-[#333]"
+      >
+        <Icon icon="lucide:images" class="h-3 w-3" />
+        <span>Galeri</span>
+      </button>
     </div>
     <input
       type="text"
       value={el.src || ""}
-      placeholder="https://..."
+      placeholder="https://... atau /api/media/..."
       oninput={(e) => editor.updateElement(el.id, { src: (e.target as HTMLInputElement).value })}
       class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 text-white focus:border-[#0d99ff] focus:outline-none"
     />
   </div>
+
+  {#if showImagePicker}
+    <ImagePickerModal
+      onClose={() => (showImagePicker = false)}
+      onSelect={(img) => {
+        editor.updateElement(el.id, { src: img.url, alt: img.altText || img.name });
+        showImagePicker = false;
+      }}
+    />
+  {/if}
 {/if}
 
 <!-- Icon Settings (if icon) -->

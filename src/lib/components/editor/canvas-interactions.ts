@@ -41,23 +41,36 @@ export function applyResizeMove(
   );
 }
 
+function getDevicePreviewMinHeight(editor: EditorState): number {
+  if (editor.device === "mobile" || editor.frame.width <= 480) return 780;
+  if (editor.device === "tablet" || editor.frame.width <= 820) return 900;
+  return 720;
+}
+
 export function computePresetMinHeight(
   editor: EditorState,
   defaultFrameEl?: CanvasElement
 ): number {
+  const isSectionTarget = editor.targetType === "header" || editor.targetType === "footer";
+  const previewMinHeight = isSectionTarget
+    ? editor.frame.height || 80
+    : getDevicePreviewMinHeight(editor);
+
   if (defaultFrameEl) {
     if ((defaultFrameEl.heightMode || "fixed") === "fixed" && defaultFrameEl.height) {
-      return getElTotalHeight(defaultFrameEl);
+      const elHeight = getElTotalHeight(defaultFrameEl);
+      return isSectionTarget ? elHeight : Math.max(elHeight, previewMinHeight);
     }
-    if (defaultFrameEl.heightMode === "hug") return 40;
+    if (defaultFrameEl.heightMode === "hug") {
+      return isSectionTarget ? 40 : previewMinHeight;
+    }
   }
-  if (editor.frame.minHeight) return editor.frame.minHeight;
-  if (editor.targetType === "header" || editor.targetType === "footer") {
-    return editor.frame.height || 80;
+  if (editor.frame.minHeight) {
+    return isSectionTarget
+      ? editor.frame.minHeight
+      : Math.max(editor.frame.minHeight, previewMinHeight);
   }
-  if (editor.device === "mobile" || editor.frame.width <= 480) return 780;
-  if (editor.device === "tablet" || editor.frame.width <= 820) return 900;
-  return 720;
+  return previewMinHeight;
 }
 
 export function computeMaxFreeBottom(elements: CanvasElement[]): number {

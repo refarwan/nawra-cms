@@ -4,6 +4,7 @@
 
   import { resolve } from "$app/paths";
 
+  import { getEditorBackRoute, getEditorTargetLabel } from "./editor-routes";
   import { generateHtmlFromElements } from "./html-generator";
 
   import type { EditorState } from "./editor-state.svelte";
@@ -14,33 +15,21 @@
   let saveSuccess = $state(false);
   let saveError = $state<string | null>(null);
 
-  const isHome = $derived(editor.targetType === "homepage" || editor.targetType === "home");
-  const targetLabel = $derived(
-    editor.targetType === "header"
-      ? "Header"
-      : editor.targetType === "footer"
-        ? "Footer"
-        : isHome
-          ? "Home Page"
-          : "Desain Kanvas"
-  );
-
-  const backHref = $derived(
-    editor.targetType === "header"
-      ? resolve("/(dashboard)/(authenticated)/dashboard/header")
-      : editor.targetType === "footer"
-        ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
-        : isHome
-          ? resolve("/(dashboard)/(authenticated)/dashboard/home")
-          : null
-  );
+  const supportsDraft = $derived(editor.targetType === "page" || editor.targetType === "article");
+  const isDraft = $derived(supportsDraft && editor.publishStatus === "draft");
+  const targetLabel = $derived(getEditorTargetLabel(editor.targetType));
+  const backRoute = $derived(editor.targetType ? getEditorBackRoute(editor.targetType) : null);
 
   const statusTitle = $derived(
     saving
       ? "Menyimpan ke Database..."
       : saveError
-        ? "Gagal Mempublikasikan"
-        : `${targetLabel} Berhasil Diterbitkan!`
+        ? "Gagal Menyimpan"
+        : !supportsDraft && editor.targetType
+          ? `${targetLabel} Berhasil Disimpan!`
+          : isDraft
+            ? `${targetLabel} Disimpan sebagai Draft!`
+            : `${targetLabel} Berhasil Diterbitkan!`
   );
   const statusDesc = $derived(
     saving
@@ -84,6 +73,7 @@
           type: editor.targetType,
           id: editor.targetId,
           title: editor.frame.name,
+          status: editor.publishStatus,
           contentJson,
           contentHtml
         })
@@ -169,9 +159,9 @@
       >
         Tutup
       </button>
-      {#if backHref}
+      {#if backRoute}
         <a
-          href={backHref}
+          href={resolve(backRoute)}
           class="flex items-center gap-1.5 rounded-lg bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
         >
           <Icon icon="lucide:arrow-left" class="h-3.5 w-3.5" />

@@ -25,6 +25,7 @@ class AuthStore {
         username: decoded.username || decoded.email.split("@")[0],
         email: decoded.email,
         name: decoded.name,
+        avatarUrl: decoded.avatarUrl || "",
         role: decoded.role,
         createdAt: decoded.iat * 1000
       };

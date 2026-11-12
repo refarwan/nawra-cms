@@ -1,0 +1,48 @@
+export const RESERVED_PAGE_SLUGS = new Set([
+  "login",
+  "masuk",
+  "register",
+  "daftar",
+  "logout",
+  "keluar",
+  "startup",
+  "dashboard",
+  "editor",
+  "api",
+  "auth",
+  "assets",
+  "static",
+  "_app",
+  "admin",
+  "home",
+  "header",
+  "footer",
+  "page",
+  "pages",
+  "halaman",
+  "blog",
+  "artikel",
+  "articles",
+  "category",
+  "categories",
+  "my-account",
+  "profil-saya",
+  "change-password",
+  "ubah-password",
+  "forgot-password",
+  "lupa-password",
+  "reset-password",
+  "verify-email",
+  "sitemap",
+  "sitemap.xml",
+  "robots",
+  "robots.txt",
+  "favicon",
+  "favicon.ico",
+  "health"
+]);
+
+export function isSlugReserved(slug: string): boolean {
+  const normalized = slug.trim().toLowerCase();
+  return RESERVED_PAGE_SLUGS.has(normalized);
+}

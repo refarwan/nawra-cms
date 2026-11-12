@@ -2,17 +2,6 @@
 
 @theme inline {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --color-theme-50: var(--color-theme-50, #eff6ff);
-  --color-theme-100: var(--color-theme-100, #dbeafe);
-  --color-theme-200: var(--color-theme-200, #bfdbfe);
-  --color-theme-300: var(--color-theme-300, #93c5fd);
-  --color-theme-400: var(--color-theme-400, #60a5fa);
-  --color-theme-500: var(--color-theme-500, #3b82f6);
-  --color-theme-600: var(--color-theme-600, #2563eb);
-  --color-theme-700: var(--color-theme-700, #1d4ed8);
-  --color-theme-800: var(--color-theme-800, #1e40af);
-  --color-theme-900: var(--color-theme-900, #1e3a8a);
-  --color-theme-950: var(--color-theme-950, #172554);
 }
 
 html {

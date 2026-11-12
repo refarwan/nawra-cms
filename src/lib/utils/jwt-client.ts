@@ -5,6 +5,7 @@ export interface DecodedJwtUser {
   username?: string;
   email: string;
   name: string;
+  avatarUrl?: string;
   role: "admin" | "editor";
   exp: number;
   iat: number;

@@ -11,6 +11,7 @@ export interface AuthUser {
   username: string;
   email: string;
   name: string;
+  avatarUrl?: string;
   role: "admin" | "editor";
   createdAt: number;
   updatedAt?: number;
@@ -31,6 +32,25 @@ declare global {
     exec(query: string): Promise<{ count: number; duration: number }>;
   }
 
+  interface R2ObjectBody {
+    key: string;
+    size: number;
+    etag: string;
+    httpMetadata?: { contentType?: string; cacheControl?: string };
+    body: ReadableStream<Uint8Array>;
+    arrayBuffer(): Promise<ArrayBuffer>;
+  }
+
+  interface R2Bucket {
+    get(key: string): Promise<R2ObjectBody | null>;
+    put(
+      key: string,
+      value: ReadableStream | ArrayBuffer | ArrayBufferView | string | Blob,
+      options?: { httpMetadata?: { contentType?: string; cacheControl?: string } }
+    ): Promise<{ key: string; size: number; etag: string }>;
+    delete(keys: string | string[]): Promise<void>;
+  }
+
   namespace App {
     // interface Error {}
     interface Locals {
@@ -43,6 +63,7 @@ declare global {
     interface Platform {
       env: {
         DB?: D1Database;
+        MEDIA_BUCKET?: R2Bucket;
         ASSETS?: Fetcher;
         JWT_SECRET?: string;
       };

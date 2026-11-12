@@ -4,16 +4,57 @@
 
   import { enhance } from "$app/forms";
 
+  import PasswordField from "#lib/components/PasswordField.svelte";
+
   import { pageTitleStore } from "../../../stores/page-title.svelte";
 
   import type { ActionData, PageProps } from "./$types";
 
-  let { form }: PageProps & { form?: ActionData } = $props();
+  let { data, form }: PageProps & { form?: ActionData } = $props();
 
   let submitting = $state(false);
-  let showOld = $state(false);
-  let showNew = $state(false);
-  let showConfirm = $state(false);
+  let hasSubmitted = $state(false);
+  let oldPassword = $state("");
+  let newPassword = $state("");
+  let confirmPassword = $state("");
+  let serverFieldErrors = $state<{
+    oldPassword?: string;
+    newPassword?: string;
+    confirmPassword?: string;
+  }>({});
+
+  $effect(() => {
+    const f = form as
+      | { fieldErrors?: { oldPassword?: string; newPassword?: string; confirmPassword?: string } }
+      | undefined;
+    serverFieldErrors = f?.fieldErrors ?? {};
+  });
+
+  const oldPasswordErrors = $derived.by(() => {
+    if (hasSubmitted && !oldPassword) return ["Kata sandi saat ini wajib diisi."];
+    return serverFieldErrors.oldPassword ? [serverFieldErrors.oldPassword] : [];
+  });
+
+  const newPasswordErrors = $derived.by(() => {
+    if (hasSubmitted) {
+      if (!newPassword) return ["Kata sandi baru wajib diisi."];
+      if (newPassword.length < 6) return ["Kata sandi baru minimal harus 6 karakter."];
+      if (oldPassword && newPassword === oldPassword) {
+        return ["Kata sandi baru tidak boleh sama dengan kata sandi saat ini."];
+      }
+    }
+    return serverFieldErrors.newPassword ? [serverFieldErrors.newPassword] : [];
+  });
+
+  const confirmPasswordErrors = $derived.by(() => {
+    if (hasSubmitted) {
+      if (!confirmPassword) return ["Konfirmasi kata sandi wajib diisi."];
+      if (newPassword && confirmPassword !== newPassword) {
+        return ["Konfirmasi kata sandi tidak cocok dengan kata sandi baru."];
+      }
+    }
+    return serverFieldErrors.confirmPassword ? [serverFieldErrors.confirmPassword] : [];
+  });
 
   onMount(() => {
     pageTitleStore.set("Ubah Kata Sandi");
@@ -25,7 +66,7 @@
 </script>
 
 <svelte:head>
-  <title>Ubah Kata Sandi · Nawra CMS</title>
+  <title>Ubah Kata Sandi · {data.siteSettings.siteTitle}</title>
 </svelte:head>
 
 <div class="mx-auto max-w-2xl space-y-6">
@@ -57,103 +98,74 @@
 
     <form
       method="POST"
-      use:enhance={() => {
+      novalidate
+      use:enhance={({ cancel }) => {
+        hasSubmitted = true;
+        if (
+          oldPasswordErrors.length > 0 ||
+          newPasswordErrors.length > 0 ||
+          confirmPasswordErrors.length > 0
+        ) {
+          cancel();
+          return;
+        }
         submitting = true;
-        return async ({ update }) => {
+        return async ({ result, update }) => {
           submitting = false;
+          if (result.type === "success") {
+            hasSubmitted = false;
+            oldPassword = "";
+            newPassword = "";
+            confirmPassword = "";
+          }
           await update();
         };
       }}
       class="space-y-4"
     >
-      <!-- Kata Sandi Saat Ini -->
-      <div>
-        <label for="oldPassword" class="mb-1.5 block text-xs font-semibold text-gray-700">
-          Kata Sandi Saat Ini <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <input
-            id="oldPassword"
-            name="oldPassword"
-            type={showOld ? "text" : "password"}
-            required
-            autocomplete="current-password"
-            placeholder="Masukkan kata sandi lama"
-            class="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 pr-10 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-          />
-          <button
-            type="button"
-            onclick={() => (showOld = !showOld)}
-            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <Icon icon={showOld ? "lucide:eye-off" : "lucide:eye"} class="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <PasswordField
+        id="oldPassword"
+        name="oldPassword"
+        label="Kata Sandi Saat Ini"
+        required
+        autocomplete="current-password"
+        placeholder="Masukkan kata sandi lama"
+        bind:value={oldPassword}
+        isError={oldPasswordErrors.length > 0}
+        supporting={oldPasswordErrors}
+      />
 
-      <!-- Kata Sandi Baru -->
-      <div>
-        <label for="newPassword" class="mb-1.5 block text-xs font-semibold text-gray-700">
-          Kata Sandi Baru <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <input
-            id="newPassword"
-            name="newPassword"
-            type={showNew ? "text" : "password"}
-            required
-            autocomplete="new-password"
-            placeholder="Minimal 6 karakter"
-            class="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 pr-10 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-          />
-          <button
-            type="button"
-            onclick={() => (showNew = !showNew)}
-            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <Icon icon={showNew ? "lucide:eye-off" : "lucide:eye"} class="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <PasswordField
+        id="newPassword"
+        name="newPassword"
+        label="Kata Sandi Baru"
+        required
+        autocomplete="new-password"
+        placeholder="Minimal 6 karakter"
+        bind:value={newPassword}
+        isError={newPasswordErrors.length > 0}
+        supporting={newPasswordErrors}
+      />
 
-      <!-- Konfirmasi Kata Sandi Baru -->
-      <div>
-        <label for="confirmPassword" class="mb-1.5 block text-xs font-semibold text-gray-700">
-          Konfirmasi Kata Sandi Baru <span class="text-red-500">*</span>
-        </label>
-        <div class="relative">
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            type={showConfirm ? "text" : "password"}
-            required
-            autocomplete="new-password"
-            placeholder="Ulangi kata sandi baru"
-            class="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 pr-10 text-xs text-gray-900 placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-          />
-          <button
-            type="button"
-            onclick={() => (showConfirm = !showConfirm)}
-            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-          >
-            <Icon icon={showConfirm ? "lucide:eye-off" : "lucide:eye"} class="h-4 w-4" />
-          </button>
-        </div>
-      </div>
+      <PasswordField
+        id="confirmPassword"
+        name="confirmPassword"
+        label="Konfirmasi Kata Sandi Baru"
+        required
+        autocomplete="new-password"
+        placeholder="Ulangi kata sandi baru"
+        bind:value={confirmPassword}
+        isError={confirmPasswordErrors.length > 0}
+        supporting={confirmPasswordErrors}
+      />
 
       <div class="flex justify-end pt-2">
         <button
           type="submit"
           disabled={submitting}
-          class="flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#0d99ff] px-5 text-xs font-semibold text-white transition hover:bg-[#008ae6] disabled:opacity-50"
+          class="cursor-pointer rounded-xl bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white hover:bg-[#008ae6] disabled:cursor-not-allowed disabled:opacity-50"
         >
-          {#if submitting}
-            <Icon icon="lucide:loader-2" class="h-4 w-4 animate-spin" />
-            <span>Menyimpan...</span>
-          {:else}
-            <Icon icon="lucide:check" class="h-4 w-4" />
-            <span>Simpan Kata Sandi</span>
-          {/if}
+          {submitting ? "Menyimpan..." : "Simpan"}
         </button>
       </div>
     </form>

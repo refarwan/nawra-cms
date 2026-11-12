@@ -1,15 +1,16 @@
-import { fail } from "@sveltejs/kit";
+import { fail, redirect } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { homepages } from "#db/schema";
 import { ensureTables } from "#lib/server/db";
-import { getDefaultHomeTemplate } from "#lib/server/default-home-template";
+import { getEmptySectionTemplate } from "#lib/server/empty-template";
 
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async ({ locals, platform }) => {
+  if (locals.user?.role !== "admin") throw redirect(303, "/dashboard");
   try {
     const db = getDb(platform?.env?.DB);
     await ensureTables(platform?.env?.DB);
@@ -31,12 +32,16 @@ export const load: PageServerLoad = async ({ platform }) => {
 
 export const actions: Actions = {
   create: async ({ request, platform }) => {
+    let id: string;
     try {
       const data = await request.formData();
       const title = String(data.get("title") || "").trim();
 
       if (!title) {
-        return fail(400, { error: "Judul home page wajib diisi." });
+        return fail(400, {
+          error: "Judul laman utama wajib diisi.",
+          fieldErrors: { title: "Judul laman utama wajib diisi." }
+        });
       }
 
       const db = getDb(platform?.env?.DB);
@@ -45,9 +50,9 @@ export const actions: Actions = {
       const firstHome = await db.query.homepages.findFirst();
       const isFirst = !firstHome;
 
-      const id = crypto.randomUUID();
+      id = crypto.randomUUID();
       const now = Date.now();
-      const template = getDefaultHomeTemplate();
+      const template = getEmptySectionTemplate("homepage", title);
 
       await db.insert(homepages).values({
         id,
@@ -58,13 +63,13 @@ export const actions: Actions = {
         createdAt: now,
         updatedAt: now
       });
-
-      return { success: true };
     } catch (err) {
       console.error("Create homepage error:", err);
       const message = err instanceof Error ? err.message : String(err);
-      return fail(500, { error: `Gagal membuat home page: ${message}` });
+      return fail(500, { error: `Gagal membuat laman utama: ${message}` });
     }
+
+    throw redirect(303, `/editor?type=homepage&id=${id}`);
   },
 
   edit: async ({ request, platform }) => {
@@ -74,7 +79,10 @@ export const actions: Actions = {
       const title = String(data.get("title") || "").trim();
 
       if (!id || !title) {
-        return fail(400, { error: "ID dan Judul home page wajib diisi." });
+        return fail(400, {
+          error: "ID dan Judul laman utama wajib diisi.",
+          fieldErrors: { title: !title ? "Judul laman utama wajib diisi." : undefined }
+        });
       }
 
       const db = getDb(platform?.env?.DB);
@@ -86,7 +94,7 @@ export const actions: Actions = {
     } catch (err) {
       console.error("Edit homepage error:", err);
       const message = err instanceof Error ? err.message : String(err);
-      return fail(500, { error: `Gagal mengubah home page: ${message}` });
+      return fail(500, { error: `Gagal mengubah laman utama: ${message}` });
     }
   },
 
@@ -107,7 +115,7 @@ export const actions: Actions = {
     } catch (err) {
       console.error("Activate homepage error:", err);
       const message = err instanceof Error ? err.message : String(err);
-      return fail(500, { error: `Gagal mengaktifkan home page: ${message}` });
+      return fail(500, { error: `Gagal mengaktifkan laman utama: ${message}` });
     }
   },
 
@@ -123,7 +131,7 @@ export const actions: Actions = {
 
       const target = await db.query.homepages.findFirst({ where: eq(homepages.id, id) });
       if (target?.isActive) {
-        return fail(400, { error: "Home page yang sedang aktif tidak dapat dihapus." });
+        return fail(400, { error: "Laman utama yang sedang aktif tidak dapat dihapus." });
       }
 
       await db.delete(homepages).where(eq(homepages.id, id));
@@ -131,7 +139,7 @@ export const actions: Actions = {
     } catch (err) {
       console.error("Delete homepage error:", err);
       const message = err instanceof Error ? err.message : String(err);
-      return fail(500, { error: `Gagal menghapus home page: ${message}` });
+      return fail(500, { error: `Gagal menghapus laman utama: ${message}` });
     }
   }
 };

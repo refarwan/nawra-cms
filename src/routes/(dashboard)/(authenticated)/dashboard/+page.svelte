@@ -3,19 +3,18 @@
 
   import { resolve } from "$app/paths";
 
-  import { pageTitleStore } from "../../stores/page-title.svelte";
+  import AdminDashboardSection from "./components/AdminDashboardSection.svelte";
+  import EditorDashboardSection from "./components/EditorDashboardSection.svelte";
 
-  import type { PageProps } from "./$types";
+  import type { PageData } from "./$types";
 
-  let { data }: PageProps = $props();
+  let { data }: { data: PageData } = $props();
 
-  $effect(() => {
-    pageTitleStore.set("Dashboard");
-  });
+  const isAdmin = $derived(data.user?.role === "admin");
 </script>
 
 <svelte:head>
-  <title>Ringkasan Dashboard · Nawra CMS</title>
+  <title>Ringkasan Dashboard · {data.siteSettings.siteTitle}</title>
 </svelte:head>
 
 <div class="mx-auto max-w-6xl space-y-6">
@@ -23,137 +22,69 @@
   <div class="rounded-2xl border border-gray-200/80 bg-white p-6 md:p-8">
     <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
       <div>
-        <h2 class="text-xl font-bold tracking-tight text-gray-900 md:text-2xl">
-          Halo, {data.user?.name}! 👋
-        </h2>
-        <p class="mt-1 text-sm text-gray-500">
-          Selamat datang di panel kontrol Nawra CMS. Kelola tata letak header, footer, dan konten
-          website Anda.
+        <div class="flex items-center gap-2.5">
+          <h2 class="text-xl font-bold tracking-tight text-gray-900 md:text-2xl">
+            Halo, {data.user?.name || data.user?.username}!
+          </h2>
+          <span
+            class="rounded-full px-2.5 py-0.5 text-xs font-semibold capitalize {isAdmin
+              ? 'bg-sky-50 text-sky-700'
+              : 'bg-emerald-50 text-emerald-700'}"
+          >
+            {data.user?.role}
+          </span>
+        </div>
+        <p class="mt-1.5 text-sm text-gray-500">
+          {#if isAdmin}
+            Selamat datang di panel kontrol {data.siteSettings.siteTitle}. Kelola artikel, halaman,
+            tata letak situs, akun editor, dan pengaturan website Anda.
+          {:else}
+            Selamat datang di panel kontrol {data.siteSettings.siteTitle}. Tulis dan kelola artikel,
+            kategori artikel, serta aset galeri gambar Anda.
+          {/if}
         </p>
       </div>
 
-      <div class="flex flex-wrap items-center gap-3">
+      <div class="flex flex-wrap gap-2.5">
         <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/home")}
-          class="flex items-center gap-2 rounded-xl bg-[#0d99ff] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#008ae6]"
+          href={resolve("/(dashboard)/(authenticated)/dashboard/article")}
+          class="inline-flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-700"
         >
-          <Icon icon="lucide:home" class="h-4 w-4" />
-          <span>Kelola Home Page</span>
+          <Icon icon="lucide:file-text" class="h-4 w-4" />
+          Kelola Artikel
         </a>
-        <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
-          class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
-        >
-          <Icon icon="lucide:panel-top" class="h-4 w-4" />
-          <span>Kelola Header</span>
-        </a>
-        <a
-          href={resolve("/(dashboard)/(authenticated)/dashboard/footer")}
-          class="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-50"
-        >
-          <Icon icon="lucide:panel-bottom" class="h-4 w-4" />
-          <span>Kelola Footer</span>
-        </a>
+
+        {#if isAdmin}
+          <a
+            href={resolve("/(dashboard)/(authenticated)/dashboard/page")}
+            class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            <Icon icon="lucide:file-code-2" class="h-4 w-4" />
+            Kelola Halaman
+          </a>
+          <a
+            href={resolve("/(dashboard)/(authenticated)/dashboard/site-setting")}
+            class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            <Icon icon="lucide:settings" class="h-4 w-4" />
+            Pengaturan
+          </a>
+        {:else}
+          <a
+            href={resolve("/(dashboard)/(authenticated)/dashboard/image-gallery")}
+            class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+          >
+            <Icon icon="lucide:image" class="h-4 w-4" />
+            Galeri Gambar
+          </a>
+        {/if}
       </div>
     </div>
   </div>
 
-  <!-- Stat Grid -->
-  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <!-- Header Count -->
-    <div class="rounded-2xl border border-gray-200/80 bg-white p-5">
-      <div class="flex items-center justify-between text-gray-500">
-        <span class="text-xs font-medium">Total Header</span>
-        <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-[#0d99ff]">
-          <Icon icon="lucide:panel-top" class="h-4 w-4" />
-        </div>
-      </div>
-      <div class="mt-3 text-2xl font-bold text-gray-900">{data.stats.totalHeaders}</div>
-      <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
-        class="mt-2 block text-xs font-medium text-[#0d99ff] hover:underline"
-      >
-        Lihat semua header &rarr;
-      </a>
-    </div>
-
-    <!-- Active Header -->
-    <div class="rounded-2xl border border-gray-200/80 bg-white p-5">
-      <div class="flex items-center justify-between text-gray-500">
-        <span class="text-xs font-medium">Header Aktif</span>
-        <div
-          class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
-        >
-          <Icon icon="lucide:check-circle" class="h-4 w-4" />
-        </div>
-      </div>
-      <div class="mt-3 truncate text-lg font-bold text-gray-900">
-        {data.stats.activeHeaderTitle}
-      </div>
-      <span class="mt-2 block text-xs text-gray-400">Ditampilkan di publik</span>
-    </div>
-
-    <!-- Footer Count -->
-    <div class="rounded-2xl border border-gray-200/80 bg-white p-5">
-      <div class="flex items-center justify-between text-gray-500">
-        <span class="text-xs font-medium">Total Footer</span>
-        <div
-          class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600"
-        >
-          <Icon icon="lucide:panel-bottom" class="h-4 w-4" />
-        </div>
-      </div>
-      <div class="mt-3 text-2xl font-bold text-gray-900">{data.stats.totalFooters}</div>
-      <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard/footer")}
-        class="mt-2 block text-xs font-medium text-purple-600 hover:underline"
-      >
-        Lihat semua footer &rarr;
-      </a>
-    </div>
-
-    <!-- Active Footer -->
-    <div class="rounded-2xl border border-gray-200/80 bg-white p-5">
-      <div class="flex items-center justify-between text-gray-500">
-        <span class="text-xs font-medium">Footer Aktif</span>
-        <div
-          class="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"
-        >
-          <Icon icon="lucide:check-circle" class="h-4 w-4" />
-        </div>
-      </div>
-      <div class="mt-3 truncate text-lg font-bold text-gray-900">
-        {data.stats.activeFooterTitle}
-      </div>
-      <span class="mt-2 block text-xs text-gray-400">Ditampilkan di publik</span>
-    </div>
-  </div>
-
-  <!-- Visual Editor Quick Launcher -->
-  <div class="rounded-2xl border border-gray-200/80 bg-white p-6 md:p-8">
-    <div class="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-      <div class="flex items-center gap-4">
-        <div
-          class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#0d99ff]/10 text-[#0d99ff]"
-        >
-          <Icon icon="lucide:layout-template" class="h-6 w-6" />
-        </div>
-        <div>
-          <h3 class="text-base font-bold text-gray-900">Visual Page Builder & Editor</h3>
-          <p class="text-xs text-gray-500">
-            Kanvas interaktif dengan tata letak Flexbox modern, tipografi, dan kontrol styling
-            langsung.
-          </p>
-        </div>
-      </div>
-
-      <a
-        href={resolve("/editor")}
-        class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0d99ff] px-5 py-2.5 text-xs font-semibold text-white transition hover:bg-[#008ae6]"
-      >
-        <span>Buka Visual Editor</span>
-        <Icon icon="lucide:arrow-up-right" class="h-4 w-4" />
-      </a>
-    </div>
-  </div>
+  {#if isAdmin && data.adminStats}
+    <AdminDashboardSection stats={data.adminStats} recentArticles={data.recentArticles} />
+  {:else if data.editorStats}
+    <EditorDashboardSection stats={data.editorStats} recentArticles={data.recentArticles} />
+  {/if}
 </div>

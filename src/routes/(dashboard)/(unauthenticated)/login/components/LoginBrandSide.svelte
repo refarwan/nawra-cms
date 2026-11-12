@@ -1,5 +1,13 @@
 <script lang="ts">
   import Icon from "@iconify/svelte";
+
+  let {
+    title = "Nawra CMS",
+    favicon = "/favicon.svg"
+  }: {
+    title?: string;
+    favicon?: string;
+  } = $props();
 </script>
 
 <aside
@@ -8,13 +16,13 @@
   <div class="relative z-10 flex h-full flex-col justify-between">
     <!-- Logo Top -->
     <div class="flex items-center gap-3">
-      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-[#0d99ff]">
-        <Icon icon="lucide:layout-template" class="h-6 w-6" />
+      <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1">
+        <img src={favicon} alt={title} class="h-full w-full rounded-lg object-contain" />
       </div>
-      <div>
-        <span class="text-xl font-extrabold tracking-tight">Nawra CMS</span>
+      <div class="flex items-center gap-2">
+        <span class="text-xl font-extrabold tracking-tight">{title}</span>
         <span
-          class="ml-2 rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
+          class="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
         >
           Edge D1
         </span>
@@ -31,42 +39,40 @@
           <div
             class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white"
           >
-            <Icon icon="lucide:heading" class="h-4 w-4" />
-          </div>
-          <span>
-            Buat beragam <strong class="font-bold text-white">Header & Footer</strong> dan pilih mana
-            yang aktif dengan 1 klik.
-          </span>
-        </li>
-        <li class="flex items-start gap-3.5 text-sm leading-relaxed text-white/90">
-          <div
-            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white"
-          >
             <Icon icon="lucide:sparkles" class="h-4 w-4" />
           </div>
           <span>
-            Visual drag & drop canvas dengan <strong class="font-bold text-white"
-              >Flexbox Auto Layout</strong
-            > mirip Figma.
+            <strong class="font-bold text-white">Visual Page Builder</strong> dengan kanvas drag & drop
+            dan Flexbox Auto Layout.
           </span>
         </li>
         <li class="flex items-start gap-3.5 text-sm leading-relaxed text-white/90">
           <div
             class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white"
           >
-            <Icon icon="lucide:zap" class="h-4 w-4" />
+            <Icon icon="lucide:file-text" class="h-4 w-4" />
           </div>
           <span>
-            Kinerja secepat kilat dengan <strong class="font-bold text-white"
-              >Cloudflare Edge SQLite (D1)</strong
-            >.
+            Kelola <strong class="font-bold text-white">Artikel, Kategori & Halaman</strong> dengan alur
+            publikasi draf dan terbit.
+          </span>
+        </li>
+        <li class="flex items-start gap-3.5 text-sm leading-relaxed text-white/90">
+          <div
+            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-white/20 text-white"
+          >
+            <Icon icon="lucide:layout-template" class="h-4 w-4" />
+          </div>
+          <span>
+            Atur <strong class="font-bold text-white">Laman Utama, Header & Footer</strong> serta galeri
+            media Cloudflare R2 secara terpusat.
           </span>
         </li>
       </ul>
     </div>
 
     <p class="border-t border-white/20 pt-4 text-xs text-white/80">
-      Nawra CMS Platform · Cloudflare Serverless Architecture
+      {title} · Cloudflare Serverless Architecture
     </p>
   </div>
 </aside>

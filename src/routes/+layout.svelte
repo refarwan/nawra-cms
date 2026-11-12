@@ -10,7 +10,7 @@
   import "@fontsource/poppins/800.css";
   import "@fontsource/poppins/900.css";
 
-  import favicon from "#lib/assets/favicon.svg";
+  import PopupContainer from "#lib/components/PopupContainer.svelte";
   import TopLoader from "#lib/components/TopLoader.svelte";
   import { authStore } from "#lib/stores/auth.svelte";
 
@@ -30,8 +30,9 @@
 </script>
 
 <svelte:head>
-  <link rel="icon" href={favicon} />
+  <link rel="icon" href={data.siteSettings.siteFavicon || "/favicon.svg"} />
 </svelte:head>
 
 <TopLoader />
 {@render children()}
+<PopupContainer />

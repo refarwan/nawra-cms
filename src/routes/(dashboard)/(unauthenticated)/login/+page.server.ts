@@ -28,7 +28,11 @@ export const actions: Actions = {
     if (!identifier || !password) {
       return fail(400, {
         error: "Username / email dan kata sandi wajib diisi.",
-        identifier
+        identifier,
+        fieldErrors: {
+          identifier: !identifier ? "Username atau Email wajib diisi" : undefined,
+          password: !password ? "Kata sandi wajib diisi" : undefined
+        }
       });
     }
 

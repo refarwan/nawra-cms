@@ -3,6 +3,10 @@
 
   import { applyAction, enhance } from "$app/forms";
   import { resolve } from "$app/paths";
+  import { page } from "$app/state";
+
+  import PasswordField from "#lib/components/PasswordField.svelte";
+  import Textfield from "#lib/components/Textfield.svelte";
 
   import LoginBrandSide from "./components/LoginBrandSide.svelte";
 
@@ -11,29 +15,73 @@
     form
   }: {
     data: { isCloudflare?: boolean; isD1Connected?: boolean };
-    form?: { error?: string; identifier?: string; username?: string; email?: string };
+    form?: {
+      error?: string;
+      identifier?: string;
+      username?: string;
+      email?: string;
+      fieldErrors?: { identifier?: string; password?: string };
+    };
   } = $props();
 
+  let identifier = $state("");
+  let password = $state("");
+  let hasSubmitted = $state(false);
   let loading = $state(false);
-  let showPassword = $state(false);
+
+  const siteTitle = $derived(page.data.siteSettings?.siteTitle || "Nawra CMS");
+  const faviconUrl = $derived(page.data.siteSettings?.faviconUrl || "/favicon.svg");
+
+  $effect(() => {
+    const serverIdentifier = form?.identifier || form?.username || form?.email;
+    if (serverIdentifier && !identifier) {
+      identifier = serverIdentifier;
+    }
+  });
+
+  const identifierErrors = $derived.by(() => {
+    const errors: string[] = [];
+    if (hasSubmitted && !identifier.trim()) {
+      errors.push("Username atau Email wajib diisi");
+    } else if (!hasSubmitted && form?.fieldErrors?.identifier) {
+      errors.push(form.fieldErrors.identifier);
+    }
+    return errors;
+  });
+
+  const passwordErrors = $derived.by(() => {
+    const errors: string[] = [];
+    if (hasSubmitted && !password) {
+      errors.push("Kata sandi wajib diisi");
+    } else if (!hasSubmitted && form?.fieldErrors?.password) {
+      errors.push(form.fieldErrors.password);
+    }
+    return errors;
+  });
 </script>
 
 <svelte:head>
-  <title>Masuk · Nawra CMS</title>
+  <title>Masuk · {siteTitle}</title>
 </svelte:head>
 
 <div class="flex min-h-screen bg-gray-50/80 font-sans">
-  <LoginBrandSide />
+  <LoginBrandSide title={siteTitle} favicon={faviconUrl} />
 
   <!-- Login Form Side (right column) -->
   <main
     class="flex min-h-screen w-full items-center justify-center p-6 sm:p-10 lg:w-1/2 xl:w-[48%]"
   >
     <div class="w-full max-w-md rounded-2xl border border-gray-200/80 bg-white p-8 sm:p-10">
+      <!-- Mobile Brand Header -->
+      <div class="mb-6 flex items-center gap-2.5 lg:hidden">
+        <img src={faviconUrl} alt={siteTitle} class="h-8 w-8 shrink-0 rounded-lg object-contain" />
+        <span class="truncate text-base font-bold tracking-tight text-gray-900">{siteTitle}</span>
+      </div>
+
       <div class="mb-6">
         <h1 class="text-2xl font-extrabold tracking-tight text-gray-900">Selamat datang kembali</h1>
         <p class="mt-1 text-sm text-gray-500">
-          Masuk ke dashboard admin <strong class="font-semibold text-gray-700">Nawra CMS</strong>
+          Masuk ke panel kontrol <strong class="font-semibold text-gray-700">{siteTitle}</strong>
         </p>
       </div>
 
@@ -61,7 +109,14 @@
       <form
         method="POST"
         action="?/login"
-        use:enhance={() => {
+        novalidate
+        use:enhance={({ cancel }) => {
+          hasSubmitted = true;
+          if (identifierErrors.length > 0 || passwordErrors.length > 0) {
+            cancel();
+            return;
+          }
+
           loading = true;
           return async ({ result }) => {
             loading = false;
@@ -70,47 +125,30 @@
         }}
         class="space-y-4"
       >
-        <!-- Username / Email -->
-        <div>
-          <label for="username" class="mb-1.5 block text-xs font-semibold text-gray-700">
-            Username atau Email <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="username"
-            name="username"
-            type="text"
-            required
-            autocomplete="username"
-            value={form?.identifier || form?.username || form?.email || ""}
-            placeholder="admin atau nama@email.com"
-            class="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-          />
-        </div>
+        <Textfield
+          id="username"
+          name="username"
+          type="text"
+          label="Username atau Email"
+          bind:value={identifier}
+          placeholder="Masukkan username atau email"
+          autocomplete="username"
+          required
+          isError={identifierErrors.length > 0}
+          supporting={identifierErrors}
+        />
 
-        <!-- Password -->
-        <div>
-          <label for="password" class="mb-1.5 block text-xs font-semibold text-gray-700">
-            Kata Sandi <span class="text-red-500">*</span>
-          </label>
-          <div class="relative">
-            <input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              required
-              placeholder="••••••••"
-              class="h-11 w-full rounded-xl border border-gray-200 bg-white px-3.5 pr-10 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
-            />
-            <button
-              type="button"
-              onclick={() => (showPassword = !showPassword)}
-              class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              title={showPassword ? "Sembunyikan" : "Tampilkan"}
-            >
-              <Icon icon={showPassword ? "lucide:eye-off" : "lucide:eye"} class="h-4 w-4" />
-            </button>
-          </div>
-        </div>
+        <PasswordField
+          id="password"
+          name="password"
+          label="Kata Sandi"
+          bind:value={password}
+          placeholder="Masukkan kata sandi"
+          autocomplete="current-password"
+          required
+          isError={passwordErrors.length > 0}
+          supporting={passwordErrors}
+        />
 
         <button
           type="submit"

@@ -47,7 +47,7 @@
 </script>
 
 <svelte:head>
-  <title>Kelola Header · Dashboard</title>
+  <title>Kelola Header · {data.siteSettings.siteTitle}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">

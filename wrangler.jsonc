@@ -13,5 +13,11 @@
       "binding": "DB",
       "database_name": "nawra-cms-db"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA_BUCKET",
+      "bucket_name": "nawra-cms-media"
+    }
   ]
 }

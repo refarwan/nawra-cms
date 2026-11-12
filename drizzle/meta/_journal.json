@@ -8,6 +8,27 @@
       "when": 1794371356177,
       "tag": "0000_abandoned_purifiers",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794480894406,
+      "tag": "0001_worthless_beast",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794481398885,
+      "tag": "0002_premium_genesis",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794481610405,
+      "tag": "0003_free_millenium_guard",
+      "breakpoints": true
     }
   ]
 }

@@ -11,7 +11,17 @@
 </script>
 
 <svelte:head>
-  <title>Nawra CMS — Visual No-Code Canvas Studio</title>
+  <title>
+    {data.siteSettings.siteTagline
+      ? `${data.siteSettings.siteTitle} · ${data.siteSettings.siteTagline}`
+      : data.siteSettings.siteTitle}
+  </title>
+  {#if data.siteSettings.siteDescription || data.siteSettings.siteTagline}
+    <meta
+      name="description"
+      content={data.siteSettings.siteDescription || data.siteSettings.siteTagline}
+    />
+  {/if}
 </svelte:head>
 
 <div

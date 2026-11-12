@@ -5,7 +5,7 @@ export const navGroups: NavGroup[] = [
     label: "Utama",
     items: [
       {
-        label: "Dashboard",
+        label: "Dasbor",
         href: "/dashboard",
         routeId: "/(dashboard)/(authenticated)/dashboard",
         icon: "lucide:layout-dashboard",
@@ -14,31 +14,92 @@ export const navGroups: NavGroup[] = [
     ]
   },
   {
-    label: "CMS Builder",
+    label: "Konten",
     items: [
       {
-        label: "Kelola Home Page",
+        label: "Artikel",
+        href: "/dashboard/article",
+        routeId: "/(dashboard)/(authenticated)/dashboard/article",
+        icon: "lucide:newspaper",
+        subItems: [
+          {
+            label: "Daftar Artikel",
+            href: "/dashboard/article",
+            routeId: "/(dashboard)/(authenticated)/dashboard/article",
+            exact: true
+          },
+          {
+            label: "Kategori Artikel",
+            href: "/dashboard/article-category",
+            routeId: "/(dashboard)/(authenticated)/dashboard/article-category"
+          }
+        ]
+      },
+      {
+        label: "Halaman",
+        href: "/dashboard/page",
+        routeId: "/(dashboard)/(authenticated)/dashboard/page",
+        icon: "lucide:file-text",
+        roles: ["admin"]
+      },
+      {
+        label: "Galeri Gambar",
+        href: "/dashboard/image-gallery",
+        routeId: "/(dashboard)/(authenticated)/dashboard/image-gallery",
+        icon: "lucide:images"
+      }
+    ]
+  },
+  {
+    label: "Tema",
+    roles: ["admin"],
+    items: [
+      {
+        label: "Laman Utama",
         href: "/dashboard/home",
         routeId: "/(dashboard)/(authenticated)/dashboard/home",
-        icon: "lucide:home"
+        icon: "lucide:home",
+        roles: ["admin"]
       },
       {
-        label: "Kelola Header",
+        label: "Header",
         href: "/dashboard/header",
         routeId: "/(dashboard)/(authenticated)/dashboard/header",
-        icon: "lucide:panel-top"
+        icon: "lucide:panel-top",
+        roles: ["admin"]
       },
       {
-        label: "Kelola Footer",
+        label: "Footer",
         href: "/dashboard/footer",
         routeId: "/(dashboard)/(authenticated)/dashboard/footer",
-        icon: "lucide:panel-bottom"
-      },
+        icon: "lucide:panel-bottom",
+        roles: ["admin"]
+      }
+    ]
+  },
+  {
+    label: "Pengguna",
+    roles: ["admin"],
+    items: [
       {
-        label: "Visual Page Editor",
-        href: "/editor",
-        routeId: "/editor",
-        icon: "lucide:layout-template"
+        label: "Daftar Editor",
+        href: "/dashboard/editor",
+        routeId: "/(dashboard)/(authenticated)/dashboard/editor",
+        icon: "lucide:users",
+        roles: ["admin"]
+      }
+    ]
+  },
+  {
+    label: "Pengaturan",
+    roles: ["admin"],
+    items: [
+      {
+        label: "Pengaturan Situs",
+        href: "/dashboard/site-setting",
+        routeId: "/(dashboard)/(authenticated)/dashboard/site-setting",
+        icon: "lucide:settings",
+        roles: ["admin"]
       }
     ]
   }

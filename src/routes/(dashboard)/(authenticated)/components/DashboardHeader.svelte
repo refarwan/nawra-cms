@@ -7,24 +7,7 @@
 
   let { showSidebarToggle = true }: { showSidebarToggle?: boolean } = $props();
 
-  let isNotificationOpen = $state(false);
-  let notificationRef: HTMLDivElement | undefined = $state();
-
   const title = $derived(pageTitleStore.title ?? "Dashboard");
-
-  $effect(() => {
-    if (!isNotificationOpen) return;
-
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node;
-      if (notificationRef && !notificationRef.contains(target)) {
-        isNotificationOpen = false;
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  });
 </script>
 
 <header
@@ -50,37 +33,6 @@
   </div>
 
   <div class="flex shrink-0 items-center gap-2 md:gap-3">
-    <!-- Notification -->
-    <div bind:this={notificationRef} class="relative flex items-center">
-      <button
-        type="button"
-        onclick={() => {
-          isNotificationOpen = !isNotificationOpen;
-        }}
-        aria-label="Notifikasi"
-        aria-expanded={isNotificationOpen}
-        class="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 {isNotificationOpen
-          ? 'bg-gray-100 text-gray-700'
-          : ''}"
-      >
-        <Icon icon="lucide:bell" class="h-5 w-5" />
-      </button>
-
-      {#if isNotificationOpen}
-        <div
-          class="absolute top-full right-0 z-50 mt-2 flex w-64 flex-col rounded-xl border border-gray-200 bg-white p-4 sm:w-72"
-        >
-          <div class="flex items-center justify-between border-b border-gray-100 pb-2.5">
-            <h3 class="text-xs font-bold text-gray-900">Notifikasi</h3>
-          </div>
-          <div class="flex flex-col items-center justify-center py-6 text-center text-gray-500">
-            <Icon icon="lucide:bell-off" class="mb-2 h-7 w-7 text-gray-300" />
-            <p class="text-xs text-gray-500">Tidak ada notifikasi baru</p>
-          </div>
-        </div>
-      {/if}
-    </div>
-
     <!-- User Menu -->
     <DashboardUserMenu />
   </div>

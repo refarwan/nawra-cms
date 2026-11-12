@@ -41,6 +41,7 @@ export class EditorState {
   historyIndex = $state<number>(-1);
   targetType = $state<EditorTargetType | null>(null);
   targetId = $state<string | null>(null);
+  publishStatus = $state<"published" | "draft">("published");
   isSaving = $state<boolean>(false);
 
   selectedElement = $derived<CanvasElement | null>(
@@ -172,28 +173,27 @@ export class EditorState {
   loadFromJson(jsonString: string, title?: string, type?: EditorTargetType, id?: string) {
     if (type) this.targetType = type;
     if (id) this.targetId = id;
-    if (title) this.frame.name = title;
     const res = parseLoadedEditorJson(jsonString, this.frame, this.targetType);
     if (res) {
       this.frame = res.frame;
+      if (title) this.frame.name = title;
       if (res.elements) this.elements = res.elements;
       this.history = [JSON.parse(JSON.stringify(this.elements))];
       this.historyIndex = 0;
+    } else if (title) {
+      this.frame.name = title;
     }
   }
 
-  publish() {
+  publish(status: "published" | "draft" = "published") {
+    this.publishStatus = status;
     this.isPublishModalOpen = true;
     this.lastPublishedAt = new SvelteDate().toLocaleTimeString("id-ID", {
       hour: "2-digit",
       minute: "2-digit"
     });
   }
-
   zoomIn = () => (this.zoom = Math.min(2.5, +(this.zoom + 0.1).toFixed(2)));
   zoomOut = () => (this.zoom = Math.max(0.3, +(this.zoom - 0.1).toFixed(2)));
-  resetZoom() {
-    this.zoom = 1;
-    this.pan = { x: 0, y: 0 };
-  }
+  resetZoom = () => ((this.zoom = 1), (this.pan = { x: 0, y: 0 }));
 }

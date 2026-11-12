@@ -9,7 +9,7 @@
     <div class="flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
       <div>
         <div class="flex items-center gap-2.5">
-          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#2563eb] text-white">
+          <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-[#0d99ff] text-white">
             <Icon icon="lucide:sparkles" class="h-4 w-4" />
           </div>
           <span class="text-lg font-bold tracking-tight text-white">Nawra CMS</span>

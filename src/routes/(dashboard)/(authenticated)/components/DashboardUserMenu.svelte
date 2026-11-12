@@ -54,16 +54,24 @@
     aria-label="Menu pengguna"
     aria-expanded={isOpen}
   >
-    <div
-      class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-[#0d99ff] select-none"
-    >
-      {(
-        authStore.user?.name?.[0] ||
-        authStore.user?.username?.[0] ||
-        authStore.user?.email?.[0] ||
-        "U"
-      ).toUpperCase()}
-    </div>
+    {#if authStore.user?.avatarUrl}
+      <img
+        src={authStore.user.avatarUrl}
+        alt={authStore.user?.name || authStore.user?.username || "Avatar"}
+        class="h-9 w-9 rounded-full border border-gray-200 object-cover select-none"
+      />
+    {:else}
+      <div
+        class="flex h-9 w-9 items-center justify-center rounded-full bg-sky-100 text-xs font-bold text-sky-600 select-none"
+      >
+        {(
+          authStore.user?.name?.[0] ||
+          authStore.user?.username?.[0] ||
+          authStore.user?.email?.[0] ||
+          "U"
+        ).toUpperCase()}
+      </div>
+    {/if}
 
     <div class="hidden text-left md:block">
       <span class="block text-sm leading-tight font-semibold text-gray-900">
@@ -73,8 +81,6 @@
         {authStore.user?.role || "Editor"}
       </span>
     </div>
-
-    <Icon icon="lucide:chevron-down" class="hidden h-4 w-4 text-gray-400 md:block" />
   </button>
 
   {#if isOpen}

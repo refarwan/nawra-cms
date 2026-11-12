@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>Nawra CMS</title>
+  <rect width="64" height="64" rx="14" fill="#0ea5e9" />
+  <path d="M18 48V16h7.2l13.8 20.8V16H46v32h-7.2L25 27.2V48H18z" fill="#ffffff" />
+</svg>

@@ -15,4 +15,5 @@
   cfCountry={data.cfCountry}
   targetItem={data.targetItem}
   targetType={data.targetType}
+  previewContext={data.previewContext}
 />

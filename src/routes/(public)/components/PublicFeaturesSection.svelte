@@ -62,7 +62,7 @@
 <section id="fitur" class="bg-white py-16 sm:py-24">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-2xl text-center">
-      <span class="text-xs font-bold tracking-widest text-[#2563eb] uppercase">Fitur Studio</span>
+      <span class="text-xs font-bold tracking-widest text-[#0d99ff] uppercase">Fitur Studio</span>
       <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
         Satu Studio untuk Seluruh Kebutuhan Website
       </h2>
@@ -75,10 +75,10 @@
     <div class="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
       {#each features as feat (feat.title)}
         <div
-          class="rounded-2xl border border-gray-200 bg-white p-7 transition-colors hover:border-blue-300"
+          class="rounded-2xl border border-gray-200 bg-white p-7 transition-colors hover:border-sky-300"
         >
           <div
-            class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-[#2563eb]"
+            class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-[#0d99ff]"
           >
             <Icon icon={feat.icon} class="h-6 w-6" />
           </div>
@@ -94,7 +94,7 @@
 <section id="cara-kerja" class="border-y border-gray-200 bg-gray-50 py-16 sm:py-24">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
     <div class="mx-auto max-w-2xl text-center">
-      <span class="text-xs font-bold tracking-widest text-[#2563eb] uppercase">Alur Kerja</span>
+      <span class="text-xs font-bold tracking-widest text-[#0d99ff] uppercase">Alur Kerja</span>
       <h2 class="mt-2 text-3xl font-extrabold tracking-tight text-gray-900 sm:text-4xl">
         Cara Membangun Halaman di Nawra CMS
       </h2>
@@ -107,24 +107,24 @@
       {#each steps as item (item.title)}
         <div
           class="relative flex flex-col rounded-2xl bg-white p-7 transition-colors {item.popular
-            ? 'border-2 border-[#2563eb]'
+            ? 'border-2 border-[#0d99ff]'
             : 'border border-gray-200 hover:border-gray-300'}"
         >
           {#if item.popular}
             <span
-              class="absolute -top-3.5 left-7 rounded-full bg-[#2563eb] px-3.5 py-1 text-xs font-bold tracking-wide text-white uppercase"
+              class="absolute -top-3.5 left-7 rounded-full bg-[#0d99ff] px-3.5 py-1 text-xs font-bold tracking-wide text-white uppercase"
             >
               Paling Fleksibel
             </span>
           {/if}
-          <span class="text-xs font-bold tracking-wider text-[#2563eb] uppercase">{item.step}</span>
+          <span class="text-xs font-bold tracking-wider text-[#0d99ff] uppercase">{item.step}</span>
           <h3 class="mt-2 text-xl font-bold text-gray-900">{item.title}</h3>
           <p class="mt-3 flex-1 text-sm leading-relaxed text-gray-600">{item.desc}</p>
           <div class="mt-8 border-t border-gray-100 pt-5">
             <a
               href={resolve("/editor")}
               class="inline-flex w-full items-center justify-center rounded-xl py-3 text-sm font-semibold transition-colors {item.popular
-                ? 'bg-[#2563eb] text-white hover:bg-[#1d4ed8]'
+                ? 'bg-[#0d99ff] text-white hover:bg-[#008ae6]'
                 : 'border border-gray-200 bg-white text-gray-800 hover:bg-gray-50'}"
             >
               Coba di Editor →

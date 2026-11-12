@@ -23,7 +23,7 @@
   let { items, search = "", onEdit }: Props = $props();
 
   const columns: TableHeaderColumn[] = [
-    { label: "Home Page" },
+    { label: "Judul" },
     { label: "Tanggal", align: "center" },
     { label: "Aksi", align: "center" }
   ];
@@ -36,7 +36,9 @@
     >
       <Icon icon="lucide:inbox" class="h-8 w-8 text-gray-300" />
       <span class="mt-2">
-        {search ? "Tidak ada home page yang cocok dengan pencarian." : "Belum ada data home page."}
+        {search
+          ? "Tidak ada laman utama yang cocok dengan pencarian."
+          : "Belum ada data laman utama."}
       </span>
     </div>
   {:else}

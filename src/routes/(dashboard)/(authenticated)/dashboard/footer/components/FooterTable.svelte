@@ -23,7 +23,7 @@
   let { items, search = "", onEdit }: Props = $props();
 
   const columns: TableHeaderColumn[] = [
-    { label: "Footer" },
+    { label: "Judul" },
     { label: "Tanggal", align: "center" },
     { label: "Aksi", align: "center" }
   ];

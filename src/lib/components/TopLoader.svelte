@@ -68,10 +68,10 @@
     style="transition: opacity 250ms ease;"
   >
     <div
-      class="h-full bg-theme-600 transition-all duration-200 ease-out"
+      class="h-full bg-sky-600 transition-all duration-200 ease-out"
       style:width="{progress}%"
       style:box-shadow={showGlow
-        ? "0 0 10px var(--color-theme-600, #2563eb), 0 0 5px var(--color-theme-600, #2563eb)"
+        ? "0 0 10px var(--color-sky-600, #0284c7), 0 0 5px var(--color-sky-600, #0284c7)"
         : "none"}
     ></div>
   </div>

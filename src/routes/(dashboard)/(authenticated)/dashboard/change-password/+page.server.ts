@@ -25,23 +25,29 @@ export const actions: Actions = {
     const confirmPassword = String(data.get("confirmPassword") || "");
 
     if (!oldPassword || !newPassword || !confirmPassword) {
-      return fail(400, { error: "Semua kolom kata sandi wajib diisi." });
+      return fail(400, {
+        error: "Semua kolom kata sandi wajib diisi.",
+        fieldErrors: {
+          oldPassword: !oldPassword ? "Kata sandi saat ini wajib diisi." : undefined,
+          newPassword: !newPassword ? "Kata sandi baru wajib diisi." : undefined,
+          confirmPassword: !confirmPassword ? "Konfirmasi kata sandi wajib diisi." : undefined
+        }
+      });
     }
 
     if (newPassword.length < 6) {
-      return fail(400, { error: "Kata sandi baru minimal harus 6 karakter." });
+      const msg = "Kata sandi baru minimal harus 6 karakter.";
+      return fail(400, { error: msg, fieldErrors: { newPassword: msg } });
     }
 
     if (newPassword !== confirmPassword) {
-      return fail(400, {
-        error: "Konfirmasi kata sandi tidak cocok dengan kata sandi baru."
-      });
+      const msg = "Konfirmasi kata sandi tidak cocok dengan kata sandi baru.";
+      return fail(400, { error: msg, fieldErrors: { confirmPassword: msg } });
     }
 
     if (newPassword === oldPassword) {
-      return fail(400, {
-        error: "Kata sandi baru tidak boleh sama dengan kata sandi saat ini."
-      });
+      const msg = "Kata sandi baru tidak boleh sama dengan kata sandi saat ini.";
+      return fail(400, { error: msg, fieldErrors: { newPassword: msg } });
     }
 
     try {
@@ -56,7 +62,8 @@ export const actions: Actions = {
 
       const isOldValid = await verifyPassword(oldPassword, userRow.password);
       if (!isOldValid) {
-        return fail(400, { error: "Kata sandi saat ini salah." });
+        const msg = "Kata sandi saat ini salah.";
+        return fail(400, { error: msg, fieldErrors: { oldPassword: msg } });
       }
 
       const newPasswordHash = await hashPassword(newPassword);

@@ -54,10 +54,11 @@ export async function registerDefaultHeaderAndFooter(client: D1Executor): Promis
   } else {
     await client
       .prepare(
-        `UPDATE headers SET content_json = ?, content_html = ?, updated_at = ?
-         WHERE title = 'Header Utama' AND (content_json NOT LIKE '%header-brand%' OR content_json LIKE '%/dashboard%')`
+        `UPDATE headers SET title = ?, content_json = ?, content_html = ?, updated_at = ?
+         WHERE title IN ('Header Utama', 'Nawra Header')
+           AND (content_json NOT LIKE '%header-brand%' OR content_json LIKE '%#2563eb%' OR content_json LIKE '%/dashboard%')`
       )
-      .bind(headerTpl.contentJson, headerTpl.contentHtml, now)
+      .bind(headerTpl.title, headerTpl.contentJson, headerTpl.contentHtml, now)
       .run();
   }
 
@@ -82,10 +83,11 @@ export async function registerDefaultHeaderAndFooter(client: D1Executor): Promis
   } else {
     await client
       .prepare(
-        `UPDATE footers SET content_json = ?, content_html = ?, updated_at = ?
-         WHERE title = 'Footer Utama' AND (content_json NOT LIKE '%footer-brand%' OR content_json LIKE '%/dashboard%')`
+        `UPDATE footers SET title = ?, content_json = ?, content_html = ?, updated_at = ?
+         WHERE title IN ('Footer Utama', 'Nawra Footer')
+           AND (content_json NOT LIKE '%footer-brand%' OR content_json LIKE '%#2563eb%' OR content_json LIKE '%/dashboard%')`
       )
-      .bind(footerTpl.contentJson, footerTpl.contentHtml, now)
+      .bind(footerTpl.title, footerTpl.contentJson, footerTpl.contentHtml, now)
       .run();
   }
 
@@ -103,10 +105,11 @@ export async function registerDefaultHeaderAndFooter(client: D1Executor): Promis
   } else {
     await client
       .prepare(
-        `UPDATE homepages SET content_json = ?, content_html = ?, updated_at = ?
-         WHERE title = 'Beranda Utama' AND (content_json NOT LIKE '%hero-editor-image%' OR content_json LIKE '%/dashboard%')`
+        `UPDATE homepages SET title = ?, content_json = ?, content_html = ?, updated_at = ?
+         WHERE title IN ('Beranda Utama', 'Nawra Laman Utama')
+           AND (content_json NOT LIKE '%hero-section%' OR content_json LIKE '%hero-editor-image%' OR content_json LIKE '%#2563eb%' OR content_json LIKE '%/dashboard%')`
       )
-      .bind(homeTpl.contentJson, homeTpl.contentHtml, now)
+      .bind(homeTpl.title, homeTpl.contentJson, homeTpl.contentHtml, now)
       .run();
   }
 }
@@ -115,7 +118,7 @@ export async function registerDefaultSettings(client: D1Executor): Promise<void>
   const now = Date.now();
   const defaults: Array<[string, string]> = [
     ["jwt_secret", generateRandomSecret()],
-    ["site_title", "Nawra CMS — Visual No-Code Canvas Studio"],
+    ["site_title", "Nawra CMS"],
     [
       "site_description",
       "Sistem Manajemen Konten (CMS) Visual Modern tanpa koding di Cloudflare Edge."

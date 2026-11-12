@@ -1,15 +1,16 @@
-import { fail } from "@sveltejs/kit";
+import { fail, redirect } from "@sveltejs/kit";
 import { desc, eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { headers } from "#db/schema";
 import { ensureTables } from "#lib/server/db";
-import { getDefaultHeaderTemplate } from "#lib/server/default-templates";
+import { getEmptySectionTemplate } from "#lib/server/empty-template";
 
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async ({ locals, platform }) => {
+  if (locals.user?.role !== "admin") throw redirect(303, "/dashboard");
   try {
     const db = getDb(platform?.env?.DB);
     await ensureTables(platform?.env?.DB);
@@ -31,12 +32,16 @@ export const load: PageServerLoad = async ({ platform }) => {
 
 export const actions: Actions = {
   create: async ({ request, platform }) => {
+    let id: string;
     try {
       const data = await request.formData();
       const title = String(data.get("title") || "").trim();
 
       if (!title) {
-        return fail(400, { error: "Judul header wajib diisi." });
+        return fail(400, {
+          error: "Judul header wajib diisi.",
+          fieldErrors: { title: "Judul header wajib diisi." }
+        });
       }
 
       const db = getDb(platform?.env?.DB);
@@ -45,9 +50,9 @@ export const actions: Actions = {
       const firstHeader = await db.query.headers.findFirst();
       const isFirst = !firstHeader;
 
-      const id = crypto.randomUUID();
+      id = crypto.randomUUID();
       const now = Date.now();
-      const template = getDefaultHeaderTemplate();
+      const template = getEmptySectionTemplate("header", title);
       const contentJson = template.contentJson;
       const contentHtml = template.contentHtml;
       const isActive = isFirst ? 1 : 0;
@@ -61,13 +66,13 @@ export const actions: Actions = {
         createdAt: now,
         updatedAt: now
       });
-
-      return { success: true };
     } catch (err) {
       console.error("Create header error:", err);
       const message = err instanceof Error ? err.message : String(err);
       return fail(500, { error: `Gagal membuat header: ${message}` });
     }
+
+    throw redirect(303, `/editor?type=header&id=${id}`);
   },
 
   edit: async ({ request, platform }) => {
@@ -77,7 +82,10 @@ export const actions: Actions = {
       const title = String(data.get("title") || "").trim();
 
       if (!id || !title) {
-        return fail(400, { error: "ID dan Judul header wajib diisi." });
+        return fail(400, {
+          error: "ID dan Judul header wajib diisi.",
+          fieldErrors: { title: !title ? "Judul header wajib diisi." : undefined }
+        });
       }
 
       const db = getDb(platform?.env?.DB);

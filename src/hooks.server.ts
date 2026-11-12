@@ -52,6 +52,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         username: payload.username || payload.email.split("@")[0],
         email: payload.email,
         name: payload.name,
+        avatarUrl: payload.avatarUrl || "",
         role: payload.role,
         createdAt: payload.iat * 1000
       };

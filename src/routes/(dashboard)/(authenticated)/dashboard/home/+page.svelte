@@ -14,7 +14,7 @@
   let { data, form }: PageProps & { form?: ActionData } = $props();
 
   onMount(() => {
-    pageTitleStore.set("Kelola Home Page");
+    pageTitleStore.set("Kelola Laman Utama");
   });
 
   onDestroy(() => {
@@ -47,7 +47,7 @@
 </script>
 
 <svelte:head>
-  <title>Kelola Home Page · Dashboard</title>
+  <title>Kelola Laman Utama · {data.siteSettings.siteTitle}</title>
 </svelte:head>
 
 <div class="flex flex-col gap-4">

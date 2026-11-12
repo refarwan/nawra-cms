@@ -1,4 +1,7 @@
 <script lang="ts">
+  import Icon from "@iconify/svelte";
+
+  import { enhance } from "$app/forms";
   import { resolve } from "$app/paths";
 
   import HeaderRowActions from "./HeaderRowActions.svelte";
@@ -28,7 +31,7 @@
 </script>
 
 <div
-  class="flex flex-col gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3.5 transition-all duration-300 hover:bg-gray-50/60 lg:grid lg:grid-cols-[1fr_160px_220px] lg:items-center lg:gap-4 lg:rounded-none lg:border-t-0 lg:px-4 lg:py-3.5 lg:last:rounded-b-xl"
+  class="group flex flex-col gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3.5 transition-all duration-300 hover:bg-gray-50/60 lg:grid lg:grid-cols-[1fr_160px_220px] lg:items-center lg:gap-4 lg:rounded-none lg:border-t-0 lg:px-4 lg:py-3.5 lg:last:rounded-b-xl"
 >
   <!-- Info (Title) -->
   <div class="min-w-0">
@@ -45,6 +48,23 @@
         >
           Aktif
         </span>
+      {:else}
+        <form
+          method="POST"
+          action="?/activate"
+          use:enhance
+          class="inline-flex shrink-0 transition-opacity duration-200 lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100"
+        >
+          <input type="hidden" name="id" value={item.id} />
+          <button
+            type="submit"
+            class="inline-flex cursor-pointer items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-[10px] font-semibold text-gray-600 transition-colors hover:border-[#0d99ff] hover:bg-blue-50 hover:text-[#0d99ff]"
+            title="Aktifkan Header ini"
+          >
+            <Icon icon="lucide:power" class="h-2.5 w-2.5" />
+            <span>Aktifkan</span>
+          </button>
+        </form>
       {/if}
     </div>
   </div>

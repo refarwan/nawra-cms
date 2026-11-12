@@ -3,6 +3,7 @@
 
   import { applyAction, enhance } from "$app/forms";
   import { resolve } from "$app/paths";
+  import { page } from "$app/state";
 
   import LoginBrandSide from "../login/components/LoginBrandSide.svelte";
 
@@ -26,7 +27,7 @@
 </script>
 
 <svelte:head>
-  <title>Setup & Inisialisasi Database · Nawra CMS</title>
+  <title>Setup & Inisialisasi Database · {page.data.siteSettings?.siteTitle || "Nawra CMS"}</title>
 </svelte:head>
 
 <div class="flex min-h-screen bg-gray-50/80 font-sans">

@@ -10,8 +10,7 @@ export interface DefaultTemplateResult {
   contentHtml: string;
 }
 
-export function getDefaultHeaderTemplate(): DefaultTemplateResult {
-  const title = "Header Utama";
+export function getDefaultHeaderTemplate(title = "Nawra Header"): DefaultTemplateResult {
   const elements: CanvasElement[] = [
     elFrame("flexbox-default", "header", undefined, {
       isDefault: true,
@@ -34,12 +33,12 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
       gap: 10
     }),
     elBadge("logo-badge", "Ikon Brand", "header-brand", "N", {
-      fill: "#2563eb",
+      fill: "#0d99ff",
       color: "#ffffff",
       fontSize: 14,
       fontWeight: "800",
       borderRadius: 10,
-      borderColor: "#2563eb",
+      borderColor: "#0d99ff",
       paddingTop: 5,
       paddingBottom: 5,
       paddingLeft: 11,
@@ -55,7 +54,7 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
       flexDirection: "row",
       gap: 28
     }),
-    elLink("nav-home", "Menu Beranda", "header-nav", "Beranda", "/", "#2563eb", "600"),
+    elLink("nav-home", "Menu Beranda", "header-nav", "Beranda", "/", "#0d99ff", "600"),
     elLink("nav-features", "Menu Fitur", "header-nav", "Fitur Studio", "/#features-section"),
     elLink("nav-workflow", "Menu Cara Kerja", "header-nav", "Cara Kerja", "/#workflow-section"),
     elLink("nav-editor", "Menu Editor Publik", "header-nav", "Live Editor", "/editor"),
@@ -82,8 +81,7 @@ export function getDefaultHeaderTemplate(): DefaultTemplateResult {
   };
 }
 
-export function getDefaultFooterTemplate(): DefaultTemplateResult {
-  const title = "Footer Utama";
+export function getDefaultFooterTemplate(title = "Nawra Footer"): DefaultTemplateResult {
   const year = new Date().getFullYear();
   const elements: CanvasElement[] = [
     elFrame("flexbox-default", "footer", undefined, {

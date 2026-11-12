@@ -4,23 +4,27 @@
   import BottomToolbar from "./BottomToolbar.svelte";
   import Canvas from "./Canvas.svelte";
   import { EditorState } from "./editor-state.svelte";
+  import EditorPreview from "./EditorPreview.svelte";
   import LeftSidebar from "./LeftSidebar.svelte";
   import PublishModal from "./PublishModal.svelte";
   import RightSidebar from "./RightSidebar.svelte";
   import TopNav from "./TopNav.svelte";
 
+  import type { EditorPreviewContext } from "./EditorPreview.svelte";
   import type { EditorTargetType } from "./types";
 
   let {
     serverTimestamp,
     cfCountry,
     targetItem,
-    targetType
+    targetType,
+    previewContext
   }: {
     serverTimestamp?: string;
     cfCountry?: string;
     targetItem?: { id: string; title: string; contentJson: string; contentHtml: string } | null;
     targetType?: EditorTargetType | null;
+    previewContext?: EditorPreviewContext | null;
   } = $props();
 
   const editor = new EditorState();
@@ -63,8 +67,12 @@
       <LeftSidebar {editor} />
     {/if}
 
-    <!-- Center Visual Canvas -->
-    <Canvas {editor} />
+    <!-- Center Visual Canvas or Live Preview -->
+    {#if editor.isPreviewMode}
+      <EditorPreview {editor} {previewContext} />
+    {:else}
+      <Canvas {editor} />
+    {/if}
 
     <!-- Floating Bottom Island Toolbar Dock -->
     {#if !editor.isPreviewMode}

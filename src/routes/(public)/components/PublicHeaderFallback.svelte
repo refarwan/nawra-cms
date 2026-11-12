@@ -14,17 +14,17 @@
       href={resolve("/(public)")}
       class="flex items-center gap-2.5 font-bold tracking-tight text-gray-900"
     >
-      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2563eb] text-white">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-[#0d99ff] text-white">
         <Icon icon="lucide:sparkles" class="h-5 w-5" />
       </div>
       <span class="text-lg font-bold text-gray-900">Nawra CMS</span>
     </a>
 
     <nav class="hidden items-center gap-7 text-sm font-medium text-gray-600 md:flex">
-      <a href={resolve("/(public)")} class="font-semibold text-[#2563eb]">Beranda</a>
-      <a href="#fitur" class="transition-colors hover:text-[#2563eb]">Fitur Studio</a>
-      <a href="#cara-kerja" class="transition-colors hover:text-[#2563eb]">Cara Kerja</a>
-      <a href={resolve("/editor")} class="transition-colors hover:text-[#2563eb]">Live Editor</a>
+      <a href={resolve("/(public)")} class="font-semibold text-[#0d99ff]">Beranda</a>
+      <a href="#fitur" class="transition-colors hover:text-[#0d99ff]">Fitur Studio</a>
+      <a href="#cara-kerja" class="transition-colors hover:text-[#0d99ff]">Cara Kerja</a>
+      <a href={resolve("/editor")} class="transition-colors hover:text-[#0d99ff]">Live Editor</a>
     </nav>
 
     <div class="flex items-center gap-2.5">
@@ -39,7 +39,7 @@
 
       <a
         href={resolve("/editor")}
-        class="inline-flex items-center gap-1.5 rounded-xl bg-[#2563eb] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1d4ed8] sm:text-sm"
+        class="inline-flex items-center gap-1.5 rounded-xl bg-[#0d99ff] px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#008ae6] sm:text-sm"
       >
         <span>Coba Editor</span>
       </a>

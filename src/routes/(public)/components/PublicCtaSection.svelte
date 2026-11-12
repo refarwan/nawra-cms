@@ -4,11 +4,11 @@
 
 <section class="py-12 sm:py-16">
   <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-    <div class="rounded-3xl bg-[#2563eb] px-6 py-14 text-center text-white sm:px-12 sm:py-16">
+    <div class="rounded-3xl bg-[#0d99ff] px-6 py-14 text-center text-white sm:px-12 sm:py-16">
       <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
         Siap Mencoba Visual Studio Tanpa Koding?
       </h2>
-      <p class="mx-auto mb-8 max-w-2xl text-base text-blue-100 sm:text-lg">
+      <p class="mx-auto mb-8 max-w-2xl text-base text-sky-100 sm:text-lg">
         Buka halaman editor publik sekarang dan rasakan langsung kemudahan merancang halaman web
         secara visual di browser Anda.
       </p>

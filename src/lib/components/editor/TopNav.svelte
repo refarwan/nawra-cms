@@ -3,6 +3,9 @@
 
   import { resolve } from "$app/paths";
 
+  import { getEditorBackRoute } from "./editor-routes";
+  import PublishDropdown from "./PublishDropdown.svelte";
+
   import type { EditorState } from "./editor-state.svelte";
   import type { DeviceMode } from "./types";
 
@@ -14,34 +17,30 @@
     { mode: "mobile", label: "Mobile (390px)", icon: "lucide:smartphone" }
   ];
 
-  const backUrl = $derived(
-    editor.targetType === "header"
-      ? resolve("/(dashboard)/(authenticated)/dashboard/header")
-      : editor.targetType === "footer"
-        ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
-        : editor.targetType === "homepage" || editor.targetType === "home"
-          ? resolve("/(dashboard)/(authenticated)/dashboard/home")
-          : resolve("/(public)")
-  );
+  const backRoute = $derived(getEditorBackRoute(editor.targetType));
   const backTitle = $derived(editor.targetType ? "Kembali ke Dashboard" : "Kembali ke Beranda");
 </script>
 
 <header
   class="flex h-12 w-full items-center justify-between border-b border-[#2c2c2c] bg-[#1a1a1c] px-3 text-[#d3d3d3] select-none"
 >
-  <!-- Left: Logo & File Info -->
-  <div class="flex items-center gap-3">
+  <!-- Left: Back Button, Logo & Undo/Redo -->
+  <div class="flex items-center gap-2">
     <a
-      href={backUrl}
+      href={resolve(backRoute)}
+      title={backTitle}
+      aria-label={backTitle}
+      class="flex h-7 w-7 items-center justify-center rounded-md border border-[#333] bg-[#252528] text-neutral-300 transition hover:bg-[#323238] hover:text-white"
+    >
+      <Icon icon="lucide:arrow-left" class="h-3.5 w-3.5" />
+    </a>
+
+    <a
+      href={resolve(backRoute)}
       title={backTitle}
       class="flex items-center gap-2 rounded px-1.5 py-1 transition hover:bg-[#2c2c2c]"
     >
-      <!-- Colorful studio icon -->
-      <div
-        class="flex h-6 w-6 items-center justify-center rounded bg-linear-to-tr from-[#0d99ff] via-[#9747ff] to-[#ff4785] p-1"
-      >
-        <Icon icon="lucide:sparkles" class="h-3.5 w-3.5 text-white" />
-      </div>
+      <img src="/favicon.svg" alt="Nawra CMS" class="h-6 w-6 rounded" />
       <div class="flex flex-col">
         <span class="text-xs font-semibold text-white">Nawra CMS</span>
         <span class="text-[10px] text-neutral-400">Studio Kanvas</span>
@@ -137,13 +136,6 @@
       <span class="hidden sm:inline">{editor.isPreviewMode ? "Tutup Pratinjau" : "Pratinjau"}</span>
     </button>
 
-    <!-- Publish Website CTA -->
-    <button
-      onclick={() => editor.publish()}
-      class="flex items-center gap-1.5 rounded-md bg-[#0d99ff] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
-    >
-      <Icon icon="lucide:upload-cloud" class="h-3.5 w-3.5" />
-      <span>{editor.targetType ? "Publikasikan" : "Simulasikan Publish"}</span>
-    </button>
+    <PublishDropdown {editor} />
   </div>
 </header>

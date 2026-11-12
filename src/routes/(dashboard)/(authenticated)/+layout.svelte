@@ -24,7 +24,10 @@
 
 {#if authStore.user || authStore.accessToken || (data.user && !authStore.initialized)}
   <div class="relative min-h-screen bg-gray-50/70 font-sans text-gray-900">
-    <DashboardSidebar title="Nawra CMS" />
+    <DashboardSidebar
+      title={data.siteSettings.siteTitle}
+      favicon={data.siteSettings.siteFavicon || "/favicon.svg"}
+    />
 
     <div class="flex min-h-screen flex-col xl:pl-65">
       {#if data.isCloudflare && !data.isD1Connected}

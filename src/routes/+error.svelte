@@ -4,83 +4,64 @@
   import { resolve } from "$app/paths";
   import { page } from "$app/state";
 
-  $effect(() => {
-    console.error("PAGE ERROR DETAIL:", page.status, page.error);
-  });
-
-  const errorStack = $derived(
-    page.error && typeof page.error === "object" && "stack" in page.error
-      ? String(page.error.stack)
-      : null
-  );
+  const siteTitle = $derived(page.data.siteSettings?.siteTitle || "Nawra CMS");
+  const isNotFound = $derived(page.status === 404);
 </script>
 
 <svelte:head>
-  <title>{page.status} · Nawra CMS</title>
+  <title
+    >{isNotFound ? "Halaman Tidak Ditemukan (404)" : `Error ${page.status}`} · {siteTitle}</title
+  >
 </svelte:head>
 
-<div
-  class="flex min-h-screen flex-col items-center justify-center bg-[#141416] px-4 text-center text-white"
->
-  <div class="max-w-md space-y-4">
+<div class="flex min-h-screen items-center justify-center bg-gray-50/80 px-4 py-12 font-sans">
+  <div
+    class="w-full max-w-lg rounded-2xl border border-gray-200/80 bg-white p-8 text-center sm:p-10"
+  >
     <div
-      class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-red-500/20 bg-red-500/10 text-red-400"
+      class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl {isNotFound
+        ? 'bg-sky-50 text-[#0d99ff]'
+        : 'bg-red-50 text-red-600'}"
     >
-      <Icon icon="lucide:alert-triangle" class="h-7 w-7" />
+      <Icon icon={isNotFound ? "lucide:file-question" : "lucide:alert-triangle"} class="h-7 w-7" />
     </div>
 
-    <h1 class="text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+    <span
+      class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold tracking-wider uppercase {isNotFound
+        ? 'bg-sky-50 text-sky-700'
+        : 'bg-red-50 text-red-700'}"
+    >
       Error {page.status}
+    </span>
+
+    <h1 class="mt-4 text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
+      {isNotFound ? "Halaman Tidak Ditemukan" : "Terjadi Kesalahan"}
     </h1>
 
-    <p class="text-sm text-neutral-400">
-      {page.error?.message || "Terjadi kendala saat memproses permintaan Anda."}
+    <p class="mt-2.5 text-sm leading-relaxed text-gray-500">
+      {#if isNotFound}
+        Maaf, halaman yang Anda cari tidak tersedia, telah dihapus, atau alamat URL yang dimasukkan
+        keliru.
+      {:else}
+        {page.error?.message || "Terjadi kendala saat memproses permintaan Anda."}
+      {/if}
     </p>
 
-    {#if page.error}
-      <div
-        class="mt-4 max-h-48 overflow-auto rounded-xl border border-red-500/30 bg-black/70 p-3 text-left font-mono text-xs text-red-300"
-      >
-        <div><strong>Status:</strong> {page.status}</div>
-        <div><strong>Message:</strong> {page.error.message}</div>
-        {#if errorStack}
-          <pre
-            class="mt-2 max-h-24 overflow-auto text-[10px] whitespace-pre-wrap text-neutral-400">{errorStack}</pre>
-        {/if}
-      </div>
-    {/if}
-
-    <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+    <div class="mt-7 flex flex-wrap items-center justify-center gap-3">
       <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard")}
-        class="inline-flex items-center gap-2 rounded-xl bg-[#0d99ff] px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-[#008ae6]"
-      >
-        <Icon icon="lucide:layout-dashboard" class="h-4 w-4" />
-        <span>Dashboard</span>
-      </a>
-
-      <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard/home")}
-        class="inline-flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700"
+        href={resolve("/(public)")}
+        class="inline-flex items-center gap-2 rounded-xl bg-[#0d99ff] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#008ae6]"
       >
         <Icon icon="lucide:home" class="h-4 w-4" />
-        <span>Kelola Home Page</span>
+        <span>Kembali ke Beranda</span>
       </a>
 
       <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard/header")}
-        class="inline-flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700"
+        href={resolve("/(public)/blog")}
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
       >
-        <Icon icon="lucide:panel-top" class="h-4 w-4" />
-        <span>Kelola Header</span>
-      </a>
-
-      <a
-        href={resolve("/(dashboard)/(authenticated)/dashboard/footer")}
-        class="inline-flex items-center gap-2 rounded-xl border border-neutral-700 bg-neutral-800 px-4 py-2.5 text-xs font-semibold text-neutral-200 transition hover:bg-neutral-700"
-      >
-        <Icon icon="lucide:panel-bottom" class="h-4 w-4" />
-        <span>Kelola Footer</span>
+        <Icon icon="lucide:book-open" class="h-4 w-4" />
+        <span>Lihat Blog</span>
       </a>
     </div>
   </div>
