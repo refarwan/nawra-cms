@@ -169,7 +169,7 @@
         .width}px; min-height: {activePresetMinHeight}px; height: {autoCanvasHeight}px; background-color: {editor
         .frame.background}; border-radius: 4px; border: 1px solid #2c2c2c;"
     >
-      {#each editor.elements.filter((el) => !el.parentId && !el.hidden) as el (el.id)}
+      {#each editor.resolvedElements.filter((el) => !el.parentId && !el.hidden) as el (el.id)}
         <CanvasRootItem
           {editor}
           {el}

@@ -60,6 +60,32 @@
       </div>
     </div>
 
+    <!-- Responsive Device Mode Scope -->
+    <div
+      class="flex items-center justify-between border-b border-[#2c2c2c] bg-[#18181a] px-4 py-1.5 text-[11px]"
+    >
+      <span class="flex items-center gap-1.5 font-medium text-neutral-200">
+        <Icon
+          icon={editor.device === "desktop"
+            ? "lucide:monitor"
+            : editor.device === "tablet"
+              ? "lucide:tablet"
+              : "lucide:smartphone"}
+          class="h-3.5 w-3.5 text-[#0d99ff]"
+        />
+        <span class="capitalize">Mode {editor.device}</span>
+      </span>
+      <span class="text-[10px] text-neutral-400">
+        {#if editor.device === "desktop"}
+          Semua Ukuran (Base)
+        {:else if editor.device === "tablet"}
+          Tablet &amp; Mobile
+        {:else}
+          Hanya Mobile
+        {/if}
+      </span>
+    </div>
+
     <!-- Properties Form -->
     <div class="flex-1 space-y-5 overflow-y-auto p-4">
       <div class="space-y-3">

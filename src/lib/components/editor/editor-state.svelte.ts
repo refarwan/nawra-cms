@@ -14,6 +14,7 @@ import {
   parseLoadedEditorJson,
   reorderLayerElements
 } from "./layer-utils";
+import { applyElementUpdate, resolveElementForDevice } from "./responsive-utils";
 
 import type {
   CanvasElement,
@@ -44,9 +45,14 @@ export class EditorState {
   publishStatus = $state<"published" | "draft">("published");
   isSaving = $state<boolean>(false);
 
-  selectedElement = $derived<CanvasElement | null>(
-    this.elements.find((el) => el.id === this.selectedId) || null
-  );
+  selectedElement = $derived.by<CanvasElement | null>(() => {
+    const raw = this.elements.find((el) => el.id === this.selectedId);
+    return raw ? resolveElementForDevice(raw, this.device) : null;
+  });
+
+  resolvedElements = $derived.by<CanvasElement[]>(() => {
+    return this.elements.map((el) => resolveElementForDevice(el, this.device));
+  });
 
   constructor() {
     this.pushHistory();
@@ -66,15 +72,13 @@ export class EditorState {
   }
 
   undo() {
-    if (this.historyIndex > 0) {
+    if (this.historyIndex > 0)
       this.elements = JSON.parse(JSON.stringify(this.history[--this.historyIndex]));
-    }
   }
 
   redo() {
-    if (this.historyIndex < this.history.length - 1) {
+    if (this.historyIndex < this.history.length - 1)
       this.elements = JSON.parse(JSON.stringify(this.history[++this.historyIndex]));
-    }
   }
 
   selectElement = (id: string | null) => (this.selectedId = id);
@@ -111,7 +115,7 @@ export class EditorState {
     if (idx === -1) return;
     const target = this.elements[idx];
     if ((target.isDefault || id === "flexbox-default") && "name" in updates) delete updates.name;
-    this.elements[idx] = { ...target, ...updates };
+    this.elements[idx] = applyElementUpdate(target, updates, this.device);
     if ((target.isDefault || id === "flexbox-default") && updates.height) {
       this.frame.height = updates.height;
       this.frame.minHeight = updates.height;
@@ -140,49 +144,45 @@ export class EditorState {
 
   moveLayer(id: string, direction: "up" | "down") {
     const next = moveLayerElements(this.elements, id, direction);
-    if (next) {
-      this.elements = next;
-      this.pushHistory();
-    }
+    if (!next) return;
+    this.elements = next;
+    this.pushHistory();
   }
 
   reorderLayers(draggedId: string, targetId: string, position: "before" | "after") {
     const next = reorderLayerElements(this.elements, draggedId, targetId, position);
-    if (next) {
-      this.elements = next;
-      this.pushHistory();
-    }
+    if (!next) return;
+    this.elements = next;
+    this.pushHistory();
   }
 
   toggleVisibility(id: string) {
     const el = this.elements.find((e) => e.id === id);
-    if (el) {
-      el.hidden = !el.hidden;
-      this.pushHistory();
-    }
+    if (!el) return;
+    el.hidden = !el.hidden;
+    this.pushHistory();
   }
 
   toggleLock(id: string) {
     const el = this.elements.find((e) => e.id === id);
-    if (el) {
-      el.locked = !el.locked;
-      this.pushHistory();
-    }
+    if (!el) return;
+    el.locked = !el.locked;
+    this.pushHistory();
   }
 
   loadFromJson(jsonString: string, title?: string, type?: EditorTargetType, id?: string) {
     if (type) this.targetType = type;
     if (id) this.targetId = id;
     const res = parseLoadedEditorJson(jsonString, this.frame, this.targetType);
-    if (res) {
-      this.frame = res.frame;
+    if (!res) {
       if (title) this.frame.name = title;
-      if (res.elements) this.elements = res.elements;
-      this.history = [JSON.parse(JSON.stringify(this.elements))];
-      this.historyIndex = 0;
-    } else if (title) {
-      this.frame.name = title;
+      return;
     }
+    this.frame = res.frame;
+    if (title) this.frame.name = title;
+    if (res.elements) this.elements = res.elements;
+    this.history = [JSON.parse(JSON.stringify(this.elements))];
+    this.historyIndex = 0;
   }
 
   publish(status: "published" | "draft" = "published") {

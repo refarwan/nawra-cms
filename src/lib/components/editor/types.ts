@@ -71,6 +71,12 @@ export interface CanvasElement {
   hidden?: boolean;
   parentId?: string;
   isDefault?: boolean;
+
+  // Responsive device overrides (Tablet cascades to Mobile; Mobile is local)
+  responsive?: {
+    tablet?: Partial<CanvasElement>;
+    mobile?: Partial<CanvasElement>;
+  };
 }
 
 export type ToolMode =

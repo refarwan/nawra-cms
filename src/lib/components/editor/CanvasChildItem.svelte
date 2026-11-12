@@ -36,7 +36,9 @@
   const isChildSelected = $derived(editor.selectedId === child.id);
   const isEditingChild = $derived(editingElementId === child.id);
   const subChildren = $derived(
-    child.type === "frame" ? editor.elements.filter((c) => c.parentId === child.id) : []
+    child.type === "frame"
+      ? editor.resolvedElements.filter((c) => c.parentId === child.id && !c.hidden)
+      : []
   );
   const widthMode = $derived(child.widthMode || "fixed");
   const heightMode = $derived(child.heightMode || "fixed");

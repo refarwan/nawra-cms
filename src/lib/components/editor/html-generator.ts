@@ -1,3 +1,4 @@
+import { generateResponsiveCss } from "./responsive-css";
 import { toYouTubeEmbedUrl } from "./youtube-utils";
 
 import type { CanvasElement, CanvasFrame, EditorTargetType } from "./types";
@@ -45,46 +46,42 @@ function getStyleString(
   const pr = el.paddingRight ?? el.padding ?? 0;
   const pb = el.paddingBottom ?? el.padding ?? 0;
   const pl = el.paddingLeft ?? el.padding ?? 0;
+  const mt = el.marginTop ?? el.margin ?? 0;
+  const mr = el.marginRight ?? el.margin ?? 0;
+  const mb = el.marginBottom ?? el.margin ?? 0;
+  const ml = el.marginLeft ?? el.margin ?? 0;
 
   // Width
   if (widthMode === "fill") {
     styles.push("width: 100%");
   } else if (widthMode === "hug" && el.type !== "youtube") {
-    styles.push("width: fit-content");
-    styles.push("max-width: 100%");
+    styles.push("width: fit-content; max-width: 100%");
   } else if (el.width) {
-    styles.push(`width: ${el.width + pl + pr}px`);
-    styles.push("max-width: 100%");
+    styles.push(`width: ${el.width + pl + pr}px; max-width: 100%`);
   }
 
-  if (semanticTag === "main") {
-    styles.push("flex: 1 1 auto");
-  }
+  if (semanticTag === "main") styles.push("flex: 1 1 auto");
 
   // Height
   if (heightMode === "fixed" && el.height) {
     const totalHeight = el.height + pt + pb;
     const totalWidth = (el.width || 0) + pl + pr;
     if ((el.type === "image" || el.type === "youtube") && widthMode === "fixed" && totalWidth > 0) {
-      styles.push(`aspect-ratio: ${totalWidth} / ${totalHeight}`);
-      styles.push("height: auto");
+      styles.push(`aspect-ratio: ${totalWidth} / ${totalHeight}; height: auto`);
     } else if (el.type === "image" || el.type === "icon" || el.type === "youtube") {
       styles.push(`height: ${totalHeight}px`);
     } else {
       styles.push(`min-height: ${totalHeight}px`);
     }
   } else if (heightMode === "fill") {
-    styles.push("height: 100%");
-    styles.push("align-self: stretch");
+    styles.push("height: 100%; align-self: stretch");
   } else if (el.type === "youtube" && el.height) {
     styles.push(`height: ${el.height + pt + pb}px`);
   }
 
   const bgColor =
     el.fill && el.fill !== "transparent" ? el.fill : isDefaultFrame ? frame?.background : undefined;
-  if (bgColor && bgColor !== "transparent") {
-    styles.push(`background-color: ${bgColor}`);
-  }
+  if (bgColor && bgColor !== "transparent") styles.push(`background-color: ${bgColor}`);
   if (el.color) styles.push(`color: ${el.color}`);
   if (el.fontSize) styles.push(`font-size: ${el.fontSize}px`);
   if (el.fontWeight) styles.push(`font-weight: ${el.fontWeight}`);
@@ -92,29 +89,13 @@ function getStyleString(
     styles.push(`font-family: ${el.fontFamily === "Inter" ? "Poppins" : el.fontFamily}`);
   }
   if (el.textAlign) styles.push(`text-align: ${el.textAlign}`);
-
   if (el.borderRadius) styles.push(`border-radius: ${el.borderRadius}px`);
   if (el.borderWidth && el.borderStyle !== "none") {
     styles.push(`border: ${el.borderWidth}px ${el.borderStyle} ${el.borderColor || "transparent"}`);
   }
-
-  if (el.opacity !== undefined && el.opacity < 100) {
-    styles.push(`opacity: ${el.opacity / 100}`);
-  }
-
-  // Padding
-  if (pt || pr || pb || pl) {
-    styles.push(`padding: ${pt}px ${pr}px ${pb}px ${pl}px`);
-  }
-
-  // Margin
-  const mt = el.marginTop ?? el.margin ?? 0;
-  const mr = el.marginRight ?? el.margin ?? 0;
-  const mb = el.marginBottom ?? el.margin ?? 0;
-  const ml = el.marginLeft ?? el.margin ?? 0;
-  if (mt || mr || mb || ml) {
-    styles.push(`margin: ${mt}px ${mr}px ${mb}px ${ml}px`);
-  }
+  if (el.opacity !== undefined && el.opacity < 100) styles.push(`opacity: ${el.opacity / 100}`);
+  if (pt || pr || pb || pl) styles.push(`padding: ${pt}px ${pr}px ${pb}px ${pl}px`);
+  if (mt || mr || mb || ml) styles.push(`margin: ${mt}px ${mr}px ${mb}px ${ml}px`);
 
   // Layout / Flexbox
   if (el.type === "frame" || el.isAutoLayout) {
@@ -154,6 +135,7 @@ function renderElement(
 
   const style = getStyleString(el, targetType, frame);
   const styleAttr = style ? ` style="${escapeHtml(style)}"` : "";
+  const dataAttr = ` data-nw-id="${escapeHtml(el.id)}"`;
   const children = allElements.filter((child) => child.parentId === el.id);
   const innerChildrenHtml = children
     .map((c) => renderElement(c, allElements, targetType, frame))
@@ -161,24 +143,24 @@ function renderElement(
 
   switch (el.type) {
     case "heading":
-      return `<h2${styleAttr}>${escapeHtml(el.content || "")}</h2>`;
+      return `<h2${dataAttr}${styleAttr}>${escapeHtml(el.content || "")}</h2>`;
     case "text":
-      return `<p${styleAttr}>${escapeHtml(el.content || "")}</p>`;
+      return `<p${dataAttr}${styleAttr}>${escapeHtml(el.content || "")}</p>`;
     case "button":
-      return `<a href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Button")}</a>`;
+      return `<a${dataAttr} href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Button")}</a>`;
     case "link":
-      return `<a href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Link")}</a>`;
+      return `<a${dataAttr} href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Link")}</a>`;
     case "badge":
-      return `<span${styleAttr}>${escapeHtml(el.content || "")}</span>`;
+      return `<span${dataAttr}${styleAttr}>${escapeHtml(el.content || "")}</span>`;
     case "image":
-      return `<img src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}" style="object-fit: cover; ${escapeHtml(style)}" />`;
+      return `<img${dataAttr} src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}" style="object-fit: cover; ${escapeHtml(style)}" />`;
     case "youtube":
-      return `<div style="overflow: hidden; ${escapeHtml(style)}"><iframe src="${escapeHtml(toYouTubeEmbedUrl(el.src))}" title="${escapeHtml(el.name || "YouTube Video")}" style="width: 100%; height: 100%; border: 0; display: block;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
+      return `<div${dataAttr} style="overflow: hidden; ${escapeHtml(style)}"><iframe src="${escapeHtml(toYouTubeEmbedUrl(el.src))}" title="${escapeHtml(el.name || "YouTube Video")}" style="width: 100%; height: 100%; border: 0; display: block;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
     case "frame":
     case "rectangle":
     default: {
       const tag = getRootSemanticTag(el, targetType);
-      return `<${tag}${styleAttr}>\n${innerChildrenHtml}\n</${tag}>`;
+      return `<${tag}${dataAttr}${styleAttr}>\n${innerChildrenHtml}\n</${tag}>`;
     }
   }
 }
@@ -189,5 +171,7 @@ export function generateHtmlFromElements(
   targetType?: EditorTargetType | null
 ): string {
   const rootElements = elements.filter((el) => !el.parentId);
-  return rootElements.map((el) => renderElement(el, elements, targetType, frame)).join("\n");
+  const body = rootElements.map((el) => renderElement(el, elements, targetType, frame)).join("\n");
+  const css = generateResponsiveCss(elements);
+  return css ? `${body}\n${css}` : body;
 }

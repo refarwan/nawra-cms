@@ -57,7 +57,7 @@
 >
   <div
     class="mx-auto flex min-h-full flex-col overflow-hidden rounded border border-[#2c2c2c] bg-white transition-all"
-    style="width: {editor.frame.width}px;"
+    style="width: {editor.frame.width}px; container-type: inline-size;"
   >
     {#each sections as section, index (index)}
       <div class="pointer-events-none {section.grow ? 'flex flex-1 flex-col' : ''}">

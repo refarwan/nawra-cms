@@ -59,7 +59,9 @@
   const sizeLabels = $derived(
     getRootSizeLabels(el, isDefaultFrame, editor.frame.width, widthMode, heightMode)
   );
-  const children = $derived(editor.elements.filter((c) => c.parentId === el.id));
+  const children = $derived(
+    editor.resolvedElements.filter((c) => c.parentId === el.id && !c.hidden)
+  );
   const frameTag = $derived(getRootFrameTag(el, isDefaultFrame, editor.targetType));
   const isAutoHeightType = $derived(
     isDefaultFrame ||

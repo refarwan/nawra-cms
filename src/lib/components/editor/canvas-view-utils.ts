@@ -5,13 +5,13 @@ import type { CanvasElement } from "./types";
 
 export function getCanvasFrameMetrics(editor: EditorState, defaultFrameHeight: number) {
   const defaultFrameEl =
-    editor.elements.find((el) => el.isDefault || el.id === "flexbox-default") ||
-    editor.elements.find((el) => !el.parentId && el.type === "frame");
+    editor.resolvedElements.find((el) => el.isDefault || el.id === "flexbox-default") ||
+    editor.resolvedElements.find((el) => !el.parentId && el.type === "frame");
   const activePresetMinHeight = computePresetMinHeight(editor, defaultFrameEl);
   const autoCanvasHeight = Math.max(
     activePresetMinHeight,
     defaultFrameHeight,
-    computeMaxFreeBottom(editor.elements)
+    computeMaxFreeBottom(editor.resolvedElements)
   );
   return { defaultFrameEl, activePresetMinHeight, autoCanvasHeight };
 }
