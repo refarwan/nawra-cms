@@ -32,45 +32,81 @@ export async function registerDefaultAdmin(client: D1Executor): Promise<void> {
 }
 
 export async function registerDefaultHeaderAndFooter(client: D1Executor): Promise<void> {
+  const now = Date.now();
+  const headerTpl = getDefaultHeaderTemplate();
   const headerPrep = client.prepare("SELECT count(*) as count FROM headers");
   const headerRes = headerPrep.first ? await headerPrep.first<{ count: number }>() : null;
   if (!headerRes || headerRes.count === 0) {
-    const { title, contentJson, contentHtml } = getDefaultHeaderTemplate();
-    const now = Date.now();
     await client
       .prepare(
         `INSERT INTO headers (id, title, content_json, content_html, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 1, ?, ?)`
       )
-      .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)
+      .bind(
+        crypto.randomUUID(),
+        headerTpl.title,
+        headerTpl.contentJson,
+        headerTpl.contentHtml,
+        now,
+        now
+      )
+      .run();
+  } else {
+    await client
+      .prepare(
+        `UPDATE headers SET content_json = ?, content_html = ?, updated_at = ?
+         WHERE title = 'Header Utama' AND (content_json NOT LIKE '%header-brand%' OR content_json LIKE '%/dashboard%')`
+      )
+      .bind(headerTpl.contentJson, headerTpl.contentHtml, now)
       .run();
   }
 
+  const footerTpl = getDefaultFooterTemplate();
   const footerPrep = client.prepare("SELECT count(*) as count FROM footers");
   const footerRes = footerPrep.first ? await footerPrep.first<{ count: number }>() : null;
   if (!footerRes || footerRes.count === 0) {
-    const { title, contentJson, contentHtml } = getDefaultFooterTemplate();
-    const now = Date.now();
     await client
       .prepare(
         `INSERT INTO footers (id, title, content_json, content_html, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 1, ?, ?)`
       )
-      .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)
+      .bind(
+        crypto.randomUUID(),
+        footerTpl.title,
+        footerTpl.contentJson,
+        footerTpl.contentHtml,
+        now,
+        now
+      )
+      .run();
+  } else {
+    await client
+      .prepare(
+        `UPDATE footers SET content_json = ?, content_html = ?, updated_at = ?
+         WHERE title = 'Footer Utama' AND (content_json NOT LIKE '%footer-brand%' OR content_json LIKE '%/dashboard%')`
+      )
+      .bind(footerTpl.contentJson, footerTpl.contentHtml, now)
       .run();
   }
 
+  const homeTpl = getDefaultHomeTemplate();
   const homePrep = client.prepare("SELECT count(*) as count FROM homepages");
   const homeRes = homePrep.first ? await homePrep.first<{ count: number }>() : null;
   if (!homeRes || homeRes.count === 0) {
-    const { title, contentJson, contentHtml } = getDefaultHomeTemplate();
-    const now = Date.now();
     await client
       .prepare(
         `INSERT INTO homepages (id, title, content_json, content_html, is_active, created_at, updated_at)
          VALUES (?, ?, ?, ?, 1, ?, ?)`
       )
-      .bind(crypto.randomUUID(), title, contentJson, contentHtml, now, now)
+      .bind(crypto.randomUUID(), homeTpl.title, homeTpl.contentJson, homeTpl.contentHtml, now, now)
+      .run();
+  } else {
+    await client
+      .prepare(
+        `UPDATE homepages SET content_json = ?, content_html = ?, updated_at = ?
+         WHERE title = 'Beranda Utama' AND (content_json NOT LIKE '%hero-editor-image%' OR content_json LIKE '%/dashboard%')`
+      )
+      .bind(homeTpl.contentJson, homeTpl.contentHtml, now)
       .run();
   }
 }

@@ -15,7 +15,7 @@
 </svelte:head>
 
 <div
-  class="flex min-h-screen flex-col bg-white text-gray-900 selection:bg-[#0d99ff] selection:text-white"
+  class="flex min-h-screen flex-col bg-white font-sans text-gray-900 antialiased selection:bg-[#2563eb] selection:text-white"
 >
   <!-- Header: Active from Cloudflare D1 or Fallback -->
   {#if data.headerHtml}
@@ -30,7 +30,7 @@
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html data.homeHtml}
   {:else}
-    <main class="relative z-10 mx-auto max-w-6xl flex-1 px-6 pt-16 pb-24 lg:px-12">
+    <main class="w-full flex-1">
       <PublicHeroSection />
       <PublicFeaturesSection />
       <PublicCtaSection />

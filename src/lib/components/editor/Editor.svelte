@@ -29,11 +29,12 @@
   $effect(() => {
     const current = targetItem;
     const currentType = targetType;
-    if (current && current.id && loadedTargetId !== current.id) {
-      loadedTargetId = current.id;
+    const key = current ? current.id || "public-demo" : null;
+    if (current && key && loadedTargetId !== key) {
+      loadedTargetId = key;
       untrack(() => {
         if (currentType) editor.targetType = currentType;
-        editor.targetId = current.id;
+        if (current.id) editor.targetId = current.id;
         if (current.title) editor.frame.name = current.title;
 
         if (current.contentJson) {
@@ -41,7 +42,7 @@
             current.contentJson,
             current.title,
             currentType || undefined,
-            current.id
+            current.id || undefined
           );
         }
       });

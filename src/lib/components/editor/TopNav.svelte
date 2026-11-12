@@ -21,8 +21,9 @@
         ? resolve("/(dashboard)/(authenticated)/dashboard/footer")
         : editor.targetType === "homepage" || editor.targetType === "home"
           ? resolve("/(dashboard)/(authenticated)/dashboard/home")
-          : resolve("/(dashboard)/(authenticated)/dashboard")
+          : resolve("/(public)")
   );
+  const backTitle = $derived(editor.targetType ? "Kembali ke Dashboard" : "Kembali ke Beranda");
 </script>
 
 <header
@@ -32,7 +33,7 @@
   <div class="flex items-center gap-3">
     <a
       href={backUrl}
-      title="Kembali ke Dashboard"
+      title={backTitle}
       class="flex items-center gap-2 rounded px-1.5 py-1 transition hover:bg-[#2c2c2c]"
     >
       <!-- Colorful studio icon -->
@@ -142,7 +143,7 @@
       class="flex items-center gap-1.5 rounded-md bg-[#0d99ff] px-3.5 py-1.5 text-xs font-semibold text-white transition hover:brightness-110 active:scale-95"
     >
       <Icon icon="lucide:upload-cloud" class="h-3.5 w-3.5" />
-      <span>Publikasikan</span>
+      <span>{editor.targetType ? "Publikasikan" : "Simulasikan Publish"}</span>
     </button>
   </div>
 </header>

@@ -163,7 +163,7 @@ function renderElement(
     case "button":
       return `<a href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Button")}</a>`;
     case "link":
-      return `<a href="${escapeHtml(el.href || "#")}"${styleAttr}>${escapeHtml(el.content || "Link")}</a>`;
+      return `<a href="${escapeHtml(el.href || "#")}" style="text-decoration: none; ${escapeHtml(style)}">${escapeHtml(el.content || "Link")}</a>`;
     case "badge":
       return `<span${styleAttr}>${escapeHtml(el.content || "")}</span>`;
     case "image":

@@ -3,21 +3,22 @@ import { eq } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { footers, headers, homepages } from "#db/schema";
+import { getDefaultHomeTemplate } from "#lib/server/default-home-template";
 
 import type { EditorTargetType } from "#lib/components/editor/types";
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ locals, platform, url }) => {
-  if (!locals.user) {
-    throw redirect(302, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
-  }
-
   const rawType = url.searchParams.get("type");
   const type: EditorTargetType | null =
     rawType === "header" || rawType === "footer" || rawType === "homepage" || rawType === "home"
       ? (rawType as EditorTargetType)
       : null;
   const id = url.searchParams.get("id");
+
+  if (type && id && !locals.user) {
+    throw redirect(302, `/login?redirect=${encodeURIComponent(url.pathname + url.search)}`);
+  }
 
   let targetItem: { id: string; title: string; contentJson: string; contentHtml: string } | null =
     null;
@@ -59,6 +60,14 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
     } catch (err) {
       console.warn("Gagal memuat target header/footer/homepage editor:", err);
     }
+  } else {
+    const demoTpl = getDefaultHomeTemplate();
+    targetItem = {
+      id: "",
+      title: "Studio Kanvas Publik (Demo)",
+      contentJson: demoTpl.contentJson,
+      contentHtml: demoTpl.contentHtml
+    };
   }
 
   return {

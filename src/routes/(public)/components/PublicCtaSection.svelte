@@ -1,24 +1,25 @@
 <script lang="ts">
-  import Icon from "@iconify/svelte";
-
   import { resolve } from "$app/paths";
 </script>
 
-<div
-  class="mt-24 rounded-2xl border border-neutral-800 bg-linear-to-b from-neutral-900/80 to-[#121215] p-8 text-center sm:p-12"
->
-  <h3 class="text-2xl font-bold text-white sm:text-3xl">Siap Mulai Mendesain?</h3>
-  <p class="mx-auto mt-3 max-w-lg text-sm text-neutral-400">
-    Buka editor kanvas sekarang dan bangun pengalaman web tanpa repot koding.
-  </p>
-  <div class="mt-6 flex justify-center">
-    <a
-      href={resolve("/editor")}
-      class="flex items-center gap-2 rounded-xl bg-[#0d99ff] px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0082df] active:scale-95"
-    >
-      <Icon icon="lucide:sparkles" class="h-4 w-4" />
-      <span>Buka Editor Nawra CMS</span>
-      <Icon icon="lucide:arrow-right" class="h-4 w-4" />
-    </a>
+<section class="py-12 sm:py-16">
+  <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div class="rounded-3xl bg-[#2563eb] px-6 py-14 text-center text-white sm:px-12 sm:py-16">
+      <h2 class="mb-4 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
+        Siap Mencoba Visual Studio Tanpa Koding?
+      </h2>
+      <p class="mx-auto mb-8 max-w-2xl text-base text-blue-100 sm:text-lg">
+        Buka halaman editor publik sekarang dan rasakan langsung kemudahan merancang halaman web
+        secara visual di browser Anda.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-3.5">
+        <a
+          href={resolve("/editor")}
+          class="inline-flex items-center justify-center rounded-xl bg-white px-6 py-3.5 text-base font-semibold text-gray-900 transition-colors hover:bg-gray-100"
+        >
+          Coba Editor Sekarang
+        </a>
+      </div>
+    </div>
   </div>
-</div>
+</section>

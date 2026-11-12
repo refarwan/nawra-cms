@@ -1,0 +1,192 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 640" fill="none">
+  <!-- Outer Window Background -->
+  <rect width="960" height="640" rx="16" fill="#18181B" />
+  <rect x="0.5" y="0.5" width="959" height="639" rx="15.5" stroke="#2C2C30" />
+
+  <!-- Top Navigation Bar -->
+  <rect x="1" y="1" width="958" height="44" rx="15" fill="#1A1A1C" />
+  <line x1="1" y1="45" x2="959" y2="45" stroke="#2C2C2C" />
+
+  <!-- Brand Icon & Title -->
+  <rect x="14" y="11" width="24" height="24" rx="6" fill="#0D99FF" />
+  <path d="M26 16L27.8 21.2L33 23L27.8 24.8L26 30L24.2 24.8L19 23L24.2 21.2L26 16Z" fill="#FFFFFF" />
+  <text x="46" y="22" fill="#FFFFFF" font-family="sans-serif" font-size="11" font-weight="700">Nawra CMS</text>
+  <text x="46" y="34" fill="#9CA3AF" font-family="sans-serif" font-size="9">Studio Kanvas</text>
+
+  <!-- Device Switcher (Center) -->
+  <rect x="370" y="9" width="220" height="28" rx="7" fill="#222226" stroke="#333338" />
+  <rect x="374" y="12" width="72" height="22" rx="5" fill="#323238" />
+  <text x="410" y="26" fill="#FFFFFF" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="middle">Desktop</text>
+  <text x="482" y="26" fill="#9CA3AF" font-family="sans-serif" font-size="10" text-anchor="middle">Tablet</text>
+  <text x="550" y="26" fill="#9CA3AF" font-family="sans-serif" font-size="10" text-anchor="middle">Mobile</text>
+
+  <!-- Right Controls: Zoom, Preview, Publish -->
+  <rect x="690" y="11" width="56" height="24" rx="5" fill="#2C2C2C" />
+  <text x="718" y="26" fill="#E5E7EB" font-family="monospace" font-size="10" text-anchor="middle">100%</text>
+  <rect x="754" y="11" width="76" height="24" rx="6" fill="#2C2C2C" />
+  <text x="792" y="26" fill="#D1D5DB" font-family="sans-serif" font-size="10" font-weight="600" text-anchor="middle">Pratinjau</text>
+  <rect x="838" y="11" width="106" height="24" rx="6" fill="#0D99FF" />
+  <text x="891" y="26" fill="#FFFFFF" font-family="sans-serif" font-size="10" font-weight="700" text-anchor="middle">Publikasikan</text>
+
+  <!-- Left Sidebar (Layers) -->
+  <rect x="1" y="46" width="190" height="568" fill="#1E1E1E" />
+  <line x1="191" y1="46" x2="191" y2="614" stroke="#2C2C2C" />
+  <rect x="1" y="46" width="190" height="32" fill="#222222" />
+  <line x1="1" y1="78" x2="191" y2="78" stroke="#2C2C2C" />
+  <text x="16" y="66" fill="#FFFFFF" font-family="sans-serif" font-size="11" font-weight="700">Layers</text>
+  <rect x="158" y="54" width="22" height="16" rx="4" fill="#2C2C2C" />
+  <text x="169" y="65" fill="#9CA3AF" font-family="monospace" font-size="9" text-anchor="middle">8</text>
+
+  <!-- Layer Items -->
+  <rect x="8" y="86" width="174" height="24" rx="5" fill="#262626" />
+  <text x="24" y="102" fill="#E5E7EB" font-family="sans-serif" font-size="10" font-weight="600">main (Container)</text>
+
+  <line x1="18" y1="114" x2="18" y2="275" stroke="#0D99FF" stroke-opacity="0.4" stroke-width="1.5" />
+  <rect x="22" y="116" width="160" height="24" rx="5" fill="#252528" />
+  <text x="34" y="132" fill="#D1D5DB" font-family="sans-serif" font-size="10">Hero Section</text>
+
+  <rect x="32" y="146" width="150" height="24" rx="5" fill="#252528" />
+  <text x="44" y="162" fill="#9CA3AF" font-family="sans-serif" font-size="10">Badge Visual</text>
+
+  <rect x="32" y="176" width="150" height="24" rx="5" fill="#0D99FF" />
+  <text x="44" y="192" fill="#FFFFFF" font-family="sans-serif" font-size="10" font-weight="600">Hero Heading</text>
+
+  <rect x="32" y="206" width="150" height="24" rx="5" fill="#252528" />
+  <text x="44" y="222" fill="#9CA3AF" font-family="sans-serif" font-size="10">Hero Paragraf</text>
+
+  <rect x="32" y="236" width="150" height="24" rx="5" fill="#252528" />
+  <text x="44" y="252" fill="#9CA3AF" font-family="sans-serif" font-size="10">Tombol CTA</text>
+
+  <rect x="22" y="272" width="160" height="24" rx="5" fill="#252528" />
+  <text x="34" y="288" fill="#D1D5DB" font-family="sans-serif" font-size="10">Grid Fitur (3 Kolom)</text>
+
+  <!-- Center Canvas Workspace -->
+  <rect x="192" y="46" width="556" height="568" fill="#141416" />
+
+  <!-- Artboard Label -->
+  <text x="224" y="76" fill="#0D99FF" font-family="monospace" font-size="10" font-weight="600">Beranda Utama — 1280 × 720</text>
+
+  <!-- White Canvas Artboard -->
+  <rect x="224" y="84" width="492" height="440" rx="8" fill="#FFFFFF" stroke="#2E2E32" />
+
+  <!-- Simulated Navbar inside Artboard -->
+  <rect x="225" y="85" width="490" height="38" rx="7" fill="#FFFFFF" />
+  <line x1="225" y1="123" x2="715" y2="123" stroke="#E5E7EB" />
+  <rect x="242" y="97" width="14" height="14" rx="4" fill="#0D99FF" />
+  <text x="262" y="108" fill="#111827" font-family="sans-serif" font-size="10" font-weight="700">Nawra CMS</text>
+  <text x="430" y="108" fill="#4B5563" font-family="sans-serif" font-size="9">Beranda</text>
+  <text x="478" y="108" fill="#4B5563" font-family="sans-serif" font-size="9">Fitur</text>
+  <text x="514" y="108" fill="#4B5563" font-family="sans-serif" font-size="9">Cara Kerja</text>
+  <rect x="634" y="95" width="66" height="20" rx="5" fill="#0D99FF" />
+  <text x="667" y="108" fill="#FFFFFF" font-family="sans-serif" font-size="8" font-weight="600" text-anchor="middle">Coba Editor</text>
+
+  <!-- Simulated Hero Section inside Artboard -->
+  <rect x="244" y="142" width="136" height="20" rx="10" fill="#EFF6FF" stroke="#BFDBFE" />
+  <text x="312" y="155" fill="#1D4ED8" font-family="sans-serif" font-size="8" font-weight="700" text-anchor="middle">VISUAL NO-CODE STUDIO</text>
+
+  <!-- Selected Element on Canvas: Hero Heading with Blue Selection Box & Handles -->
+  <rect x="240" y="170" width="276" height="64" fill="#0D99FF" fill-opacity="0.04" stroke="#0D99FF" stroke-width="1.5" />
+  <rect x="342" y="154" width="72" height="15" rx="3" fill="#0D99FF" />
+  <text x="378" y="164" fill="#FFFFFF" font-family="monospace" font-size="8" font-weight="600" text-anchor="middle">Hero Heading</text>
+
+  <text x="248" y="196" fill="#111827" font-family="sans-serif" font-size="18" font-weight="800">Bangun Website Visual</text>
+  <text x="248" y="220" fill="#0D99FF" font-family="sans-serif" font-size="18" font-weight="800">Tanpa Koding</text>
+
+  <!-- Resize Handles on Selected Heading -->
+  <rect x="237" y="167" width="6" height="6" fill="#FFFFFF" stroke="#0D99FF" stroke-width="1.5" />
+  <rect x="513" y="167" width="6" height="6" fill="#FFFFFF" stroke="#0D99FF" stroke-width="1.5" />
+  <rect x="237" y="231" width="6" height="6" fill="#FFFFFF" stroke="#0D99FF" stroke-width="1.5" />
+  <rect x="513" y="231" width="6" height="6" fill="#FFFFFF" stroke="#0D99FF" stroke-width="1.5" />
+
+  <rect x="342" y="236" width="72" height="14" rx="3" fill="#0D99FF" />
+  <text x="378" y="246" fill="#FFFFFF" font-family="monospace" font-size="8" text-anchor="middle">520px × 64px</text>
+
+  <!-- Hero Paragraph & Buttons -->
+  <rect x="244" y="258" width="240" height="8" rx="4" fill="#CBD5E1" />
+  <rect x="244" y="272" width="196" height="8" rx="4" fill="#E2E8F0" />
+
+  <rect x="244" y="294" width="96" height="28" rx="7" fill="#0D99FF" />
+  <text x="292" y="311" fill="#FFFFFF" font-family="sans-serif" font-size="9" font-weight="700" text-anchor="middle">Coba Editor</text>
+  <rect x="348" y="294" width="84" height="28" rx="7" fill="#FFFFFF" stroke="#D1D5DB" />
+  <text x="390" y="311" fill="#374151" font-family="sans-serif" font-size="9" font-weight="600" text-anchor="middle">Lihat Fitur</text>
+
+  <!-- Right Preview Card inside Artboard -->
+  <rect x="532" y="150" width="164" height="172" rx="12" fill="#F8FAFC" stroke="#E2E8F0" />
+  <rect x="546" y="166" width="136" height="84" rx="8" fill="#EFF6FF" stroke="#BFDBFE" />
+  <circle cx="614" cy="208" r="16" fill="#0D99FF" />
+  <polygon points="610,201 610,215 622,208" fill="#FFFFFF" />
+  <rect x="546" y="262" width="92" height="10" rx="5" fill="#334155" />
+  <rect x="546" y="278" width="120" height="7" rx="3.5" fill="#94A3B8" />
+  <rect x="546" y="291" width="100" height="7" rx="3.5" fill="#CBD5E1" />
+
+  <!-- Feature Cards Row inside Artboard -->
+  <rect x="244" y="346" width="142" height="86" rx="10" fill="#F8FAFC" stroke="#E2E8F0" />
+  <rect x="256" y="358" width="22" height="22" rx="6" fill="#EFF6FF" />
+  <rect x="256" y="388" width="86" height="9" rx="4.5" fill="#1E293B" />
+  <rect x="256" y="403" width="114" height="6" rx="3" fill="#94A3B8" />
+  <rect x="256" y="414" width="96" height="6" rx="3" fill="#CBD5E1" />
+
+  <rect x="399" y="346" width="142" height="86" rx="10" fill="#F8FAFC" stroke="#E2E8F0" />
+  <rect x="411" y="358" width="22" height="22" rx="6" fill="#EFF6FF" />
+  <rect x="411" y="388" width="86" height="9" rx="4.5" fill="#1E293B" />
+  <rect x="411" y="403" width="114" height="6" rx="3" fill="#94A3B8" />
+  <rect x="411" y="414" width="96" height="6" rx="3" fill="#CBD5E1" />
+
+  <rect x="554" y="346" width="142" height="86" rx="10" fill="#F8FAFC" stroke="#E2E8F0" />
+  <rect x="566" y="358" width="22" height="22" rx="6" fill="#EFF6FF" />
+  <rect x="566" y="388" width="86" height="9" rx="4.5" fill="#1E293B" />
+  <rect x="566" y="403" width="114" height="6" rx="3" fill="#94A3B8" />
+  <rect x="566" y="414" width="96" height="6" rx="3" fill="#CBD5E1" />
+
+  <!-- Floating Bottom Dock Toolbar -->
+  <rect x="315" y="552" width="310" height="42" rx="12" fill="#222226" stroke="#36363C" />
+  <rect x="325" y="560" width="26" height="26" rx="6" fill="#0D99FF" />
+  <rect x="359" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="393" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="427" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="461" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="495" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="529" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="563" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+  <rect x="591" y="560" width="26" height="26" rx="6" fill="#2C2C32" />
+
+  <!-- Right Sidebar (Inspector) -->
+  <rect x="749" y="46" width="210" height="568" fill="#1E1E1E" />
+  <line x1="749" y1="46" x2="749" y2="614" stroke="#2C2C2C" />
+  <rect x="749" y="46" width="210" height="32" fill="#222222" />
+  <line x1="749" y1="78" x2="959" y2="78" stroke="#2C2C2C" />
+  <text x="764" y="66" fill="#FFFFFF" font-family="sans-serif" font-size="11" font-weight="700">Inspektor Properti</text>
+
+  <!-- Inspector Section: Size -->
+  <text x="764" y="102" fill="#9CA3AF" font-family="sans-serif" font-size="9" font-weight="700">POSISI &amp; UKURAN</text>
+  <rect x="764" y="112" width="86" height="24" rx="4" fill="#252525" stroke="#333333" />
+  <text x="772" y="128" fill="#6B7280" font-family="monospace" font-size="9">L</text>
+  <text x="840" y="128" fill="#FFFFFF" font-family="monospace" font-size="9" text-anchor="end">520 px</text>
+  <rect x="858" y="112" width="86" height="24" rx="4" fill="#252525" stroke="#333333" />
+  <text x="866" y="128" fill="#6B7280" font-family="monospace" font-size="9">T</text>
+  <text x="934" y="128" fill="#FFFFFF" font-family="monospace" font-size="9" text-anchor="end">64 px</text>
+
+  <!-- Inspector Section: Typography -->
+  <line x1="764" y1="152" x2="944" y2="152" stroke="#2C2C2C" />
+  <text x="764" y="172" fill="#9CA3AF" font-family="sans-serif" font-size="9" font-weight="700">KONTEN &amp; TEKS</text>
+  <rect x="764" y="182" width="180" height="26" rx="4" fill="#252525" stroke="#0D99FF" />
+  <text x="772" y="199" fill="#FFFFFF" font-family="sans-serif" font-size="9">Bangun Website Visual</text>
+  <rect x="764" y="216" width="86" height="24" rx="4" fill="#252525" stroke="#333333" />
+  <text x="772" y="232" fill="#9CA3AF" font-family="sans-serif" font-size="9">36 px</text>
+  <rect x="858" y="216" width="86" height="24" rx="4" fill="#252525" stroke="#333333" />
+  <text x="866" y="232" fill="#FFFFFF" font-family="sans-serif" font-size="9">Extra Bold</text>
+
+  <!-- Inspector Section: Color -->
+  <line x1="764" y1="256" x2="944" y2="256" stroke="#2C2C2C" />
+  <text x="764" y="276" fill="#9CA3AF" font-family="sans-serif" font-size="9" font-weight="700">WARNA &amp; GAYA</text>
+  <rect x="764" y="286" width="180" height="26" rx="4" fill="#252525" stroke="#333333" />
+  <rect x="772" y="292" width="14" height="14" rx="3" fill="#0D99FF" />
+  <text x="794" y="303" fill="#FFFFFF" font-family="monospace" font-size="9">#0D99FF</text>
+  <text x="934" y="303" fill="#9CA3AF" font-family="monospace" font-size="9" text-anchor="end">100%</text>
+
+  <!-- Bottom Status Bar -->
+  <rect x="1" y="614" width="958" height="25" rx="15" fill="#181818" />
+  <line x1="1" y1="614" x2="959" y2="614" stroke="#2C2C2C" />
+  <circle cx="18" cy="626" r="4" fill="#10B981" />
+  <text x="28" y="630" fill="#D1D5DB" font-family="sans-serif" font-size="9" font-weight="600">Cloudflare Workers SSR • Tersinkronisasi dengan D1</text>
+</svg>
