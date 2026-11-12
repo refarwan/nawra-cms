@@ -1,23 +1,20 @@
 <script lang="ts">
-  import { goto } from "$app/navigation";
-  import { resolve } from "$app/paths";
-
   import { authStore } from "../../../lib/stores/auth.svelte";
 
   import type { LayoutProps } from "./$types";
 
   let { children }: LayoutProps = $props();
 
+  // Pastikan store auth bersih saat berada di layout unauthenticated
+  if (authStore.user || authStore.accessToken) {
+    authStore.clear();
+  }
+
   $effect(() => {
-    if (authStore.initialized && (authStore.accessToken || authStore.user)) {
-      void goto(resolve("/(dashboard)/(authenticated)/dashboard"), {
-        replace: true,
-        replaceState: true
-      });
+    if (authStore.user || authStore.accessToken) {
+      authStore.clear();
     }
   });
 </script>
 
-{#if !authStore.accessToken && !authStore.user}
-  {@render children()}
-{/if}
+{@render children()}

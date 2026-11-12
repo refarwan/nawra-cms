@@ -2,6 +2,8 @@
   import { onMount } from "svelte";
   import Icon from "@iconify/svelte";
 
+  import { page } from "$app/state";
+
   import { authStore } from "../../lib/stores/auth.svelte";
 
   import type { LayoutProps } from "./$types";
@@ -9,10 +11,13 @@
   let { data, children }: LayoutProps = $props();
 
   $effect(() => {
-    if (data.accessToken) {
-      authStore.setAccessToken(data.accessToken);
-    } else if (data.user) {
-      authStore.setUser(data.user);
+    const currentUser = page.data.user ?? data.user ?? null;
+    const currentToken = page.data.accessToken ?? data.accessToken ?? null;
+
+    if (currentToken) {
+      authStore.setAccessToken(currentToken);
+    } else if (currentUser) {
+      authStore.setUser(currentUser);
     } else {
       authStore.clear();
     }

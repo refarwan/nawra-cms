@@ -7,5 +7,8 @@ export const load: LayoutServerLoad = async ({ locals }) => {
     throw redirect(302, "/dashboard");
   }
 
-  return {};
+  return {
+    user: null,
+    accessToken: null
+  };
 };

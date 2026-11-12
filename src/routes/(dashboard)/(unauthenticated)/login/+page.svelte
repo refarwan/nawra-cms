@@ -2,7 +2,6 @@
   import Icon from "@iconify/svelte";
 
   import { applyAction, enhance } from "$app/forms";
-  import { resolve } from "$app/paths";
   import { page } from "$app/state";
 
   import PasswordField from "#lib/components/PasswordField.svelte";
@@ -176,16 +175,6 @@
             <Icon icon="lucide:arrow-right" class="h-4 w-4" />
           {/if}
         </button>
-
-        <p class="mt-4 text-center text-xs text-gray-500">
-          Database baru atau belum disiapkan?
-          <a
-            href={resolve("/(dashboard)/(unauthenticated)/startup")}
-            class="font-medium text-[#0d99ff] hover:underline"
-          >
-            Setup database
-          </a>
-        </p>
       </form>
     </div>
   </main>

@@ -113,7 +113,8 @@ export const handle: Handle = async ({ event, resolve }) => {
 
   // 3. Route protection
   if (path.startsWith("/dashboard") && !event.locals.user) {
-    throw redirect(302, `/login?redirect=${encodeURIComponent(path)}`);
+    const redirectPath = `${event.url.pathname}${event.url.search}`;
+    throw redirect(302, `/login?redirect=${encodeURIComponent(redirectPath)}`);
   }
 
   if (path === "/login" && event.locals.user) {
