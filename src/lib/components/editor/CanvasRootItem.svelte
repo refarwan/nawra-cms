@@ -115,6 +115,7 @@
   <div
     class="w-full {isDefaultFrame ? '' : 'overflow-hidden'}"
     style="
+      height: {isAutoHeightType ? 'auto' : `${rootTotalH}px`};
       min-height: {isDefaultFrame
       ? `${heightMode === 'fixed' && el.height ? rootTotalH : activePresetMinHeight}px`
       : heightMode === 'hug'
@@ -128,7 +129,6 @@
       border-color: {el.borderColor};
       border-style: {el.borderStyle};
       opacity: {el.opacity / 100};
-      box-shadow: {el.boxShadow};
       color: {el.color || 'inherit'};
       font-size: {el.fontSize ? el.fontSize + 'px' : 'inherit'};
       font-weight: {el.fontWeight || 'normal'};

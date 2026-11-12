@@ -49,7 +49,7 @@ function getStyleString(
   // Width
   if (widthMode === "fill") {
     styles.push("width: 100%");
-  } else if (widthMode === "hug") {
+  } else if (widthMode === "hug" && el.type !== "youtube") {
     styles.push("width: fit-content");
     styles.push("max-width: 100%");
   } else if (el.width) {
@@ -72,6 +72,8 @@ function getStyleString(
   } else if (heightMode === "fill") {
     styles.push("height: 100%");
     styles.push("align-self: stretch");
+  } else if (el.type === "youtube" && el.height) {
+    styles.push(`height: ${el.height + pt + pb}px`);
   }
 
   const bgColor =
@@ -129,9 +131,10 @@ function getStyleString(
   ) {
     styles.push("display: inline-flex");
     styles.push("align-items: center");
-    if (el.type === "button" || el.type === "badge") {
-      styles.push("justify-content: center");
-    }
+    const align = el.textAlign || (el.type === "button" || el.type === "badge" ? "center" : "left");
+    styles.push(
+      `justify-content: ${align === "center" ? "center" : align === "right" ? "flex-end" : "flex-start"}`
+    );
   }
 
   return styles.join("; ");
@@ -166,7 +169,7 @@ function renderElement(
     case "image":
       return `<img src="${escapeHtml(el.src || "")}" alt="${escapeHtml(el.alt || el.name || "")}" style="object-fit: cover; ${escapeHtml(style)}" />`;
     case "youtube":
-      return `<div style="position: relative; width: 100%; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: ${el.borderRadius || 0}px;"><iframe src="${escapeHtml(toYouTubeEmbedUrl(el.src))}" style="position: absolute; top:0; left: 0; width: 100%; height: 100%; border:0;" allowfullscreen></iframe></div>`;
+      return `<div style="overflow: hidden; ${escapeHtml(style)}"><iframe src="${escapeHtml(toYouTubeEmbedUrl(el.src))}" title="${escapeHtml(el.name || "YouTube Video")}" style="width: 100%; height: 100%; border: 0; display: block;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`;
     case "frame":
     case "rectangle":
     default: {

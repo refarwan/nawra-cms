@@ -84,7 +84,6 @@
     border-color: {child.borderColor};
     border-style: {child.borderStyle};
     opacity: {child.opacity / 100};
-    box-shadow: {child.boxShadow};
     color: {child.color || 'inherit'};
     font-size: {child.fontSize ? child.fontSize + 'px' : 'inherit'};
     font-weight: {child.fontWeight || 'normal'};

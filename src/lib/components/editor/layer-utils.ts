@@ -122,7 +122,7 @@ export function ensureDefaultRootFrame(
   frame: CanvasFrame,
   targetType?: EditorTargetType | null
 ): CanvasElement[] {
-  const copy = [...elements];
+  const copy = elements.map((el) => ({ ...el, boxShadow: "none" }));
   let defaultFrame =
     copy.find((el) => el.isDefault || el.id === "flexbox-default") ||
     copy.find((el) => !el.parentId && el.type === "frame");

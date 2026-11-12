@@ -6,20 +6,6 @@
   import type { CanvasElement } from "./types";
 
   let { editor, el }: { editor: EditorState; el: CanvasElement } = $props();
-
-  const shadowPresets = [
-    { label: "Tanpa Bayangan (None)", value: "none" },
-    {
-      label: "Halus (Subtle)",
-      value: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)"
-    },
-    {
-      label: "Sedang (Medium)",
-      value: "0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2)"
-    },
-    { label: "Tebal (Heavy)", value: "0 25px 50px -12px rgba(0, 0, 0, 0.5)" },
-    { label: "Glow Neon Biru", value: "0 0 25px rgba(13, 153, 255, 0.45)" }
-  ];
 </script>
 
 <!-- Fill / Background -->
@@ -115,21 +101,4 @@
       onChange={(borderColor) => editor.updateElement(el.id, { borderColor })}
     />
   </div>
-</div>
-
-<!-- Effects / Shadow -->
-<div class="border-t border-[#2c2c2c] pt-4">
-  <div class="mb-2 text-[11px] font-semibold tracking-wider text-neutral-400 uppercase">
-    Efek Bayangan (Shadow)
-  </div>
-  <select
-    value={el.boxShadow}
-    onchange={(e) =>
-      editor.updateElement(el.id, { boxShadow: (e.target as HTMLSelectElement).value })}
-    class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 text-white focus:outline-none"
-  >
-    {#each shadowPresets as preset (preset.value)}
-      <option value={preset.value}>{preset.label}</option>
-    {/each}
-  </select>
 </div>

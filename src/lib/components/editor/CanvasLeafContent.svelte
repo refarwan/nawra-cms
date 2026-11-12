@@ -10,7 +10,7 @@
 
 {#if el.type === "heading"}
   <h2
-    class="flex w-full items-center leading-tight tracking-tight {isSelected
+    class="w-full leading-tight tracking-tight {isSelected
       ? 'cursor-text select-text'
       : 'select-none'}"
   >
@@ -21,13 +21,11 @@
     {el.content}
   </p>
 {:else if el.type === "button" || el.type === "badge"}
-  <div class="flex w-full items-center justify-center font-semibold select-none">
+  <div class="w-full font-semibold select-none">
     {el.content}
   </div>
 {:else if el.type === "link"}
-  <span
-    class="pointer-events-none flex w-full items-center underline-offset-4 select-none hover:underline"
-  >
+  <span class="pointer-events-none block w-full underline-offset-4 select-none hover:underline">
     {el.content}
   </span>
 {:else if el.type === "image"}

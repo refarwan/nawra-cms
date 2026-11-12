@@ -106,6 +106,7 @@ export function createRootCanvasElement(
     case "button":
       return makeRoot(id, `Tombol ${count}`, "button", x, y, 160, 44, {
         content: "Klik Di Sini",
+        href: "#",
         fill: "#0d99ff",
         color: "#ffffff",
         fontSize: 14,

@@ -38,13 +38,13 @@
         {/if}
       </div>
 
-      {#if el.type === "link"}
+      {#if el.type === "link" || el.type === "button"}
         <div>
           <span class="mb-1 block text-[10px] text-neutral-400">URL Tautan Tujuan (Href)</span>
           <input
             type="text"
             value={el.href || ""}
-            placeholder="https://..."
+            placeholder="https://... atau /halaman"
             oninput={(e) =>
               editor.updateElement(el.id, { href: (e.target as HTMLInputElement).value })}
             class="w-full rounded border border-[#333] bg-[#252525] px-2.5 py-1.5 text-white focus:border-[#0d99ff] focus:outline-none"
