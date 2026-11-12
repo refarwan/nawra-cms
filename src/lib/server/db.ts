@@ -84,8 +84,16 @@ export async function ensureTables(d1?: D1Database): Promise<void> {
         )`
       )
       .run();
+    await client.prepare(`DROP INDEX IF EXISTS articles_slug_unique`).run();
     await client
-      .prepare(`CREATE UNIQUE INDEX IF NOT EXISTS articles_slug_unique ON articles (slug)`)
+      .prepare(
+        `CREATE UNIQUE INDEX IF NOT EXISTS articles_category_slug_idx ON articles (category_id, slug) WHERE category_id IS NOT NULL`
+      )
+      .run();
+    await client
+      .prepare(
+        `CREATE UNIQUE INDEX IF NOT EXISTS articles_null_category_slug_idx ON articles (slug) WHERE category_id IS NULL`
+      )
       .run();
 
     const articleInfo = await client.prepare(`PRAGMA table_info(articles)`).all<{ name: string }>();

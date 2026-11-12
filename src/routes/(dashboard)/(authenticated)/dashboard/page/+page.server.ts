@@ -45,7 +45,6 @@ export const actions: Actions = {
       const slugCheck = validatePageSlug(rawSlug);
       if (!slugCheck.valid) {
         return fail(400, {
-          error: slugCheck.error,
           fieldErrors: { slug: slugCheck.error }
         });
       }
@@ -57,7 +56,7 @@ export const actions: Actions = {
       });
       if (existing) {
         const msg = `Slug "/${slugCheck.normalized}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       const now = Date.now();
@@ -101,7 +100,6 @@ export const actions: Actions = {
       const slugCheck = validatePageSlug(rawSlug);
       if (!slugCheck.valid) {
         return fail(400, {
-          error: slugCheck.error,
           fieldErrors: { slug: slugCheck.error }
         });
       }
@@ -113,7 +111,7 @@ export const actions: Actions = {
       });
       if (conflict) {
         const msg = `Slug "/${slugCheck.normalized}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       await db

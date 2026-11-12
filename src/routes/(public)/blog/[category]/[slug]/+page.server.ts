@@ -1,5 +1,5 @@
 import { error } from "@sveltejs/kit";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { articleCategories, articles } from "#db/schema";
@@ -18,22 +18,31 @@ export const load: PageServerLoad = async ({ params, platform }) => {
   await ensureTables(platform?.env?.DB);
   const db = getDb(platform?.env?.DB);
 
+  let targetCategoryId: string | null = null;
+  let categoryMeta: { name: string; slug: string };
+
+  if (categorySlug !== "uncategorized") {
+    const foundCategory = await db.query.articleCategories.findFirst({
+      where: eq(articleCategories.slug, categorySlug)
+    });
+    if (!foundCategory) {
+      error(404, "Artikel Tidak Ditemukan");
+    }
+    targetCategoryId = foundCategory.id;
+    categoryMeta = { name: foundCategory.name, slug: foundCategory.slug };
+  } else {
+    categoryMeta = { name: "Tanpa Kategori", slug: "uncategorized" };
+  }
+
   const article = await db.query.articles.findFirst({
-    where: and(eq(articles.slug, articleSlug), eq(articles.status, "published"))
+    where: and(
+      targetCategoryId ? eq(articles.categoryId, targetCategoryId) : isNull(articles.categoryId),
+      eq(articles.slug, articleSlug),
+      eq(articles.status, "published")
+    )
   });
 
   if (!article) {
-    error(404, "Artikel Tidak Ditemukan");
-  }
-
-  const category = article.categoryId
-    ? await db.query.articleCategories.findFirst({
-        where: eq(articleCategories.id, article.categoryId)
-      })
-    : null;
-
-  const expectedCategorySlug = category?.slug ?? "uncategorized";
-  if (expectedCategorySlug !== categorySlug) {
     error(404, "Artikel Tidak Ditemukan");
   }
 
@@ -52,9 +61,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
       coverImage: article.coverImage,
       contentHtml,
       publishedAt: article.publishedAt ?? article.createdAt,
-      category: category
-        ? { name: category.name, slug: category.slug }
-        : { name: "Tanpa Kategori", slug: "uncategorized" }
+      category: categoryMeta
     },
     headerHtml,
     footerHtml,

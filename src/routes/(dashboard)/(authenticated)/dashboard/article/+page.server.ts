@@ -1,5 +1,5 @@
 import { fail, redirect } from "@sveltejs/kit";
-import { and, asc, desc, eq, ne } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, ne } from "drizzle-orm";
 
 import { getDb } from "#db/index";
 import { articleCategories, articles, users } from "#db/schema";
@@ -68,11 +68,14 @@ export const actions: Actions = {
       await ensureTables(platform?.env?.DB);
       const db = getDb(platform?.env?.DB);
       const existing = await db.query.articles.findFirst({
-        where: eq(articles.slug, slug)
+        where: and(
+          categoryId ? eq(articles.categoryId, categoryId) : isNull(articles.categoryId),
+          eq(articles.slug, slug)
+        )
       });
       if (existing) {
-        const msg = `Slug artikel "${slug}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        const msg = `Slug artikel "${slug}" sudah digunakan dalam kategori ini.`;
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       const now = Date.now();
@@ -112,11 +115,15 @@ export const actions: Actions = {
       await ensureTables(platform?.env?.DB);
       const db = getDb(platform?.env?.DB);
       const conflict = await db.query.articles.findFirst({
-        where: and(eq(articles.slug, slug), ne(articles.id, id))
+        where: and(
+          categoryId ? eq(articles.categoryId, categoryId) : isNull(articles.categoryId),
+          eq(articles.slug, slug),
+          ne(articles.id, id)
+        )
       });
       if (conflict) {
-        const msg = `Slug artikel "${slug}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        const msg = `Slug artikel "${slug}" sudah digunakan dalam kategori ini.`;
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       const current = await db.query.articles.findFirst({ where: eq(articles.id, id) });

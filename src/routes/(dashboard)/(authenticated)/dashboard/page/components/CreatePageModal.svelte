@@ -87,7 +87,6 @@
           if (result.type === "failure") {
             const data = result.data as { fieldErrors?: { title?: string; slug?: string } };
             serverFieldErrors = data?.fieldErrors ?? {};
-            await update({ reset: false });
             return;
           }
           if (result.type === "success" || result.type === "redirect") {

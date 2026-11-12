@@ -92,7 +92,7 @@ export const actions: Actions = {
       });
       if (existing) {
         const msg = `Slug kategori "/${slug}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       const now = Date.now();
@@ -128,7 +128,7 @@ export const actions: Actions = {
       });
       if (conflict) {
         const msg = `Slug kategori "/${slug}" sudah digunakan.`;
-        return fail(400, { error: msg, fieldErrors: { slug: msg } });
+        return fail(400, { fieldErrors: { slug: msg } });
       }
 
       await db

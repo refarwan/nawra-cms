@@ -23,7 +23,8 @@
     status = $bindable(),
     coverImage = $bindable(),
     excerpt = $bindable(),
-    categories
+    categories,
+    onCategoryChange
   }: {
     idPrefix: string;
     title: string;
@@ -37,6 +38,7 @@
     coverImage: string;
     excerpt: string;
     categories: CategoryOption[];
+    onCategoryChange?: (val: string) => void;
   } = $props();
 
   const categoryOptions = $derived<DropdownOption[]>([
@@ -72,11 +74,15 @@
       id="{idPrefix}-cat"
       name="categoryId"
       label="Kategori"
-      bind:value={categoryId}
+      value={categoryId}
       options={categoryOptions}
       placeholder="Pilih kategori..."
       searchable={categories.length > 5}
       searchPlaceholder="Cari kategori..."
+      onChange={(val) => {
+        categoryId = val;
+        onCategoryChange?.(val);
+      }}
     />
 
     <DropdownSelect

@@ -96,7 +96,6 @@
           if (result.type === "failure") {
             const data = result.data as { fieldErrors?: { title?: string; slug?: string } };
             serverFieldErrors = data?.fieldErrors ?? {};
-            await update({ reset: false });
             return;
           }
           if (result.type === "success") {
@@ -121,6 +120,9 @@
         }}
         onSlugInput={(val) => {
           slug = val;
+          serverFieldErrors = { ...serverFieldErrors, slug: undefined };
+        }}
+        onCategoryChange={() => {
           serverFieldErrors = { ...serverFieldErrors, slug: undefined };
         }}
         bind:categoryId

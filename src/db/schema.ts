@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
   id: text("id")
@@ -89,25 +89,31 @@ export const articleCategories = sqliteTable("article_categories", {
   updatedAt: integer("updated_at").notNull()
 });
 
-export const articles = sqliteTable("articles", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  title: text("title").notNull(),
-  slug: text("slug").notNull().unique(),
-  excerpt: text("excerpt").notNull().default(""),
-  contentJson: text("content_json").notNull().default(""),
-  contentHtml: text("content_html").notNull().default(""),
-  coverImage: text("cover_image").notNull().default(""),
-  categoryId: text("category_id").references(() => articleCategories.id, { onDelete: "set null" }),
-  authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
-  status: text("status", { enum: ["draft", "published"] })
-    .notNull()
-    .default("draft"),
-  publishedAt: integer("published_at"),
-  createdAt: integer("created_at").notNull(),
-  updatedAt: integer("updated_at").notNull()
-});
+export const articles = sqliteTable(
+  "articles",
+  {
+    id: text("id")
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    title: text("title").notNull(),
+    slug: text("slug").notNull(),
+    excerpt: text("excerpt").notNull().default(""),
+    contentJson: text("content_json").notNull().default(""),
+    contentHtml: text("content_html").notNull().default(""),
+    coverImage: text("cover_image").notNull().default(""),
+    categoryId: text("category_id").references(() => articleCategories.id, {
+      onDelete: "set null"
+    }),
+    authorId: text("author_id").references(() => users.id, { onDelete: "set null" }),
+    status: text("status", { enum: ["draft", "published"] })
+      .notNull()
+      .default("draft"),
+    publishedAt: integer("published_at"),
+    createdAt: integer("created_at").notNull(),
+    updatedAt: integer("updated_at").notNull()
+  },
+  (table) => [uniqueIndex("articles_category_slug_idx").on(table.categoryId, table.slug)]
+);
 
 export const imageLibrary = sqliteTable("image_library", {
   id: text("id")

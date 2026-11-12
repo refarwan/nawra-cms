@@ -48,7 +48,9 @@
         </div>
         <div>
           <h3 class="text-sm font-bold text-gray-900">Tulis Artikel Baru</h3>
-          <p class="text-[11px] text-gray-500">Artikel publik akan tampil di /blog/[slug]</p>
+          <p class="text-[11px] text-gray-500">
+            Artikel publik akan tampil di /blog/[kategori]/[slug]
+          </p>
         </div>
       </div>
 
@@ -77,7 +79,6 @@
           if (result.type === "failure") {
             const data = result.data as { fieldErrors?: { title?: string; slug?: string } };
             serverFieldErrors = data?.fieldErrors ?? {};
-            await update({ reset: false });
             return;
           }
           if (result.type === "success" || result.type === "redirect") {
@@ -101,6 +102,9 @@
         onSlugInput={(val) => {
           slugEdited = true;
           slugInput = val;
+          serverFieldErrors = { ...serverFieldErrors, slug: undefined };
+        }}
+        onCategoryChange={() => {
           serverFieldErrors = { ...serverFieldErrors, slug: undefined };
         }}
         bind:categoryId
