@@ -11,8 +11,27 @@ export function getElementDepth(elements: CanvasElement[], id: string): number {
   return depth;
 }
 
-export function getOrderedLayerElements(elements: CanvasElement[]): CanvasElement[] {
+export function hasChildElements(elements: CanvasElement[], parentId: string): boolean {
+  return elements.some((el) => el.parentId === parentId);
+}
+
+export function getOrderedLayerElements(
+  elements: CanvasElement[],
+  collapsedIds: ReadonlySet<string> = new Set()
+): CanvasElement[] {
   const result: CanvasElement[] = [];
+  const skippedIds = new Set<string>();
+
+  function collectSubtreeIds(parentId: string) {
+    const children = elements.filter((el) => el.parentId === parentId);
+    for (const child of children) {
+      skippedIds.add(child.id);
+      if (child.type === "frame") {
+        collectSubtreeIds(child.id);
+      }
+    }
+  }
+
   function addTree(parentId: string | null) {
     const children = elements.filter((el) =>
       parentId === null ? !el.parentId : el.parentId === parentId
@@ -20,13 +39,17 @@ export function getOrderedLayerElements(elements: CanvasElement[]): CanvasElemen
     for (const child of children) {
       result.push(child);
       if (child.type === "frame") {
-        addTree(child.id);
+        if (collapsedIds.has(child.id)) {
+          collectSubtreeIds(child.id);
+        } else {
+          addTree(child.id);
+        }
       }
     }
   }
   addTree(null);
   for (const el of elements) {
-    if (!result.some((r) => r.id === el.id)) {
+    if (!result.some((r) => r.id === el.id) && !skippedIds.has(el.id)) {
       result.push(el);
     }
   }

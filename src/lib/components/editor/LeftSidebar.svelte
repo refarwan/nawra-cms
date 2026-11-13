@@ -1,7 +1,8 @@
 <script lang="ts">
+  import { SvelteSet } from "svelte/reactivity";
   import Icon from "@iconify/svelte";
 
-  import { getElementDepth, getOrderedLayerElements } from "./layer-tree-utils";
+  import { getElementDepth, getOrderedLayerElements, hasChildElements } from "./layer-tree-utils";
   import LayerItemRow from "./LayerItemRow.svelte";
 
   import type { EditorState } from "./editor-state.svelte";
@@ -23,8 +24,17 @@
   let dropPosition = $state<"before" | "after" | null>(null);
   let editingLayerId = $state<string | null>(null);
   let editingName = $state("");
+  const collapsedLayerIds = new SvelteSet<string>();
 
-  const orderedElements = $derived(getOrderedLayerElements(editor.elements));
+  const orderedElements = $derived(getOrderedLayerElements(editor.elements, collapsedLayerIds));
+
+  function toggleCollapse(id: string) {
+    if (collapsedLayerIds.has(id)) {
+      collapsedLayerIds.delete(id);
+    } else {
+      collapsedLayerIds.add(id);
+    }
+  }
 
   function startResize(e: MouseEvent) {
     e.preventDefault();
@@ -142,6 +152,9 @@
         {editor}
         {element}
         depth={getElementDepth(editor.elements, element.id)}
+        hasChildren={element.type === "frame" && hasChildElements(editor.elements, element.id)}
+        isCollapsed={collapsedLayerIds.has(element.id)}
+        onToggleCollapse={() => toggleCollapse(element.id)}
         isEditing={editingLayerId === element.id}
         bind:editingName
         isBeingDragged={draggedLayerId === element.id}

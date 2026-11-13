@@ -10,6 +10,9 @@
     editor,
     element,
     depth,
+    hasChildren = false,
+    isCollapsed = false,
+    onToggleCollapse,
     isEditing,
     editingName = $bindable(""),
     isBeingDragged,
@@ -27,6 +30,9 @@
     editor: EditorState;
     element: CanvasElement;
     depth: number;
+    hasChildren?: boolean;
+    isCollapsed?: boolean;
+    onToggleCollapse?: () => void;
     isEditing: boolean;
     editingName: string;
     isBeingDragged: boolean;
@@ -47,6 +53,13 @@
   const isDefault = $derived(Boolean(element.isDefault || element.id === "flexbox-default"));
   const isDraggable = $derived(!isDefault && !isEditing);
 
+  function handleRowSelect() {
+    editor.selectElement(element.id);
+    if (element.type === "frame" && hasChildren) {
+      onToggleCollapse?.();
+    }
+  }
+
   function autoFocus(node: HTMLInputElement) {
     node.focus();
     node.select();
@@ -63,18 +76,17 @@
   ondrop={(e) => onDrop(e, element)}
   ondragend={onDragEnd}
   ondblclick={(e) => onStartRename(element, e)}
-  onclick={() => editor.selectElement(element.id)}
-  onkeydown={(e) => e.key === "Enter" && editor.selectElement(element.id)}
+  onclick={handleRowSelect}
+  onkeydown={(e) => e.key === "Enter" && handleRowSelect()}
   style="margin-left: {depth > 0 ? depth * 14 : 0}px;"
-  class="group relative flex items-center justify-between rounded px-2 py-1.5 transition select-none {depth >
+  class="group relative flex cursor-default items-center justify-between rounded px-2 py-1.5 transition select-none {depth >
   0
     ? 'border-l-2 border-[#0d99ff]/50 pl-2'
     : ''} {isSelected
     ? 'bg-[#0d99ff] font-medium text-white'
     : 'text-neutral-300 hover:bg-[#2c2c2c]'} {isBeingDragged
     ? 'scale-[0.98] opacity-30 ring-1 ring-neutral-500'
-    : ''} {isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} {isDropTarget &&
-  dropPosition === 'before'
+    : ''} {isDropTarget && dropPosition === 'before'
     ? 'border-t-2 border-[#0d99ff] bg-[#0d99ff]/15'
     : ''} {isDropTarget && dropPosition === 'after'
     ? 'border-b-2 border-[#0d99ff] bg-[#0d99ff]/15'
@@ -85,12 +97,12 @@
       ? 'mr-2'
       : 'group-hover:mr-2'}"
   >
-    {#if isDraggable}
+    {#if element.type === "frame" && hasChildren}
       <Icon
-        icon="lucide:grip-vertical"
-        class="h-3 w-3 shrink-0 text-neutral-500 opacity-0 transition-opacity group-hover:opacity-100 {isSelected
-          ? 'text-white/70'
-          : ''}"
+        icon={isCollapsed ? "lucide:chevron-right" : "lucide:chevron-down"}
+        class="h-3 w-3 shrink-0 transition-transform {isSelected
+          ? 'text-white/90'
+          : 'text-neutral-400'}"
       />
     {/if}
     <Icon
@@ -114,7 +126,7 @@
       />
     {:else}
       <span
-        class="truncate text-xs {!isDefault ? 'cursor-text' : 'cursor-default'}"
+        class="cursor-default truncate text-xs"
         title={!isDefault ? "Klik 2x untuk mengubah nama layer" : "Container utama (bawaan)"}
       >
         {element.name}
