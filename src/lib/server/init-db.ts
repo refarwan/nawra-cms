@@ -1,4 +1,4 @@
-import { getD1Binding } from "../../db/index";
+import { getLibsqlClient } from "../../db/index";
 import {
   registerDefaultAdmin,
   registerDefaultHeaderAndFooter,
@@ -65,30 +65,20 @@ const CREATE_TABLES_SQL = [
   )`
 ];
 
-export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStatus> {
-  const client = getD1Binding(d1);
-  if (!client) {
-    return {
-      initialized: false,
-      tablesExist: false,
-      adminExists: false,
-      error: "Binding database Cloudflare D1 (DB) tidak tersedia."
-    };
-  }
+export async function checkDatabaseStatus(): Promise<DatabaseStatus> {
+  const client = getLibsqlClient();
 
   try {
-    const tableRes = await client
-      .prepare("SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='users'")
-      .first<{ count: number }>();
-    const tablesExist = Boolean(tableRes && tableRes.count > 0);
+    const tableRes = await client.execute(
+      "SELECT count(*) as count FROM sqlite_master WHERE type='table' AND name='users'"
+    );
+    const tablesExist = Boolean(Number(tableRes.rows[0]?.count ?? 0) > 0);
     if (!tablesExist) {
       return { initialized: false, tablesExist: false, adminExists: false };
     }
 
-    const userRes = await client
-      .prepare("SELECT count(*) as count FROM users")
-      .first<{ count: number }>();
-    const adminExists = Boolean(userRes && userRes.count > 0);
+    const userRes = await client.execute("SELECT count(*) as count FROM users");
+    const adminExists = Boolean(Number(userRes.rows[0]?.count ?? 0) > 0);
 
     return {
       initialized: tablesExist && adminExists,
@@ -106,26 +96,23 @@ export async function checkDatabaseStatus(d1?: D1Database): Promise<DatabaseStat
   }
 }
 
-export async function ensureDatabaseReady(d1?: D1Database): Promise<boolean> {
-  const client = getD1Binding(d1);
-  if (!client) return false;
+export async function ensureDatabaseReady(): Promise<boolean> {
+  const client = getLibsqlClient();
 
   try {
-    // Pastikan seluruh tabel dibuat (idempotent dengan IF NOT EXISTS)
     for (const sql of CREATE_TABLES_SQL) {
-      await client.prepare(sql).run();
+      await client.execute(sql);
     }
 
-    const userRes = await client
-      .prepare("SELECT count(*) as count FROM users")
-      .first<{ count: number }>();
+    const userRes = await client.execute("SELECT count(*) as count FROM users");
+    const userCount = Number(userRes.rows[0]?.count ?? 0);
 
-    if (!userRes || userRes.count === 0) {
-      await registerDefaultAdmin(client);
+    if (userCount === 0) {
+      await registerDefaultAdmin();
     }
 
-    await registerDefaultHeaderAndFooter(client);
-    await registerDefaultSettings(client);
+    await registerDefaultHeaderAndFooter();
+    await registerDefaultSettings();
 
     return true;
   } catch (err) {
@@ -134,11 +121,9 @@ export async function ensureDatabaseReady(d1?: D1Database): Promise<boolean> {
   }
 }
 
-export async function initializeDatabase(
-  d1?: D1Database
-): Promise<{ success: boolean; message: string }> {
+export async function initializeDatabase(): Promise<{ success: boolean; message: string }> {
   try {
-    const ready = await ensureDatabaseReady(d1);
+    const ready = await ensureDatabaseReady();
     if (!ready) {
       return {
         success: false,

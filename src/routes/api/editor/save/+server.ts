@@ -7,7 +7,7 @@ import { ensureTables } from "#lib/server/db";
 
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ request, locals, platform }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) {
     return json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -27,7 +27,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
       return json({ error: "Data editor tidak lengkap." }, { status: 400 });
     }
 
-    const db = getDb(platform?.env?.DB);
+    const db = getDb();
     const now = Date.now();
 
     if (type === "header") {
@@ -97,7 +97,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
         });
       }
     } else if (type === "page") {
-      await ensureTables(platform?.env?.DB);
+      await ensureTables();
       const existing = await db.query.pages.findFirst({ where: eq(pages.id, id) });
       if (!existing) {
         return json({ error: "Halaman tidak ditemukan." }, { status: 404 });
@@ -113,7 +113,7 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
       if (status === "draft" || status === "published") updateData.status = status;
       await db.update(pages).set(updateData).where(eq(pages.id, id));
     } else if (type === "article") {
-      await ensureTables(platform?.env?.DB);
+      await ensureTables();
       const existing = await db.query.articles.findFirst({ where: eq(articles.id, id) });
       if (!existing) {
         return json({ error: "Artikel tidak ditemukan." }, { status: 404 });

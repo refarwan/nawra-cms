@@ -119,7 +119,7 @@ export function getDefaultFooterTemplate(title = "Nawra Footer"): DefaultTemplat
       "footer-brand-desc",
       "Deskripsi Brand Footer",
       "footer-brand",
-      "Visual No-Code CMS Studio untuk membangun halaman web responsif dengan cepat dan menyimpannya langsung di jaringan Cloudflare D1.",
+      "Visual No-Code CMS Studio untuk membangun halaman web responsif dengan cepat dan menyimpannya langsung di jaringan Database Turso.",
       { fontSize: 13, color: "#9ca3af" }
     ),
     elFrame("footer-links", "Tautan Cepat Footer", "footer-top", {
@@ -156,7 +156,7 @@ export function getDefaultFooterTemplate(title = "Nawra Footer"): DefaultTemplat
       "footer-tech",
       "Info Infrastruktur",
       "footer-bottom",
-      "Cloudflare Workers SSR • D1 Serverless Database",
+      "Netlify Serverless SSR • Turso LibSQL Database",
       { widthMode: "hug", fontSize: 12, color: "#6b7280", textAlign: "right" }
     )
   ];

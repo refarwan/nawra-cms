@@ -10,7 +10,7 @@ import { loadActiveHeaderFooterHtml, renderFromJsonOrHtml } from "#lib/server/pu
 import type { EditorTargetType } from "#lib/components/editor/types";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, platform, url }) => {
+export const load: PageServerLoad = async ({ locals, url }) => {
   const rawType = url.searchParams.get("type");
   const type: EditorTargetType | null =
     rawType === "header" ||
@@ -37,8 +37,8 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
 
   if (type && id) {
     try {
-      const db = getDb(platform?.env?.DB);
-      const layoutData = await loadActiveHeaderFooterHtml(platform?.env?.DB);
+      const db = getDb();
+      const layoutData = await loadActiveHeaderFooterHtml();
       previewContext.headerHtml = layoutData.headerHtml;
       previewContext.footerHtml = layoutData.footerHtml;
 
@@ -79,7 +79,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
           };
         }
       } else if (type === "page") {
-        await ensureTables(platform?.env?.DB);
+        await ensureTables();
         const row = await db.query.pages.findFirst({ where: eq(pages.id, id) });
         if (row) {
           targetItem = {
@@ -90,7 +90,7 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
           };
         }
       } else if (type === "article") {
-        await ensureTables(platform?.env?.DB);
+        await ensureTables();
         const row = await db.query.articles.findFirst({ where: eq(articles.id, id) });
         if (row) {
           targetItem = {
@@ -119,6 +119,6 @@ export const load: PageServerLoad = async ({ locals, platform, url }) => {
     targetType: type,
     previewContext,
     serverTimestamp: new Date().toISOString(),
-    cfCountry: (platform?.cf?.country as string) ?? "Local/Dev"
+    cfCountry: "Netlify Edge"
   };
 };

@@ -27,7 +27,7 @@
 <div
   class="flex min-h-screen flex-col bg-white font-sans text-gray-900 antialiased selection:bg-[#2563eb] selection:text-white"
 >
-  <!-- Header: Active from Cloudflare D1 or Fallback -->
+  <!-- Header: Active from Database or Fallback -->
   {#if data.headerHtml}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html data.headerHtml}
@@ -35,7 +35,7 @@
     <PublicHeaderFallback cfCountry={data.cfCountry} />
   {/if}
 
-  <!-- Main Content (Home Page): Active from Cloudflare D1 or Fallback -->
+  <!-- Main Content (Home Page): Active from Database or Fallback -->
   {#if data.homeHtml}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html data.homeHtml}
@@ -47,7 +47,7 @@
     </main>
   {/if}
 
-  <!-- Footer: Active from Cloudflare D1 or Fallback -->
+  <!-- Footer: Active from Database or Fallback -->
   {#if data.footerHtml}
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html data.footerHtml}

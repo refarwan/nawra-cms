@@ -1,5 +1,4 @@
 import { redirect } from "@sveltejs/kit";
-import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 
 import { refreshTokens } from "./db/schema";
@@ -15,20 +14,12 @@ import type { JwtAccessTokenPayload } from "./lib/server/auth";
 let isDatabaseReady = false;
 
 export const handle: Handle = async ({ event, resolve }) => {
-  if (!event.platform) {
-    (event as { platform?: App.Platform }).platform =
-      globalThis.__sveltekit_cloudflare_platform ?? {
-        env: env as App.Platform["env"]
-      };
-  }
-
   const isSecure = process.env.NODE_ENV === "production" || event.url.protocol === "https:";
   const path = event.url.pathname;
 
-  // Cek database otomatis: jika belum ada tabel, otomatis buat tabel & register admin
   if (!isDatabaseReady) {
     try {
-      const ready = await ensureDatabaseReady(event.platform?.env?.DB);
+      const ready = await ensureDatabaseReady();
       if (ready) {
         isDatabaseReady = true;
       }
@@ -37,20 +28,19 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  const jwtSecret = await getJwtSecret(event.platform?.env?.DB);
+  const jwtSecret = await getJwtSecret();
 
   event.locals.user = null;
   event.locals.session = null;
   event.locals.accessToken = null;
 
-  // 1. Coba verifikasi Access Token dan pastikan sesi belum dicabut (mis. saat ganti password)
   const accessToken = event.cookies.get("access_token");
   if (accessToken) {
     const payload = await verifyJwt<JwtAccessTokenPayload>(accessToken, jwtSecret);
     if (payload && (!isDatabaseReady || payload.sid)) {
       let isSessionActive = true;
       if (isDatabaseReady && payload.sid) {
-        const db = getDb(event.platform?.env?.DB);
+        const db = getDb();
         const sessionRow = await db.query.refreshTokens.findFirst({
           where: eq(refreshTokens.id, payload.sid),
           columns: { id: true, expiresAt: true }
@@ -76,18 +66,12 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  // 2. Jika Access Token tidak ada atau expired, coba segarkan via Refresh Token
   if (!event.locals.user && isDatabaseReady) {
     const refreshToken = event.cookies.get("refresh_token");
     if (refreshToken) {
       try {
-        const db = getDb(event.platform?.env?.DB);
-        const refreshed = await refreshUserToken(
-          db,
-          refreshToken,
-          jwtSecret,
-          event.platform?.env?.DB
-        );
+        const db = getDb();
+        const refreshed = await refreshUserToken(db, refreshToken, jwtSecret);
 
         if (refreshed) {
           event.locals.accessToken = refreshed.accessToken;
@@ -97,7 +81,7 @@ export const handle: Handle = async ({ event, resolve }) => {
             httpOnly: true,
             sameSite: "lax",
             secure: isSecure,
-            maxAge: 15 * 60 // 15 menit
+            maxAge: 15 * 60
           });
         } else {
           event.cookies.delete("access_token", { path: "/" });
@@ -111,7 +95,6 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  // 3. Route protection
   if (path.startsWith("/dashboard") && !event.locals.user) {
     const redirectPath = `${event.url.pathname}${event.url.search}`;
     throw redirect(302, `/login?redirect=${encodeURIComponent(redirectPath)}`);

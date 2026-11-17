@@ -11,17 +11,17 @@ import type { Actions, PageServerLoad } from "./$types";
 
 const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user?.role !== "admin") {
     throw redirect(303, "/dashboard");
   }
 
-  const siteSettings = await getSiteSettings(platform?.env?.DB);
+  const siteSettings = await getSiteSettings();
   return { siteSettings };
 };
 
 export const actions: Actions = {
-  save: async ({ request, locals, platform }) => {
+  save: async ({ request, locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, {
         error: "Hanya admin yang dapat mengubah pengaturan situs."
@@ -60,21 +60,18 @@ export const actions: Actions = {
       return fail(400, { fieldErrors, values });
     }
 
-    const previous = await getSiteSettings(platform?.env?.DB);
+    const previous = await getSiteSettings();
 
-    await saveSiteSettings(
-      {
-        siteTitle,
-        siteTagline,
-        siteDescription,
-        siteFavicon,
-        blogAccentColor: blogAccentColor.toLowerCase()
-      },
-      platform?.env?.DB
-    );
+    await saveSiteSettings({
+      siteTitle,
+      siteTagline,
+      siteDescription,
+      siteFavicon,
+      blogAccentColor: blogAccentColor.toLowerCase()
+    });
 
     if (previous.siteFavicon && previous.siteFavicon !== siteFavicon) {
-      await deleteFaviconObject(previous.siteFavicon, platform?.env?.MEDIA_BUCKET);
+      await deleteFaviconObject(previous.siteFavicon);
     }
 
     return {
@@ -87,18 +84,18 @@ export const actions: Actions = {
     };
   },
 
-  reset: async ({ locals, platform }) => {
+  reset: async ({ locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, {
         error: "Hanya admin yang dapat mereset pengaturan situs."
       });
     }
 
-    const previous = await getSiteSettings(platform?.env?.DB);
-    await saveSiteSettings({ ...DEFAULT_SITE_SETTINGS }, platform?.env?.DB);
+    const previous = await getSiteSettings();
+    await saveSiteSettings({ ...DEFAULT_SITE_SETTINGS });
 
     if (previous.siteFavicon) {
-      await deleteFaviconObject(previous.siteFavicon, platform?.env?.MEDIA_BUCKET);
+      await deleteFaviconObject(previous.siteFavicon);
     }
 
     return {

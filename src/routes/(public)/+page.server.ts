@@ -7,12 +7,12 @@ import { loadActiveHeaderFooterHtml, renderFromJsonOrHtml } from "#lib/server/pu
 
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
-  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml(platform?.env?.DB);
+export const load: PageServerLoad = async () => {
+  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml();
   let homeHtml: string | null = null;
 
   try {
-    const db = getDb(platform?.env?.DB);
+    const db = getDb();
     const activeHome = await db.query.homepages.findFirst({
       where: eq(homepages.isActive, 1)
     });
@@ -40,13 +40,13 @@ export const load: PageServerLoad = async ({ platform }) => {
       }
     }
   } catch (err) {
-    console.warn("Gagal memuat homepage aktif dari D1:", err);
+    console.warn("Gagal memuat homepage aktif dari database:", err);
   }
 
   return {
     headerHtml,
     footerHtml,
     homeHtml,
-    cfCountry: (platform?.cf?.country as string) ?? "Local/Dev"
+    cfCountry: "Netlify Edge"
   };
 };

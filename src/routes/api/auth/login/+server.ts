@@ -5,7 +5,7 @@ import { getDb } from "../../../../lib/server/db";
 
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ request, cookies, platform, url }) => {
+export const POST: RequestHandler = async ({ request, cookies, url }) => {
   try {
     const body = (await request.json()) as {
       username?: string;
@@ -23,14 +23,8 @@ export const POST: RequestHandler = async ({ request, cookies, platform, url }) 
       );
     }
 
-    const db = getDb(platform?.env?.DB);
-    const auth = await loginUser(
-      db,
-      identifier,
-      password,
-      platform?.env?.JWT_SECRET,
-      platform?.env?.DB
-    );
+    const db = getDb();
+    const auth = await loginUser(db, identifier, password);
 
     if (!auth) {
       return json(

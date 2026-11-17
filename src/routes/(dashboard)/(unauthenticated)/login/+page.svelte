@@ -10,10 +10,8 @@
   import LoginBrandSide from "./components/LoginBrandSide.svelte";
 
   let {
-    data,
     form
   }: {
-    data: { isCloudflare?: boolean; isD1Connected?: boolean };
     form?: {
       error?: string;
       identifier?: string;
@@ -84,18 +82,6 @@
           Masuk ke panel kontrol <strong class="font-semibold text-gray-700">{siteTitle}</strong>
         </p>
       </div>
-
-      {#if data.isCloudflare && !data.isD1Connected}
-        <div
-          class="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-300 bg-amber-50 p-3.5 text-xs text-amber-900"
-        >
-          <Icon icon="lucide:alert-triangle" class="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
-          <span>
-            <strong>Cloudflare D1 belum terhubung!</strong> Pasang binding <code>DB</code> di Cloudflare
-            Settings agar data Anda tidak hilang saat Worker restart.
-          </span>
-        </div>
-      {/if}
 
       {#if passwordChanged}
         <div

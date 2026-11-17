@@ -30,14 +30,15 @@
     />
 
     <div class="flex min-h-screen flex-col xl:pl-65">
-      {#if data.isCloudflare && !data.isD1Connected}
+      {#if !data.isS3Configured}
         <div
           class="flex items-center gap-2.5 border-b border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-900"
         >
           <Icon icon="lucide:alert-triangle" class="h-4 w-4 shrink-0 text-amber-600" />
           <span>
-            <strong>Peringatan Database D1:</strong> Binding <code>DB</code> belum terpasang di Cloudflare
-            Settings. Data Anda disimpan sementara di memori.
+            <strong>Peringatan Storage S3:</strong> Variabel lingkungan S3 (<code>S3_BUCKET</code>,
+            <code>S3_ACCESS_KEY_ID</code>, <code>S3_SECRET_ACCESS_KEY</code>) belum dikonfigurasi.
+            Upload media akan gagal hingga env S3 diatur.
           </span>
         </div>
       {/if}

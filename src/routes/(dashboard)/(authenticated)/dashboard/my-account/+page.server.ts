@@ -17,8 +17,7 @@ import type { Actions, PageServerLoad } from "./$types";
 async function refreshSessionCookie(
   cookies: Cookies,
   row: typeof users.$inferSelect,
-  urlProtocol: string,
-  d1?: D1Database
+  urlProtocol: string
 ) {
   const isSecure = process.env.NODE_ENV === "production" || urlProtocol === "https:";
   const user: AuthUser = {
@@ -32,7 +31,7 @@ async function refreshSessionCookie(
   };
   const refreshToken = cookies.get("refresh_token");
   const sid = refreshToken ? decodeJwt<JwtRefreshTokenPayload>(refreshToken)?.jti : undefined;
-  const jwtSecret = await getJwtSecret(d1);
+  const jwtSecret = await getJwtSecret();
   const accessToken = await createAccessToken(user, jwtSecret, sid);
   cookies.set("access_token", accessToken, {
     path: "/",
@@ -43,13 +42,13 @@ async function refreshSessionCookie(
   });
 }
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (!locals.user) {
     return { user: null };
   }
 
-  await ensureTables(platform?.env?.DB);
-  const db = getDb(platform?.env?.DB);
+  await ensureTables();
+  const db = getDb();
   const userRow = await db.query.users.findFirst({
     where: eq(users.id, locals.user.id)
   });
@@ -71,7 +70,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
-  updateProfile: async ({ request, locals, platform, cookies, url }) => {
+  updateProfile: async ({ request, locals, cookies, url }) => {
     if (!locals.user) {
       return fail(401, { error: "Sesi tidak valid. Silakan login kembali." });
     }
@@ -112,8 +111,8 @@ export const actions: Actions = {
     }
 
     try {
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
 
       const existingUsername = await db.query.users.findFirst({
         where: and(eq(users.username, username), ne(users.id, locals.user.id))
@@ -139,7 +138,7 @@ export const actions: Actions = {
 
       const updatedRow = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
       if (updatedRow) {
-        await refreshSessionCookie(cookies, updatedRow, url.protocol, platform?.env?.DB);
+        await refreshSessionCookie(cookies, updatedRow, url.protocol);
       }
 
       return { success: true, message: "Profil akun Anda berhasil diperbarui." };
@@ -149,7 +148,7 @@ export const actions: Actions = {
     }
   },
 
-  updateAvatar: async ({ request, locals, platform, cookies, url }) => {
+  updateAvatar: async ({ request, locals, cookies, url }) => {
     if (!locals.user) {
       return fail(401, { error: "Sesi tidak valid. Silakan login kembali." });
     }
@@ -158,8 +157,8 @@ export const actions: Actions = {
     const avatarUrl = String(data.get("avatarUrl") || "").trim();
 
     try {
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const previousRow = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
 
       await db
@@ -168,12 +167,12 @@ export const actions: Actions = {
         .where(eq(users.id, locals.user.id));
 
       if (previousRow?.avatarUrl && previousRow.avatarUrl !== avatarUrl) {
-        await deleteAvatarObject(previousRow.avatarUrl, platform?.env?.MEDIA_BUCKET);
+        await deleteAvatarObject(previousRow.avatarUrl);
       }
 
       const updatedRow = await db.query.users.findFirst({ where: eq(users.id, locals.user.id) });
       if (updatedRow) {
-        await refreshSessionCookie(cookies, updatedRow, url.protocol, platform?.env?.DB);
+        await refreshSessionCookie(cookies, updatedRow, url.protocol);
       }
 
       return {

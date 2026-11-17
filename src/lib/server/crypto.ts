@@ -1,4 +1,4 @@
-// Pure Web Crypto API implementation for Cloudflare Workers & Node.js
+// Pure Web Crypto API implementation for Node.js / Bun / Netlify Functions
 
 const ITERATIONS = 20000;
 const KEYLEN = 32;

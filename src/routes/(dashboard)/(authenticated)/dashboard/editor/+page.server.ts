@@ -17,12 +17,12 @@ import {
 
 import type { Actions, PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user?.role !== "admin") throw redirect(303, "/dashboard");
 
   try {
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const editors = await db
       .select({
         id: users.id,
@@ -45,7 +45,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
-  create: async ({ request, locals, platform }) => {
+  create: async ({ request, locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, { error: "Akses ditolak. Hanya admin yang dapat menambah editor." });
     }
@@ -62,8 +62,8 @@ export const actions: Actions = {
       const passwordError = validatePasswordPair(password, confirmPassword);
       if (passwordError) return fail(400, passwordError);
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const conflictError = await findEditorConflict(db, username, email);
       if (conflictError) return fail(400, conflictError);
 
@@ -87,7 +87,7 @@ export const actions: Actions = {
     }
   },
 
-  edit: async ({ request, locals, platform }) => {
+  edit: async ({ request, locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, { error: "Akses ditolak. Hanya admin yang dapat mengubah editor." });
     }
@@ -100,8 +100,8 @@ export const actions: Actions = {
       const profileError = validateEditorProfileInput(name, username, email, id, true);
       if (profileError) return fail(400, profileError);
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const conflictError = await findEditorConflict(db, username, email, id);
       if (conflictError) return fail(400, conflictError);
 
@@ -115,7 +115,7 @@ export const actions: Actions = {
         .where(and(eq(users.id, id), eq(users.role, "editor")));
 
       if (existing?.avatarUrl && existing.avatarUrl !== avatarUrl) {
-        await deleteAvatarObject(existing.avatarUrl, platform?.env?.MEDIA_BUCKET);
+        await deleteAvatarObject(existing.avatarUrl);
       }
 
       return { success: true };
@@ -125,7 +125,7 @@ export const actions: Actions = {
     }
   },
 
-  changePassword: async ({ request, locals, platform }) => {
+  changePassword: async ({ request, locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, { error: "Akses ditolak. Hanya admin yang dapat mengubah kata sandi." });
     }
@@ -140,8 +140,8 @@ export const actions: Actions = {
       const passwordError = validatePasswordPair(password, confirmPassword);
       if (passwordError) return fail(400, passwordError);
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
 
       await db
         .update(users)
@@ -155,7 +155,7 @@ export const actions: Actions = {
     }
   },
 
-  delete: async ({ request, locals, platform }) => {
+  delete: async ({ request, locals }) => {
     if (locals.user?.role !== "admin") {
       return fail(403, { error: "Akses ditolak. Hanya admin yang dapat menghapus editor." });
     }
@@ -165,17 +165,17 @@ export const actions: Actions = {
       const id = String(data.get("id") || "").trim();
       if (!id) return fail(400, { error: "ID editor tidak valid." });
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const existing = await db.query.users.findFirst({
         where: and(eq(users.id, id), eq(users.role, "editor"))
       });
 
-      await deleteEditorOwnedContent(db, id, platform?.env?.MEDIA_BUCKET);
+      await deleteEditorOwnedContent(db, id);
       await db.delete(users).where(and(eq(users.id, id), eq(users.role, "editor")));
 
       if (existing?.avatarUrl) {
-        await deleteAvatarObject(existing.avatarUrl, platform?.env?.MEDIA_BUCKET);
+        await deleteAvatarObject(existing.avatarUrl);
       }
 
       return { success: true };

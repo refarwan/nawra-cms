@@ -33,10 +33,10 @@
   );
   const statusDesc = $derived(
     saving
-      ? "Mengenerate HTML dan menyimpan ke Cloudflare D1"
+      ? "Mengenerate HTML dan menyimpan ke Database Turso"
       : saveError
         ? "Terjadi kendala saat menyimpan"
-        : "Konten HTML & JSON tersimpan di Cloudflare D1"
+        : "Konten HTML & JSON tersimpan di Database Turso"
   );
   const statusColorClass = $derived(
     saveError
@@ -148,7 +148,7 @@
     <div
       class="mt-5 space-y-2 rounded-xl border border-neutral-800 bg-neutral-900/60 p-3.5 text-xs"
     >
-      {#each [["Tipe:", targetLabel, "font-medium text-white"], ["Judul:", editor.frame.name, "font-medium text-white"], ["Format:", "JSON & HTML", "text-neutral-300"], ["Database:", "Cloudflare D1", "font-medium text-emerald-400"]] as [label, val, cls] (label)}
+      {#each [["Tipe:", targetLabel, "font-medium text-white"], ["Judul:", editor.frame.name, "font-medium text-white"], ["Format:", "JSON & HTML", "text-neutral-300"], ["Database:", "Turso (LibSQL)", "font-medium text-emerald-400"]] as [label, val, cls] (label)}
         <div class="flex justify-between">
           <span class="text-neutral-400">{label}</span><span class={cls}>{val}</span>
         </div>

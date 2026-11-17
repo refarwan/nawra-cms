@@ -16,7 +16,7 @@
         </div>
         <p class="mt-3 max-w-md text-sm leading-relaxed text-gray-400">
           Visual No-Code CMS Studio untuk membangun halaman web responsif dengan cepat dan
-          menyimpannya langsung di jaringan Cloudflare D1.
+          menyimpannya langsung di jaringan Database Turso.
         </p>
       </div>
 
@@ -33,7 +33,7 @@
       <span
         >© {new Date().getFullYear()} Nawra CMS Visual Studio. Seluruh hak cipta dilindungi.</span
       >
-      <span>Cloudflare Workers SSR • D1 Serverless Database</span>
+      <span>Netlify Serverless SSR • Turso LibSQL Database</span>
     </div>
   </div>
 </footer>

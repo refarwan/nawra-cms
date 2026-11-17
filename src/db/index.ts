@@ -1,24 +1,32 @@
-import { env } from "cloudflare:workers";
-import { drizzle } from "drizzle-orm/d1";
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
 
 import * as schema from "./schema";
 
-export function getD1Binding(d1?: D1Database): D1Database | undefined {
-  if (d1) return d1;
-  try {
-    if (env?.DB) return env.DB;
-  } catch {
-    // Ignore if cloudflare:workers is accessed outside request context
-  }
-  return globalThis.__sveltekit_cloudflare_platform?.env?.DB;
+import type { Client } from "@libsql/client";
+
+let clientInstance: Client | null = null;
+let dbInstance: ReturnType<typeof drizzle<typeof schema>> | null = null;
+
+export function getLibsqlClient(): Client {
+  if (clientInstance) return clientInstance;
+
+  const url = process.env.TURSO_DATABASE_URL || "file:local.db";
+  const authToken = process.env.TURSO_AUTH_TOKEN || undefined;
+
+  clientInstance = createClient({
+    url,
+    authToken
+  });
+
+  return clientInstance;
 }
 
-export function getDb(d1?: D1Database) {
-  const client = getD1Binding(d1);
-  if (!client) {
-    throw new Error("Binding Cloudflare D1 (DB) tidak tersedia pada platform.env.DB.");
-  }
-  return drizzle(client, { schema });
+export function getDb() {
+  if (dbInstance) return dbInstance;
+  const client = getLibsqlClient();
+  dbInstance = drizzle(client, { schema });
+  return dbInstance;
 }
 
 export type AppDb = ReturnType<typeof getDb>;

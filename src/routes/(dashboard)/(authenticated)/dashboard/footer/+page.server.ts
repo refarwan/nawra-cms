@@ -9,11 +9,11 @@ import { getEmptySectionTemplate } from "#lib/server/empty-template";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user?.role !== "admin") throw redirect(303, "/dashboard");
   try {
-    const db = getDb(platform?.env?.DB);
-    await ensureTables(platform?.env?.DB);
+    const db = getDb();
+    await ensureTables();
 
     const list = await db.query.footers.findMany({
       orderBy: [desc(footers.createdAt)]
@@ -31,7 +31,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
-  create: async ({ request, platform }) => {
+  create: async ({ request }) => {
     let id: string;
     try {
       const data = await request.formData();
@@ -44,8 +44,8 @@ export const actions: Actions = {
         });
       }
 
-      const db = getDb(platform?.env?.DB);
-      await ensureTables(platform?.env?.DB);
+      const db = getDb();
+      await ensureTables();
 
       const firstFooter = await db.query.footers.findFirst();
       const isFirst = !firstFooter;
@@ -75,7 +75,7 @@ export const actions: Actions = {
     throw redirect(303, `/editor?type=footer&id=${id}`);
   },
 
-  edit: async ({ request, platform }) => {
+  edit: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
@@ -88,8 +88,8 @@ export const actions: Actions = {
         });
       }
 
-      const db = getDb(platform?.env?.DB);
-      await ensureTables(platform?.env?.DB);
+      const db = getDb();
+      await ensureTables();
 
       await db.update(footers).set({ title, updatedAt: Date.now() }).where(eq(footers.id, id));
 
@@ -101,15 +101,15 @@ export const actions: Actions = {
     }
   },
 
-  activate: async ({ request, platform }) => {
+  activate: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
 
       if (!id) return fail(400, { error: "ID tidak valid" });
 
-      const db = getDb(platform?.env?.DB);
-      await ensureTables(platform?.env?.DB);
+      const db = getDb();
+      await ensureTables();
 
       await db.update(footers).set({ isActive: 0 });
       await db.update(footers).set({ isActive: 1 }).where(eq(footers.id, id));
@@ -122,15 +122,15 @@ export const actions: Actions = {
     }
   },
 
-  delete: async ({ request, platform }) => {
+  delete: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
 
       if (!id) return fail(400, { error: "ID tidak valid" });
 
-      const db = getDb(platform?.env?.DB);
-      await ensureTables(platform?.env?.DB);
+      const db = getDb();
+      await ensureTables();
 
       const target = await db.query.footers.findFirst({ where: eq(footers.id, id) });
       if (target?.isActive) {

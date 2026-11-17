@@ -23,9 +23,9 @@ function extractShortDescription(excerpt: string, contentHtml: string, maxLength
   return `${plainText.slice(0, maxLength).trimEnd()}...`;
 }
 
-export async function loadBlogListData(d1: D1Database | undefined, categorySlug = "") {
-  await ensureTables(d1);
-  const db = getDb(d1);
+export async function loadBlogListData(categorySlug = "") {
+  await ensureTables();
+  const db = getDb();
 
   const [publishedArticles, categories, layout] = await Promise.all([
     db.query.articles.findMany({
@@ -35,7 +35,7 @@ export async function loadBlogListData(d1: D1Database | undefined, categorySlug 
     db.query.articleCategories.findMany({
       orderBy: [asc(articleCategories.name)]
     }),
-    loadActiveHeaderFooterHtml(d1)
+    loadActiveHeaderFooterHtml()
   ]);
 
   const normalizedCatSlug = categorySlug.trim().toLowerCase();

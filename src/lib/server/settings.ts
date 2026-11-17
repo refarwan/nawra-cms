@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-import { getD1Binding, getDb } from "#db/index";
+import { getDb } from "#db/index";
 import { settings } from "#db/schema";
 
 let cachedJwtSecret: string | null = null;
@@ -11,16 +11,15 @@ export function generateRandomSecret(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function getJwtSecret(d1?: D1Database): Promise<string> {
-  if (cachedJwtSecret) return cachedJwtSecret;
-
-  const client = getD1Binding(d1);
-  if (!client) {
-    return "nawra-cms-fallback-secret-key-32-chars!";
+export async function getJwtSecret(): Promise<string> {
+  if (process.env.JWT_SECRET) {
+    return process.env.JWT_SECRET;
   }
 
+  if (cachedJwtSecret) return cachedJwtSecret;
+
   try {
-    const db = getDb(client);
+    const db = getDb();
     const existing = await db.query.settings.findFirst({
       where: eq(settings.id, "jwt_secret")
     });
@@ -46,16 +45,16 @@ export async function getJwtSecret(d1?: D1Database): Promise<string> {
   }
 }
 
-export async function getSetting(id: string, d1?: D1Database): Promise<string | null> {
-  const db = getDb(d1);
+export async function getSetting(id: string): Promise<string | null> {
+  const db = getDb();
   const row = await db.query.settings.findFirst({
     where: eq(settings.id, id)
   });
   return row?.value ?? null;
 }
 
-export async function setSetting(id: string, value: string, d1?: D1Database): Promise<void> {
-  const db = getDb(d1);
+export async function setSetting(id: string, value: string): Promise<void> {
+  const db = getDb();
   const now = Date.now();
   const existing = await db.query.settings.findFirst({
     where: eq(settings.id, id)

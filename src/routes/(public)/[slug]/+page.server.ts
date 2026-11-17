@@ -9,15 +9,15 @@ import { loadActiveHeaderFooterHtml, renderFromJsonOrHtml } from "#lib/server/pu
 
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, platform }) => {
+export const load: PageServerLoad = async ({ params }) => {
   const slug = params.slug?.trim().toLowerCase();
 
   if (!slug || isSlugReserved(slug)) {
     error(404, "Halaman Tidak Ditemukan");
   }
 
-  await ensureTables(platform?.env?.DB);
-  const db = getDb(platform?.env?.DB);
+  await ensureTables();
+  const db = getDb();
 
   const pageRow = await db.query.pages.findFirst({
     where: and(eq(pages.slug, slug), eq(pages.status, "published"))
@@ -27,7 +27,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
     error(404, "Halaman Tidak Ditemukan");
   }
 
-  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml(platform?.env?.DB);
+  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml();
   const pageHtml =
     renderFromJsonOrHtml(pageRow.contentJson, pageRow.contentHtml, "page") ||
     pageRow.contentHtml ||
@@ -43,6 +43,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
     },
     headerHtml,
     footerHtml,
-    cfCountry: (platform?.cf?.country as string) ?? "Local/Dev"
+    cfCountry: "Netlify Edge"
   };
 };

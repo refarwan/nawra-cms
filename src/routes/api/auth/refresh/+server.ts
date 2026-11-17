@@ -5,19 +5,14 @@ import { getDb } from "../../../../lib/server/db";
 
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ cookies, platform, url }) => {
+export const GET: RequestHandler = async ({ cookies, url }) => {
   const refreshToken = cookies.get("refresh_token");
   if (!refreshToken) {
     return json({ success: false, message: "Refresh token tidak ditemukan." }, { status: 401 });
   }
 
-  const db = getDb(platform?.env?.DB);
-  const refreshed = await refreshUserToken(
-    db,
-    refreshToken,
-    platform?.env?.JWT_SECRET,
-    platform?.env?.DB
-  );
+  const db = getDb();
+  const refreshed = await refreshUserToken(db, refreshToken);
 
   if (!refreshed) {
     cookies.delete("access_token", { path: "/" });

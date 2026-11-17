@@ -24,7 +24,7 @@
         <span
           class="rounded bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold tracking-wider uppercase"
         >
-          Edge D1
+          Turso & S3
         </span>
       </div>
     </div>
@@ -32,7 +32,7 @@
     <!-- Value Propositions -->
     <div class="my-auto py-8">
       <h2 class="mb-6 text-2xl leading-snug font-extrabold tracking-tight text-white xl:text-3xl">
-        CMS Visual Modern berbasis Cloudflare Workers & D1.
+        CMS Visual Modern di Netlify dengan Turso & S3 CDN.
       </h2>
       <ul class="space-y-4">
         <li class="flex items-start gap-3.5 text-sm leading-relaxed text-white/90">
@@ -64,15 +64,15 @@
             <Icon icon="lucide:layout-template" class="h-4 w-4" />
           </div>
           <span>
-            Atur <strong class="font-bold text-white">Laman Utama, Header & Footer</strong> serta galeri
-            media Cloudflare R2 secara terpusat.
+            Atur <strong class="font-bold text-white">Laman Utama, Header & Footer</strong> serta media
+            S3 dengan integrasi CDN publik yang hemat bandwidth.
           </span>
         </li>
       </ul>
     </div>
 
     <p class="border-t border-white/20 pt-4 text-xs text-white/80">
-      {title} · Cloudflare Serverless Architecture
+      {title} · Netlify Serverless Architecture
     </p>
   </div>
 </aside>

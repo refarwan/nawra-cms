@@ -36,8 +36,8 @@ const FEATURES = [
   [
     "feat-6",
     "Edge Database",
-    "Penyimpanan Cloudflare D1",
-    "Setiap perubahan desain disimpan dalam format JSON dan HTML murni di database serverless Cloudflare D1 yang cepat dan aman."
+    "Penyimpanan Database Turso",
+    "Setiap perubahan desain disimpan dalam format JSON dan HTML murni di database serverless Turso (LibSQL) yang cepat dan aman."
   ]
 ] as const;
 

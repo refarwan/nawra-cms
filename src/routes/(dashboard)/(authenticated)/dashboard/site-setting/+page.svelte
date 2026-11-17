@@ -133,7 +133,7 @@
           name="siteDescription"
           rows={3}
           bind:value={siteDescription}
-          placeholder="Sistem Manajemen Konten (CMS) Visual Modern tanpa koding di Cloudflare Edge."
+          placeholder="Sistem Manajemen Konten (CMS) Visual Modern tanpa koding di Netlify Edge."
           class="w-full resize-none rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm leading-relaxed text-gray-900 transition-all placeholder:text-gray-400 focus:border-[#0d99ff] focus:ring-1 focus:ring-[#0d99ff] focus:outline-none"
         ></textarea>
         <p class="text-[11px] text-gray-500">

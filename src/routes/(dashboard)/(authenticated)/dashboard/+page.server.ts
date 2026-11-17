@@ -5,9 +5,9 @@ import { ensureTables, getDb } from "../../../../lib/server/db";
 
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform, locals }) => {
-  const db = getDb(platform?.env?.DB);
-  await ensureTables(platform?.env?.DB);
+export const load: PageServerLoad = async ({ locals }) => {
+  const db = getDb();
+  await ensureTables();
 
   const user = locals.user;
   const isAdmin = user?.role === "admin";

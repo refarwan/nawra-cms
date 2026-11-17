@@ -10,10 +10,10 @@ import { parseAndValidateCategory } from "./category-form";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async () => {
   try {
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const [categories, counts, userList] = await Promise.all([
       db.query.articleCategories.findMany({
         orderBy: [desc(articleCategories.createdAt)]
@@ -77,7 +77,7 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
-  create: async ({ request, platform, locals }) => {
+  create: async ({ request, locals }) => {
     try {
       const parsed = parseAndValidateCategory(await request.formData(), false);
       if (!parsed.ok) {
@@ -85,8 +85,8 @@ export const actions: Actions = {
       }
       const { name, slug, description } = parsed.value;
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const existing = await db.query.articleCategories.findFirst({
         where: eq(articleCategories.slug, slug)
       });
@@ -113,7 +113,7 @@ export const actions: Actions = {
     }
   },
 
-  edit: async ({ request, platform }) => {
+  edit: async ({ request }) => {
     try {
       const parsed = parseAndValidateCategory(await request.formData(), true);
       if (!parsed.ok) {
@@ -121,8 +121,8 @@ export const actions: Actions = {
       }
       const { id, name, slug, description } = parsed.value;
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const conflict = await db.query.articleCategories.findFirst({
         where: and(eq(articleCategories.slug, slug), ne(articleCategories.id, id))
       });
@@ -143,7 +143,7 @@ export const actions: Actions = {
     }
   },
 
-  delete: async ({ request, platform }) => {
+  delete: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
@@ -151,8 +151,8 @@ export const actions: Actions = {
         return fail(400, { error: "Kategori bawaan tidak dapat dihapus." });
       }
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       await db
         .update(articles)
         .set({ categoryId: null, updatedAt: Date.now() })

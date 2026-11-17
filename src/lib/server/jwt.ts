@@ -1,4 +1,4 @@
-// Web Crypto HMAC-SHA256 JWT implementation for Cloudflare Workers & Node/Bun
+// Web Crypto HMAC-SHA256 JWT implementation for Netlify Functions, Node, and Bun
 
 const DEFAULT_JWT_SECRET = "nawra-cms-jwt-secret-key-32-chars-long-minimum!";
 

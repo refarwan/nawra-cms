@@ -5,11 +5,11 @@ import { getDb } from "../../../../lib/server/db";
 
 import type { RequestHandler } from "./$types";
 
-export const POST: RequestHandler = async ({ cookies, platform }) => {
+export const POST: RequestHandler = async ({ cookies }) => {
   const refreshToken = cookies.get("refresh_token");
   if (refreshToken) {
-    const db = getDb(platform?.env?.DB);
-    await revokeRefreshToken(db, refreshToken, platform?.env?.DB);
+    const db = getDb();
+    await revokeRefreshToken(db, refreshToken);
   }
 
   cookies.delete("access_token", { path: "/" });

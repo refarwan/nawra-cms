@@ -28,7 +28,7 @@ export function renderFromJsonOrHtml(
   return contentHtml || null;
 }
 
-export async function loadActiveHeaderFooterHtml(d1?: D1Database): Promise<{
+export async function loadActiveHeaderFooterHtml(): Promise<{
   headerHtml: string | null;
   footerHtml: string | null;
 }> {
@@ -36,7 +36,7 @@ export async function loadActiveHeaderFooterHtml(d1?: D1Database): Promise<{
   let footerHtml: string | null = null;
 
   try {
-    const db = getDb(d1);
+    const db = getDb();
     const activeHeader = await db.query.headers.findFirst({ where: eq(headers.isActive, 1) });
     if (activeHeader) {
       if (
@@ -93,7 +93,7 @@ export async function loadActiveHeaderFooterHtml(d1?: D1Database): Promise<{
       }
     }
   } catch (err) {
-    console.warn("Gagal memuat header/footer aktif dari D1:", err);
+    console.warn("Gagal memuat header/footer aktif dari Turso:", err);
   }
 
   return { headerHtml, footerHtml };

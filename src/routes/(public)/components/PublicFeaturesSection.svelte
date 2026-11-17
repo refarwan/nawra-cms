@@ -31,8 +31,8 @@
     },
     {
       icon: "lucide:database",
-      title: "Penyimpanan Cloudflare D1",
-      desc: "Setiap perubahan desain disimpan dalam format JSON dan HTML murni di database serverless Cloudflare D1 yang cepat dan aman."
+      title: "Penyimpanan Database Turso",
+      desc: "Setiap perubahan desain disimpan dalam format JSON dan HTML murni di database serverless Turso (LibSQL) yang cepat dan aman."
     }
   ];
 

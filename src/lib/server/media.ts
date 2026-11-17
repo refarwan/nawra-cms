@@ -1,63 +1,43 @@
-import { env } from "cloudflare:workers";
+import { deleteFromS3, deleteMultipleFromS3 } from "./s3";
 
-export function getMediaBucket(bucket?: R2Bucket): R2Bucket | undefined {
-  if (bucket) return bucket;
-  try {
-    if (env?.MEDIA_BUCKET) return env.MEDIA_BUCKET;
-  } catch {
-    // Abaikan jika cloudflare:workers diakses di luar request context
-  }
-  return globalThis.__sveltekit_cloudflare_platform?.env?.MEDIA_BUCKET;
+export async function deleteMediaKeys(keys: string[]): Promise<void> {
+  await deleteMultipleFromS3(keys);
 }
 
-/** Hapus beberapa key media di bucket R2 sekaligus. */
-export async function deleteMediaKeys(keys: string[], bucketBinding?: R2Bucket): Promise<void> {
-  if (keys.length === 0) return;
-  const bucket = getMediaBucket(bucketBinding);
-  if (!bucket) return;
+export function extractMediaKeyFromUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
 
-  await Promise.allSettled(
-    keys.filter(Boolean).map(async (key) => {
-      try {
-        await bucket.delete(key);
-      } catch (err) {
-        console.warn("Failed to delete media object:", key, err);
-      }
-    })
-  );
+  if (url.startsWith("/api/media/")) {
+    return url.slice("/api/media/".length);
+  }
+
+  const cdnBase = process.env.S3_PUBLIC_CDN_URL?.trim().replace(/\/+$/, "");
+  if (cdnBase && url.startsWith(cdnBase)) {
+    return url.slice(cdnBase.length).replace(/^\/+/, "");
+  }
+
+  const endpoint = process.env.S3_ENDPOINT?.trim().replace(/\/+$/, "");
+  const bucket = process.env.S3_BUCKET || "";
+  if (endpoint && bucket && url.startsWith(`${endpoint}/${bucket}/`)) {
+    return url.slice(`${endpoint}/${bucket}/`.length);
+  }
+
+  return null;
 }
 
 async function deletePrefixedMediaObject(
   mediaUrl: string | null | undefined,
-  urlPrefix: string,
-  bucketBinding?: R2Bucket
+  prefix: string
 ): Promise<void> {
-  if (!mediaUrl || !mediaUrl.startsWith(urlPrefix)) return;
-  const key = mediaUrl.slice("/api/media/".length);
-  if (!key) return;
-
-  const bucket = getMediaBucket(bucketBinding);
-  if (!bucket) return;
-
-  try {
-    await bucket.delete(key);
-  } catch (err) {
-    console.warn("Failed to delete media object:", key, err);
-  }
+  const key = extractMediaKeyFromUrl(mediaUrl);
+  if (!key || !key.startsWith(prefix)) return;
+  await deleteFromS3(key);
 }
 
-/** Hapus file foto profil lama di bucket R2 jika berada di prefix avatars/. */
-export async function deleteAvatarObject(
-  avatarUrl: string | null | undefined,
-  bucketBinding?: R2Bucket
-): Promise<void> {
-  await deletePrefixedMediaObject(avatarUrl, "/api/media/avatars/", bucketBinding);
+export async function deleteAvatarObject(avatarUrl: string | null | undefined): Promise<void> {
+  await deletePrefixedMediaObject(avatarUrl, "avatars/");
 }
 
-/** Hapus file favicon lama di bucket R2 jika berada di prefix favicons/. */
-export async function deleteFaviconObject(
-  faviconUrl: string | null | undefined,
-  bucketBinding?: R2Bucket
-): Promise<void> {
-  await deletePrefixedMediaObject(faviconUrl, "/api/media/favicons/", bucketBinding);
+export async function deleteFaviconObject(faviconUrl: string | null | undefined): Promise<void> {
+  await deletePrefixedMediaObject(faviconUrl, "favicons/");
 }

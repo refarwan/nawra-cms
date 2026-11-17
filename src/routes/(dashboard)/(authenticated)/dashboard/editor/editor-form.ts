@@ -101,11 +101,7 @@ export async function findEditorConflict(
   return { error, fieldErrors: { email: error } };
 }
 
-export async function deleteEditorOwnedContent(
-  db: DbClient,
-  editorId: string,
-  mediaBucket?: R2Bucket
-): Promise<void> {
+export async function deleteEditorOwnedContent(db: DbClient, editorId: string): Promise<void> {
   const [editorImages, editorCategories] = await Promise.all([
     db
       .select({ r2Key: imageLibrary.r2Key })
@@ -128,8 +124,5 @@ export async function deleteEditorOwnedContent(
 
   await db.delete(articles).where(eq(articles.authorId, editorId));
   await db.delete(imageLibrary).where(eq(imageLibrary.uploaderId, editorId));
-  await deleteMediaKeys(
-    editorImages.map((img) => img.r2Key),
-    mediaBucket
-  );
+  await deleteMediaKeys(editorImages.map((img) => img.r2Key));
 }

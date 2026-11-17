@@ -8,15 +8,15 @@ import { loadActiveHeaderFooterHtml, renderFromJsonOrHtml } from "#lib/server/pu
 
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ params, platform }) => {
+export const load: PageServerLoad = async ({ params }) => {
   const categorySlug = params.category?.trim().toLowerCase();
   const articleSlug = params.slug?.trim().toLowerCase();
   if (!categorySlug || !articleSlug) {
     error(404, "Artikel Tidak Ditemukan");
   }
 
-  await ensureTables(platform?.env?.DB);
-  const db = getDb(platform?.env?.DB);
+  await ensureTables();
+  const db = getDb();
 
   let targetCategoryId: string | null = null;
   let categoryMeta: { name: string; slug: string };
@@ -46,7 +46,7 @@ export const load: PageServerLoad = async ({ params, platform }) => {
     error(404, "Artikel Tidak Ditemukan");
   }
 
-  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml(platform?.env?.DB);
+  const { headerHtml, footerHtml } = await loadActiveHeaderFooterHtml();
   const contentHtml =
     renderFromJsonOrHtml(article.contentJson, article.contentHtml, "page") ||
     article.contentHtml ||
@@ -65,6 +65,6 @@ export const load: PageServerLoad = async ({ params, platform }) => {
     },
     headerHtml,
     footerHtml,
-    cfCountry: (platform?.cf?.country as string) ?? "Local/Dev"
+    cfCountry: "Netlify Edge"
   };
 };

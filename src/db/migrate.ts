@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
-import { getPlatformProxy } from "wrangler";
+import { getLibsqlClient } from "./index";
 
 interface MigrationJournal {
   entries: Array<{
@@ -13,27 +13,17 @@ interface MigrationJournal {
 }
 
 export async function migrate() {
-  console.log("Running D1 migrations via Wrangler DB binding...");
-
-  const { env, dispose } = await getPlatformProxy<{ DB: D1Database }>({
-    configPath: "wrangler.jsonc"
-  });
+  console.log("Running migrations via Turso / LibSQL client...");
+  const client = getLibsqlClient();
 
   try {
-    const db = env.DB;
-    if (!db) {
-      throw new Error("Binding DB tidak ditemukan di wrangler.jsonc");
-    }
-
-    await db
-      .prepare(
-        `CREATE TABLE IF NOT EXISTS __drizzle_migrations (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          hash text NOT NULL,
-          created_at numeric
-        )`
-      )
-      .run();
+    await client.execute(
+      `CREATE TABLE IF NOT EXISTS __drizzle_migrations (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hash text NOT NULL,
+        created_at numeric
+      )`
+    );
 
     const drizzleDir = path.resolve(process.cwd(), "drizzle");
     const journalPath = path.join(drizzleDir, "meta", "_journal.json");
@@ -47,10 +37,8 @@ export async function migrate() {
           .filter((f) => f.endsWith(".sql"))
           .sort();
 
-    const executedRes = await db
-      .prepare("SELECT hash FROM __drizzle_migrations")
-      .all<{ hash: string }>();
-    const executedHashes = new Set((executedRes.results || []).map((r) => r.hash));
+    const executedRes = await client.execute("SELECT hash FROM __drizzle_migrations");
+    const executedHashes = new Set(executedRes.rows.map((r) => String(r.hash)));
 
     for (const tag of tags) {
       const fileName = tag.endsWith(".sql") ? tag : `${tag}.sql`;
@@ -72,21 +60,22 @@ export async function migrate() {
         .filter(Boolean);
 
       for (const stmt of statements) {
-        await db.prepare(stmt).run();
+        await client.execute(stmt);
       }
 
-      await db
-        .prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)")
-        .bind(fileName, Date.now())
-        .run();
+      await client.execute({
+        sql: "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
+        args: [fileName, Date.now()]
+      });
 
       console.timeEnd(`Migration ${fileName}`);
       console.log(`✅ ${fileName} applied successfully.`);
     }
 
-    console.log("🎉 All migrations applied to Cloudflare D1 binding (DB).");
-  } finally {
-    await dispose();
+    console.log("🎉 All migrations applied to Turso / LibSQL database.");
+  } catch (err) {
+    console.error("Migration error:", err);
+    throw err;
   }
 }
 

@@ -88,7 +88,7 @@
         </div>
         <div>
           <h3 class="text-sm font-bold text-gray-900">Upload Gambar ke Galeri</h3>
-          <p class="text-[11px] text-gray-500">Disimpan ke Cloudflare R2</p>
+          <p class="text-[11px] text-gray-500">Disimpan ke S3 & Disajikan via CDN</p>
         </div>
       </div>
 

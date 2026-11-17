@@ -6,21 +6,15 @@ import { getDb } from "../../../../lib/server/db";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user) {
     throw redirect(302, "/dashboard");
   }
-  const isCloudflare = Boolean(platform?.cf || platform?.ctx);
-  const isD1Connected = Boolean(platform?.env?.DB);
-
-  return {
-    isCloudflare,
-    isD1Connected
-  };
+  return {};
 };
 
 export const actions: Actions = {
-  login: async ({ request, cookies, platform, url }) => {
+  login: async ({ request, cookies, url }) => {
     const data = await request.formData();
     const identifier = String(data.get("username") || data.get("email") || "").trim();
     const password = String(data.get("password") || "");
@@ -37,14 +31,8 @@ export const actions: Actions = {
     }
 
     try {
-      const db = getDb(platform?.env?.DB);
-      const auth = await loginUser(
-        db,
-        identifier,
-        password,
-        platform?.env?.JWT_SECRET,
-        platform?.env?.DB
-      );
+      const db = getDb();
+      const auth = await loginUser(db, identifier, password);
 
       if (!auth) {
         return fail(400, {
@@ -86,12 +74,12 @@ export const actions: Actions = {
     }
   },
 
-  logout: async ({ cookies, platform }) => {
+  logout: async ({ cookies }) => {
     try {
       const refreshToken = cookies.get("refresh_token");
       if (refreshToken) {
-        const db = getDb(platform?.env?.DB);
-        await revokeRefreshToken(db, refreshToken, platform?.env?.DB);
+        const db = getDb();
+        await revokeRefreshToken(db, refreshToken);
       }
     } catch (err) {
       console.error("Logout error:", err);

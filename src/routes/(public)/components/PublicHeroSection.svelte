@@ -6,11 +6,11 @@
   const stats = [
     { value: "100%", label: "Visual Tanpa Koding" },
     { value: "3 Mode", label: "Responsif Desktop, Tablet & Mobile" },
-    { value: "< 50ms", label: "Render Cepat di Cloudflare Edge" },
-    { value: "Real-Time", label: "Tersimpan Otomatis di Cloudflare D1" }
+    { value: "< 50ms", label: "Render Cepat di Netlify Edge" },
+    { value: "Real-Time", label: "Tersimpan Otomatis di Turso" }
   ];
 
-  const highlights = ["Kanvas Visual Interaktif", "Auto-Layout Flexbox", "Cloudflare Workers & D1"];
+  const highlights = ["Kanvas Visual Interaktif", "Auto-Layout Flexbox", "Netlify & Turso"];
 </script>
 
 <!-- Top Announcement Banner -->
@@ -45,7 +45,7 @@
 
     <p class="mx-auto mb-8 max-w-2xl text-lg leading-relaxed text-gray-600 sm:text-xl">
       Rancang tata letak header, beranda, dan footer secara langsung di atas kanvas interaktif. Atur
-      Flexbox, warna, tipografi, gambar, dan video YouTube lalu terbitkan ke Cloudflare Edge.
+      Flexbox, warna, tipografi, gambar, dan video YouTube lalu terbitkan ke Netlify Edge.
     </p>
 
     <div class="flex flex-wrap items-center justify-center gap-3.5">

@@ -1,4 +1,4 @@
-import adapter from "@sveltejs/adapter-cloudflare";
+import adapter from "@sveltejs/adapter-netlify";
 import { enhancedImages } from "@sveltejs/enhanced-img";
 import { sveltekit } from "@sveltejs/kit/vite";
 import tailwindcss from "@tailwindcss/vite";
@@ -15,9 +15,7 @@ export default defineConfig({
           filename.split(/[/\\]/).includes("node_modules") ? undefined : true
       },
       adapter: adapter({
-        platformProxy: {
-          configPath: "wrangler.jsonc"
-        }
+        edge: false
       })
     })
   ]

@@ -10,11 +10,11 @@ import { validatePageSlug } from "#lib/utils/slug";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ locals, platform }) => {
+export const load: PageServerLoad = async ({ locals }) => {
   if (locals.user?.role !== "admin") throw redirect(303, "/dashboard");
   try {
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const list = await db.query.pages.findMany({
       orderBy: [desc(pages.createdAt)]
     });
@@ -26,7 +26,7 @@ export const load: PageServerLoad = async ({ locals, platform }) => {
 };
 
 export const actions: Actions = {
-  create: async ({ request, platform }) => {
+  create: async ({ request }) => {
     let createdId: string;
     try {
       const data = await request.formData();
@@ -49,8 +49,8 @@ export const actions: Actions = {
         });
       }
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const existing = await db.query.pages.findFirst({
         where: eq(pages.slug, slugCheck.normalized)
       });
@@ -81,7 +81,7 @@ export const actions: Actions = {
     throw redirect(303, `/editor?type=page&id=${createdId}`);
   },
 
-  edit: async ({ request, platform }) => {
+  edit: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
@@ -104,8 +104,8 @@ export const actions: Actions = {
         });
       }
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const conflict = await db.query.pages.findFirst({
         where: and(eq(pages.slug, slugCheck.normalized), ne(pages.id, id))
       });
@@ -132,15 +132,15 @@ export const actions: Actions = {
     }
   },
 
-  toggleStatus: async ({ request, platform }) => {
+  toggleStatus: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
       const nextStatus = data.get("status") === "published" ? "published" : "draft";
       if (!id) return fail(400, { error: "ID tidak valid." });
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       await db
         .update(pages)
         .set({ status: nextStatus, updatedAt: Date.now() })
@@ -152,14 +152,14 @@ export const actions: Actions = {
     }
   },
 
-  delete: async ({ request, platform }) => {
+  delete: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
       if (!id) return fail(400, { error: "ID tidak valid." });
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       await db.delete(pages).where(eq(pages.id, id));
       return { success: true };
     } catch (err) {

@@ -6,10 +6,10 @@ import { ensureTables } from "#lib/server/db";
 
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async () => {
   try {
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const [images, userList] = await Promise.all([
       db.query.imageLibrary.findMany({
         orderBy: [desc(imageLibrary.createdAt)]

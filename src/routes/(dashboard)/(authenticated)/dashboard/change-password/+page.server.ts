@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-  default: async ({ request, locals, platform, cookies }) => {
+  default: async ({ request, locals, cookies }) => {
     if (!locals.user) {
       return fail(401, { error: "Sesi tidak valid. Silakan login kembali." });
     }
@@ -52,7 +52,7 @@ export const actions: Actions = {
     }
 
     try {
-      const db = getDb(platform?.env?.DB);
+      const db = getDb();
       const userRow = await db.query.users.findFirst({
         where: eq(users.id, locals.user.id)
       });
@@ -76,7 +76,7 @@ export const actions: Actions = {
         })
         .where(eq(users.id, locals.user.id));
 
-      await revokeAllUserSessions(db, locals.user.id, platform?.env?.DB);
+      await revokeAllUserSessions(db, locals.user.id);
       cookies.delete("access_token", { path: "/" });
       cookies.delete("refresh_token", { path: "/" });
 

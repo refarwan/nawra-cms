@@ -11,10 +11,10 @@ import { parseAndValidateArticle } from "./article-form";
 import type { Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 
-export const load: PageServerLoad = async ({ platform }) => {
+export const load: PageServerLoad = async () => {
   try {
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const [articleList, categoryList, userList] = await Promise.all([
       db.query.articles.findMany({
         orderBy: [desc(articles.createdAt)]
@@ -56,7 +56,7 @@ export const load: PageServerLoad = async ({ platform }) => {
 };
 
 export const actions: Actions = {
-  create: async ({ request, platform, locals }) => {
+  create: async ({ request, locals }) => {
     let createdId: string;
     try {
       const parsed = parseAndValidateArticle(await request.formData(), false);
@@ -65,8 +65,8 @@ export const actions: Actions = {
       }
       const { title, slug, excerpt, coverImage, categoryId, status } = parsed.value;
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const existing = await db.query.articles.findFirst({
         where: and(
           categoryId ? eq(articles.categoryId, categoryId) : isNull(articles.categoryId),
@@ -104,7 +104,7 @@ export const actions: Actions = {
     throw redirect(303, `/editor?type=article&id=${createdId}`);
   },
 
-  edit: async ({ request, platform }) => {
+  edit: async ({ request }) => {
     try {
       const parsed = parseAndValidateArticle(await request.formData(), true);
       if (!parsed.ok) {
@@ -112,8 +112,8 @@ export const actions: Actions = {
       }
       const { id, title, slug, excerpt, coverImage, categoryId, status } = parsed.value;
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const conflict = await db.query.articles.findFirst({
         where: and(
           categoryId ? eq(articles.categoryId, categoryId) : isNull(articles.categoryId),
@@ -152,15 +152,15 @@ export const actions: Actions = {
     }
   },
 
-  toggleStatus: async ({ request, platform }) => {
+  toggleStatus: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
       const nextStatus = data.get("status") === "published" ? "published" : "draft";
       if (!id) return fail(400, { error: "ID tidak valid." });
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       const now = Date.now();
       await db
         .update(articles)
@@ -177,14 +177,14 @@ export const actions: Actions = {
     }
   },
 
-  delete: async ({ request, platform }) => {
+  delete: async ({ request }) => {
     try {
       const data = await request.formData();
       const id = String(data.get("id") || "");
       if (!id) return fail(400, { error: "ID tidak valid." });
 
-      await ensureTables(platform?.env?.DB);
-      const db = getDb(platform?.env?.DB);
+      await ensureTables();
+      const db = getDb();
       await db.delete(articles).where(eq(articles.id, id));
       return { success: true };
     } catch (err) {

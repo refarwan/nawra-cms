@@ -9,8 +9,8 @@ import type { DefaultTemplateResult } from "./default-templates";
 const STATS = [
   ["stat-1", "100%", "Visual Tanpa Koding"],
   ["stat-2", "3 Mode", "Responsif Desktop, Tablet & Mobile"],
-  ["stat-3", "< 50ms", "Render Cepat di Cloudflare Edge"],
-  ["stat-4", "Real-Time", "Tersimpan Otomatis di Cloudflare D1"]
+  ["stat-3", "< 50ms", "Render Cepat di Netlify Edge"],
+  ["stat-4", "Real-Time", "Tersimpan Otomatis di Turso"]
 ] as const;
 
 export function getDefaultHomeTemplate(title = "Nawra Laman Utama"): DefaultTemplateResult {
@@ -74,7 +74,7 @@ export function getDefaultHomeTemplate(title = "Nawra Laman Utama"): DefaultTemp
       "hero-desc",
       "Hero Description",
       "hero-left",
-      "Rancang tata letak header, beranda, dan footer secara langsung di atas kanvas interaktif. Atur Flexbox, warna, tipografi, gambar, dan video YouTube lalu terbitkan ke Cloudflare Edge.",
+      "Rancang tata letak header, beranda, dan footer secara langsung di atas kanvas interaktif. Atur Flexbox, warna, tipografi, gambar, dan video YouTube lalu terbitkan ke Netlify Edge.",
       { fontSize: 16, textAlign: "center" }
     ),
     elFrame("hero-actions", "Baris Tombol Hero", "hero-left", {
@@ -110,7 +110,7 @@ export function getDefaultHomeTemplate(title = "Nawra Laman Utama"): DefaultTemp
       "hero-highlights",
       "Highlight Keunggulan",
       "hero-left",
-      "✓ Kanvas Visual Interaktif   •   ✓ Auto-Layout Flexbox   •   ✓ Cloudflare Workers & D1",
+      "✓ Kanvas Visual Interaktif   •   ✓ Auto-Layout Flexbox   •   ✓ Netlify & Turso",
       { fontSize: 13, fontWeight: "600", textAlign: "center" }
     ),
     elFrame("stats-section", "Baris Statistik", "flexbox-default", {

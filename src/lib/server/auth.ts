@@ -81,11 +81,10 @@ export async function loginUser(
   db: AppDb,
   identifier: string,
   pass: string,
-  secret?: string,
-  d1?: D1Database
+  secret?: string
 ): Promise<{ user: AuthUser; accessToken: string; refreshToken: string } | null> {
-  await ensureTables(d1);
-  await seedInitialAdmin(db, d1);
+  await ensureTables();
+  await seedInitialAdmin(db);
 
   const clean = identifier.trim().toLowerCase();
   const row = await db.query.users.findFirst({
@@ -107,7 +106,7 @@ export async function loginUser(
     createdAt: row.createdAt
   };
 
-  const resolvedSecret = secret || (await getJwtSecret(d1));
+  const resolvedSecret = secret || (await getJwtSecret());
   const { accessToken, refreshToken, jti, expiresAt } = await generateTokens(user, resolvedSecret);
 
   await db.insert(refreshTokens).values({
@@ -123,14 +122,13 @@ export async function loginUser(
 export async function refreshUserToken(
   db: AppDb,
   refreshToken: string,
-  secret?: string,
-  d1?: D1Database
+  secret?: string
 ): Promise<{ user: AuthUser; accessToken: string } | null> {
-  const resolvedSecret = secret || (await getJwtSecret(d1));
+  const resolvedSecret = secret || (await getJwtSecret());
   const decoded = await verifyJwt<JwtRefreshTokenPayload>(refreshToken, resolvedSecret);
   if (!decoded || !decoded.jti || !decoded.sub) return null;
 
-  await ensureTables(d1);
+  await ensureTables();
 
   const tokenRecord = await db.query.refreshTokens.findFirst({
     where: eq(refreshTokens.id, decoded.jti)
@@ -167,23 +165,15 @@ export async function refreshUserToken(
   return { user, accessToken: newAccessToken };
 }
 
-export async function revokeRefreshToken(
-  db: AppDb,
-  refreshToken: string,
-  d1?: D1Database
-): Promise<void> {
+export async function revokeRefreshToken(db: AppDb, refreshToken: string): Promise<void> {
   const decoded = decodeJwt<JwtRefreshTokenPayload>(refreshToken);
   if (!decoded || !decoded.jti) return;
 
-  await ensureTables(d1);
+  await ensureTables();
   await db.delete(refreshTokens).where(eq(refreshTokens.id, decoded.jti));
 }
 
-export async function revokeAllUserSessions(
-  db: AppDb,
-  userId: string,
-  d1?: D1Database
-): Promise<void> {
-  await ensureTables(d1);
+export async function revokeAllUserSessions(db: AppDb, userId: string): Promise<void> {
+  await ensureTables();
   await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
 }

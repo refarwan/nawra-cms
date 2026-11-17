@@ -92,7 +92,7 @@
     <div class="flex items-center gap-3">
       <div class="flex items-center gap-1.5">
         <span class="inline-block h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-        <span class="font-medium text-neutral-300">Cloudflare Workers SSR</span>
+        <span class="font-medium text-neutral-300">Netlify Serverless SSR</span>
       </div>
       <span class="text-neutral-600">•</span>
       <span>Kanvas: <strong class="text-neutral-200">{editor.frame.name}</strong></span>

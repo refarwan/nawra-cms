@@ -4,16 +4,16 @@ import { desc } from "drizzle-orm";
 import { getDb } from "#db/index";
 import { imageLibrary } from "#db/schema";
 import { ensureTables } from "#lib/server/db";
-import { getMediaBucket } from "#lib/server/media";
 import { getImageExtFromMime, validateUploadedImageFile } from "#lib/server/media-validation";
+import { uploadToS3 } from "#lib/server/s3";
 
 import type { RequestHandler } from "./$types";
 
-export const GET: RequestHandler = async ({ locals, platform, url }) => {
+export const GET: RequestHandler = async ({ locals, url }) => {
   if (!locals.user) return json({ error: "Unauthorized" }, { status: 401 });
 
-  await ensureTables(platform?.env?.DB);
-  const db = getDb(platform?.env?.DB);
+  await ensureTables();
+  const db = getDb();
   const q = url.searchParams.get("q")?.trim().toLowerCase() || "";
 
   const rows = await db.query.imageLibrary.findMany({
@@ -29,13 +29,8 @@ export const GET: RequestHandler = async ({ locals, platform, url }) => {
   return json({ images: filtered });
 };
 
-export const POST: RequestHandler = async ({ request, locals, platform }) => {
+export const POST: RequestHandler = async ({ request, locals }) => {
   if (!locals.user) return json({ error: "Unauthorized" }, { status: 401 });
-
-  const bucket = getMediaBucket(platform?.env?.MEDIA_BUCKET);
-  if (!bucket) {
-    return json({ error: "Binding Cloudflare R2 (MEDIA_BUCKET) tidak tersedia." }, { status: 500 });
-  }
 
   try {
     const formData = await request.formData();
@@ -53,27 +48,25 @@ export const POST: RequestHandler = async ({ request, locals, platform }) => {
 
     const id = crypto.randomUUID();
     const ext = getImageExtFromMime(file.type, file.name);
-    const r2Key = `image-library/${id}.${ext}`;
-    const buffer = await file.arrayBuffer();
+    const key = `image-library/${id}.${ext}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    await bucket.put(r2Key, buffer, {
-      httpMetadata: {
-        contentType: file.type,
-        cacheControl: "public, max-age=31536000, immutable"
-      }
+    const cdnUrl = await uploadToS3({
+      key,
+      body: buffer,
+      contentType: file.type
     });
 
-    await ensureTables(platform?.env?.DB);
-    const db = getDb(platform?.env?.DB);
+    await ensureTables();
+    const db = getDb();
     const now = Date.now();
-    const url = `/api/media/${r2Key}`;
 
     const newItem = {
       id,
       name,
       altText,
-      r2Key,
-      url,
+      r2Key: key,
+      url: cdnUrl,
       mimeType: file.type,
       size: file.size,
       width,
